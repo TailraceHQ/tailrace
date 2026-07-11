@@ -1,0 +1,41 @@
+{
+  "name": "@tailrace/hono",
+  "version": "0.0.0",
+  "description": "Tailrace Hono middleware: OpenAI-compatible passthrough with policy at the model boundary.",
+  "license": "MIT",
+  "type": "module",
+  "sideEffects": false,
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      }
+    }
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "test": "vitest run --passWithNoTests",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@tailrace/core": "workspace:*"
+  },
+  "peerDependencies": {
+    "hono": ">=4"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

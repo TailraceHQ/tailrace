@@ -21,7 +21,7 @@ interface Span {
 }
 ```
 
-`defineRecognizer({...})` is the public API for custom recognizers (pattern-based or arbitrary `scan`). Registered via `createGate({ recognizers: [...] })`.
+`defineRecognizer({...})` is the public API for custom recognizers (pattern-based or arbitrary `scan`). Registered via `createTailrace({ recognizers: [...] })`.
 
 ## 2. Tier 0 (ships in core, zero deps, sync)
 
@@ -43,7 +43,7 @@ Implement ALL of the following. Each has (a) a pattern, (b) where applicable a v
 - `ip_address`: v4 + v6; exclude private/reserved ranges by default (config flag `includePrivateIps`).
 - `url_credentials`: any URL containing userinfo (`scheme://user:pass@host`).
 
-## 3. Tier 1 (@gate/recognizer-ner, Node/Fluid only)
+## 3. Tier 1 (@tailrace/recognizer-ner, Node/Fluid only)
 
 Wraps a quantized GLiNER-class ONNX model via `onnxruntime-node`. Emits `person`, `location`, `organization`. Requirements: lazy model load on first scan (never at import); model fetched from HF hub URL pinned by revision + local cache dir, or supplied via `modelPath`; async `scan`; batch inputs internally; document memory footprint. If the model file is unavailable at runtime: log one warning, mark recognizer disabled, continue with Tier 0 (prime directive #4). Model choice is a build-time decision — put candidates and benchmark results in `OPEN_QUESTIONS.md`, pick the best F1-per-MB, don't agonize.
 

@@ -59,7 +59,7 @@ For a span with entity `E`, boundary `B`, identity `I`:
 4. If multiple spans overlap after merging (see detection.md §4), the most restrictive action wins: `block > review > tokenize > mask > allow`.
 5. `egress` boundaries invert semantics: the resolved action for a tokenized value at a trusted egress with `"detokenize"` is vault lookup + restore. Detokenize NEVER happens at `model`, `tool(out)`, `mcp(out)`, or `telemetry` boundaries regardless of policy — hard invariant, tested.
 
-Resolution must be pure and synchronous: `resolve(policy, entity, boundary, identity) → ResolvedRule`. Precompile the policy document into lookup structures at `createGate()` time; per-span resolution target is < 1µs (it's map lookups, not regex over keys).
+Resolution must be pure and synchronous: `resolve(policy, entity, boundary, identity) → ResolvedRule`. Precompile the policy document into lookup structures at `createTailrace()` time; per-span resolution target is < 1µs (it's map lookups, not regex over keys).
 
 ## 4. Actions semantics
 
@@ -74,9 +74,9 @@ Resolution must be pure and synchronous: `resolve(policy, entity, boundary, iden
 All integrations call one core method:
 
 ```ts
-gate.check(input: string | JsonObject, ctx: { boundary: Boundary; identity: Identity; workflowId?: string })
+tailrace.check(input: string | JsonObject, ctx: { boundary: Boundary; identity: Identity; workflowId?: string })
   : Promise<{ output: typeof input; decisions: Decision[]; blocked: false } >
   // or throws PolicyViolationError (blocked)
 ```
 
-Plus `gate.restore(input, ctx)` for egress boundaries. Integrations contain NO policy logic — they only construct the right `Boundary`/`Identity` and translate errors.
+Plus `tailrace.restore(input, ctx)` for egress boundaries. Integrations contain NO policy logic — they only construct the right `Boundary`/`Identity` and translate errors.

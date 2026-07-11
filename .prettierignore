@@ -1,0 +1,10 @@
+**/dist/**
+**/node_modules/**
+**/.turbo/**
+pnpm-lock.yaml
+CHANGELOG.md
+**/CHANGELOG.md
+
+# Normative, hand-authored specs - kept verbatim, not reflowed by the formatter.
+docs/**
+AGENTS.md

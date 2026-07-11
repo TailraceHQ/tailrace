@@ -5,14 +5,14 @@
 ```
 /
 ├── packages/
-│   ├── core/            # @gate/core — detection, policy engine, vault, audit emitter
-│   ├── ai-sdk/          # @gate/ai-sdk — Vercel AI SDK middleware + tool wrapper
-│   ├── mcp/             # @gate/mcp — MCP client transport wrapper
-│   ├── hono/            # @gate/hono — Hono middleware (openai-compatible passthrough mode)
-│   ├── cli/             # @gate/cli — `gate` binary: init, install-hooks, hook, scan
-│   └── recognizer-ner/  # @gate/recognizer-ner — Tier 1 ONNX recognizer (optional peer)
+│   ├── core/            # @tailrace/core — detection, policy engine, vault, audit emitter
+│   ├── ai-sdk/          # @tailrace/ai-sdk — Vercel AI SDK middleware + tool wrapper
+│   ├── mcp/             # @tailrace/mcp — MCP client transport wrapper
+│   ├── hono/            # @tailrace/hono — Hono middleware (openai-compatible passthrough mode)
+│   ├── cli/             # @tailrace/cli — `tailrace` binary: init, install-hooks, hook, scan
+│   └── recognizer-ner/  # @tailrace/recognizer-ner — Tier 1 ONNX recognizer (optional peer)
 ├── examples/
-│   ├── nextjs-ai-sdk/   # Next.js app using @gate/ai-sdk (demo 1 & 3)
+│   ├── nextjs-ai-sdk/   # Next.js app using @tailrace/ai-sdk (demo 1 & 3)
 │   └── claude-code/     # settings.json + walkthrough for hook demo (demo 2)
 ├── benchmarks/          # perf harness, run in CI
 └── docs/                # these specs, later published as the docs site content
@@ -44,7 +44,7 @@ Tooling: pnpm workspaces + Turborepo. tsup for builds (ESM + CJS, `.d.ts`). Vite
 
 ```
 core/src/
-├── index.ts          # createGate(), definePolicy(), public types
+├── index.ts          # createTailrace(), definePolicy(), public types
 ├── detect/           # engine registry, tier0 recognizers, span merging
 ├── policy/           # resolution algorithm (see policy-engine.md)
 ├── vault/            # Vault interface, memoryVault, kvVault adapter contract
@@ -70,6 +70,6 @@ interface PolicySource {
 
 v0.1 ships `staticPolicy(doc)` (the default; wraps a local `definePolicy` result) and `fileP olicy(path)` (Node only, for the CLI). A future `remotePolicy(url, key)` is out of scope but must be implementable against this interface with no core changes. Audit sinks follow the same pattern: `AuditSink` interface, local sinks shipped, remote sink later.
 
-## 6. Public API surface (top-level exports of @gate/core)
+## 6. Public API surface (top-level exports of @tailrace/core)
 
-`createGate`, `definePolicy`, `defineRecognizer`, `memoryVault`, `kvVault`, `staticPolicy`, error classes, and all public types. Anything else is internal. Keep this list short — every export is API we maintain forever.
+`createTailrace`, `definePolicy`, `defineRecognizer`, `memoryVault`, `kvVault`, `staticPolicy`, error classes, and all public types. Anything else is internal. Keep this list short — every export is API we maintain forever.

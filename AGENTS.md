@@ -4,15 +4,15 @@ You are building an open-source, TypeScript-native **agent data governance libra
 
 ## Naming
 
-The final product name is TBD. Use the npm scope `@gate/*` and the CLI name `gate` as placeholders EVERYWHERE. Never invent an alternative name. Rename will be a single find/replace across the repo.
+The product name is **Tailrace**. Use the npm scope `@tailrace/*` and the CLI name `tailrace` everywhere.
 
 ## Prime directives (violations = failed task)
 
 1. **In-process only.** No proxy mode, no sidecar, no required Docker container, no required network call in any request hot path. If a design requires the request path to wait on a network response, it is wrong.
-2. **TypeScript only.** Strict mode. No Python anywhere in the runtime. Node >= 20; core must also run on Cloudflare Workers and Vercel Edge/Fluid runtimes (no Node-only APIs in `@gate/core` — see docs/architecture.md for the runtime matrix).
+2. **TypeScript only.** Strict mode. No Python anywhere in the runtime. Node >= 20; core must also run on Cloudflare Workers and Vercel Edge/Fluid runtimes (no Node-only APIs in `@tailrace/core` — see docs/architecture.md for the runtime matrix).
 3. **Detection is a commodity; policy is the product.** Do not attempt to train models or improve NER accuracy. Detection engines are pluggable. Effort goes into the policy engine, vault, integrations, and audit.
 4. **Fail closed for `block` policies, fail open for availability.** If the detection engine throws, a `block`-configured entity class must block; a missing optional model (Tier 1) must degrade to Tier 0 with a logged warning, never crash the host app.
-5. **Zero required config.** `createGate()` with no arguments must work and must enforce the default policy: all secret classes → `block`, common PII → `tokenize`. Every knob has a sensible default.
+5. **Zero required config.** `createTailrace()` with no arguments must work and must enforce the default policy: all secret classes → `block`, common PII → `tokenize`. Every knob has a sensible default.
 6. **Never log raw sensitive values.** Audit events, error messages, and debug logs carry hashes and entity types, never detected values. This includes test fixtures committed to the repo — use obviously-fake values.
 7. **Performance budgets are acceptance criteria**, not aspirations: Tier 0 scan p50 < 5ms on a 4KB input; core bundle (no ONNX model) < 60KB gzipped; zero network calls in hot path. CI must measure and fail on regression (see docs/conventions.md).
 
@@ -48,7 +48,7 @@ Work through the milestones in `docs/milestones.md` **strictly in order** (M0 �
 
 ## Definition of done (v0.1 overall)
 
-All milestone acceptance criteria green in CI; the three demos in docs/milestones.md §Demos run from a fresh clone with documented commands; README quickstart takes a new user from `pnpm add @gate/core @gate/ai-sdk` to a working tokenizing middleware in under 10 lines of code; no TODOs in public API surfaces; CHANGELOG and per-package READMEs exist.
+All milestone acceptance criteria green in CI; the three demos in docs/milestones.md §Demos run from a fresh clone with documented commands; README quickstart takes a new user from `pnpm add @tailrace/core @tailrace/ai-sdk` to a working tokenizing middleware in under 10 lines of code; no TODOs in public API surfaces; CHANGELOG and per-package READMEs exist.
 
 ## When uncertain
 

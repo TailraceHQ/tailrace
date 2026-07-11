@@ -1,0 +1,8 @@
+{
+  "note": "Perf-gate baseline (docs/conventions.md §Performance CI). A run whose p50 exceeds budget * 1.2 fails CI. Update these numbers in the same PR that intentionally changes performance, with justification in the PR description. Real budgets (Tier 0 4KB p50 < 5ms, etc.) replace this placeholder in M1.",
+  "benchmarks": {
+    "placeholder-4kb-scan": {
+      "p50Ms": 0.5
+    }
+  }
+}

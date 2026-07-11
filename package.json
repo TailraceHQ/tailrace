@@ -1,0 +1,42 @@
+{
+  "name": "tailrace-monorepo",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Agent data governance: in-process detection, reversible tokenization, and per-agent data-flow policy.",
+  "packageManager": "pnpm@10.18.0",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build": "turbo run build",
+    "test": "turbo run test",
+    "test:workers": "pnpm --filter @tailrace/core test:workers",
+    "typecheck": "turbo run typecheck",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "bench": "pnpm --filter @tailrace/benchmarks bench",
+    "size": "pnpm --filter @tailrace/core size",
+    "changeset": "changeset",
+    "release": "changeset publish"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "esbuild",
+      "workerd"
+    ]
+  },
+  "devDependencies": {
+    "@changesets/cli": "^2.27.11",
+    "@eslint/js": "^9.17.0",
+    "@vitest/coverage-v8": "^2.1.9",
+    "eslint": "^9.17.0",
+    "prettier": "^3.4.2",
+    "tsup": "^8.3.5",
+    "turbo": "^2.3.3",
+    "typescript": "^5.7.2",
+    "typescript-eslint": "^8.19.0",
+    "vitest": "^2.1.9"
+  }
+}

@@ -7,7 +7,7 @@
 - ESM-first source; tsup emits dual ESM/CJS; `exports` maps with types condition
 
 ## Error taxonomy (core/src/errors.ts)
-All errors extend `GateError { code: string }`:
+All errors extend `TailraceError { code: string }`:
 - `PolicyViolationError` (code `POLICY_VIOLATION`, carries `decisions: Decision[]`)
 - `PolicyValidationError` (`POLICY_INVALID`, carries key path)
 - `InvariantViolationError` (`INVARIANT`) — internal contract breaches, e.g. restore at a non-egress boundary
@@ -40,4 +40,4 @@ Error messages NEVER contain detected values — enforced by a test that scans a
 ## Agent workflow notes
 - Before implementing against an external API surface (AI SDK middleware signature, MCP SDK transports, Claude Code hook JSON contract), read the CURRENT docs/source of the installed version — these move fast; the specs in this kit describe intent, the live interface wins on mechanics. Record any drift you find by updating the relevant doc in the same PR.
 - Keep PRs scoped to one milestone checkbox where practical
-- Never commit a real credential, even expired; CI runs `gate scan` on the diff once M4 lands (dogfood)
+- Never commit a real credential, even expired; CI runs `tailrace scan` on the diff once M4 lands (dogfood)
