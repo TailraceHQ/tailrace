@@ -41,6 +41,6 @@ jobs:
     # Only runs on pull_request (not push); needs dependency graph enabled on the repo.
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/dependency-review-action@v4
+      - uses: actions/dependency-review-action@v5
         with:
           fail-on-severity: high
