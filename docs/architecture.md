@@ -11,11 +11,13 @@
 │   ├── hono/            # @tailrace/hono — Hono middleware (openai-compatible passthrough mode)
 │   ├── cli/             # @tailrace/cli — `tailrace` binary: init, install-hooks, hook, scan
 │   └── recognizer-ner/  # @tailrace/recognizer-ner — Tier 1 ONNX recognizer (optional peer)
+├── apps/
+│   └── web/             # @tailrace/web — docs + marketing site (Next.js + Fumadocs); see docs/site/DOCS_AGENTS.md
 ├── examples/
 │   ├── nextjs-ai-sdk/   # Next.js app using @tailrace/ai-sdk (demo 1 & 3)
 │   └── claude-code/     # settings.json + walkthrough for hook demo (demo 2)
 ├── benchmarks/          # perf harness, run in CI
-└── docs/                # these specs, later published as the docs site content
+└── docs/                # normative specs: library kit at docs/*.md; site kit at docs/site/
 ```
 
 Tooling: pnpm workspaces + Turborepo. tsup for builds (ESM + CJS, `.d.ts`). Vitest for tests. Changesets for versioning. TypeScript strict, `exactOptionalPropertyTypes: true`.
