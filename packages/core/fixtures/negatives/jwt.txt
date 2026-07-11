@@ -1,0 +1,13 @@
+# jwt hard negatives (wrong shape or header fails to decode)
+not.a.jwt
+base64.encoded.value
+eyJhbGciOiJIUzI1NiJ9
+header.payload.signature
+The JWT could not be decoded from the request
+random string without any structure here
+a.b.c
+theuser@example.com left a comment today
+eyJ-not-valid.zzz.qqq
+config.production.yaml
+please refresh your session token now
+the bearer prefix precedes the credential

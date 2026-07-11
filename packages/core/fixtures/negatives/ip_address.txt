@@ -1,0 +1,13 @@
+# ip_address hard negatives (private/reserved or malformed; private excluded by default)
+10.0.0.1 private range
+192.168.1.1 home router
+172.16.5.4 private subnet
+127.0.0.1 loopback address
+169.254.1.1 link local
+version 1.2.3.4.5 has too many octets
+256.300.400.500 out of range
+the release date is 2024.01.15
+build number 10.15.7 on macos
+999.999.999.999 invalid
+::1 is ipv6 loopback
+fe80::1 is ipv6 link local

@@ -1,0 +1,11 @@
+# connection_string - synthetic DSNs (FAKE credentials)
+postgres://dbuser:s3cr3tFAKE@db.example.com:5432/appdb
+postgresql://admin:ppWORDfake@10.0.0.5:5432/main
+mysql://root:rootFAKE123@mysql.example.com:3306/shop
+mongodb://svc:passFAKE@mongo.example.com:27017/records
+mongodb+srv://user:passFAKE@cluster0.example.mongodb.net/test
+redis://default:redisFAKE@redis.example.com:6379
+rediss://default:redisFAKE@redis.example.com:6380
+amqp://guest:guestFAKE@rabbit.example.com:5672/vhost
+Server=db.example.com;Database=app;User Id=sa;Password=SqlFAKE123;
+Data Source=tcp:db.example.com;Initial Catalog=app;Password=AdoFAKE99;

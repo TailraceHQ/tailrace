@@ -1,0 +1,15 @@
+# api_key hard negatives
+sk-short
+sk_live_tooshort
+AKIAINVALID
+ghp_tooshort
+AIzaShort
+glpat-short
+npm install left-pad
+The key format begins with sk- as a prefix
+just a normal sentence with no secrets at all
+plain-identifier-1234567890
+0123456789abcdef0123456789abcdef
+customer reference number 4815162342
+password reset link was sent to the user
+rotate the credentials every ninety days

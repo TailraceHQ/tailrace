@@ -1,0 +1,15 @@
+# api_key - synthetic keys (test/FAKE ranges)
+# Note: Stripe (sk_live_/sk_test_) and Slack (xoxb-) samples are built at runtime in
+# src/detect/recognizers/secrets.test.ts to avoid committing scannable secret literals.
+sk-ant-api03-mAAAAAA4AAAAAAAAAAAAAAAAAAAA4AAAAAAAAAAA
+sk-DAEqYEoUsqUeQAQ48ayiMsKuACWI6MqSYe8kmse2
+ghp_8KgwU0CK8Kcsym4aYogyCAEAW8gygqMCqOay
+gho_5awqA8aCyqoQQEGgsCwQwOuskQuGKKeeg00A
+github_pat_2bKDsyCIP7FnAKlVVf2xLKNgeDzcY6
+AKIAZ22E6I6I6EMIQAI2
+AIzaoAAAAAAAAAAAAAAAA4AAAAAAAAAAAAAAA4A
+SG.VAAAAAAA4AAAAAAAAAAAAA.CAAAAAAAAAAAAAAAAAAAAAAAAAAAAA4AAAAAAA4AAAA
+key-puqCMsGcwM6m04I4KkCaEIwcOm4kGcug
+glpat-cAAAAAAAAAAAAAAAAAAA
+npm_lEkQqwsO4o26wK8KuYiwuisYMUkqkiwgoIwc
+dop_v1_6000000000000000000000000000000000000000000000000000000800000000
