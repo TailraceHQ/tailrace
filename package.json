@@ -26,7 +26,10 @@
     "onlyBuiltDependencies": [
       "esbuild",
       "workerd"
-    ]
+    ],
+    "overrides": {
+      "postcss": ">=8.5.10"
+    }
   },
   "lint-staged": {
     "*.{js,ts,mjs,cjs}": [
