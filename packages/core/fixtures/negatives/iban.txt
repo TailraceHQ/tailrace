@@ -1,0 +1,11 @@
+# iban hard negatives (bad check digits or wrong shape)
+GB00 WEST 1234 5698 7654 32
+DE00 3704 0044 0532 0130 00
+the IBAN is printed on your statement
+international bank account number format
+GB WEST 1234 is incomplete
+US1234567890 not an iban country
+FR76 too short
+account number 12345678
+XX00 0000 0000 0000
+ES00 2100 0418 4502 0005 1332

@@ -1,0 +1,11 @@
+# credit_card hard negatives (non-Luhn or wrong length)
+the pin is 4242
+1234567890 is a short number
+card ending in 3456
+1111 1111 1111 1111
+2222 2222 2222 2222
+order id 100000000000
+sequence 123456789012345678901 too long
+call 555 123 4567 now
+account 12 34 56 78
+routing 021000021

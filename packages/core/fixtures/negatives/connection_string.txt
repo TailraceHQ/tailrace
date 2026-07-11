@@ -1,0 +1,11 @@
+# connection_string hard negatives
+postgres is a popular open source database
+mysql workbench is a gui client tool
+redis caches values in memory efficiently
+mongodb stores documents as bson internally
+connect to the server using your credentials
+Server=localhost;Database=app;Trusted_Connection=True
+the connection was refused by the remote host
+amqp is an open messaging protocol standard
+postgresql://localhost/mydb
+jdbc connection pooling is explained here

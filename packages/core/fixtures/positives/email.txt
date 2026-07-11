@@ -1,0 +1,13 @@
+# email - synthetic (example.* reserved domains)
+alice@example.com
+bob.smith@example.org
+carol+tag@example.co.uk
+dave_99@mail.example.net
+erin@sub.example.io
+frank.o@example-corp.com
+grace@example.museum
+heidi@test.example
+ivan@example.dev
+judy.doe@example.travel
+support@example.com
+no-reply@notifications.example.com

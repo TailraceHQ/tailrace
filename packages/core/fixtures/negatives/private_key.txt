@@ -1,0 +1,11 @@
+# private_key hard negatives
+Please generate a new private key for the server
+BEGIN PRIVATE KEY without the dashes
+-----BEGIN CERTIFICATE-----
+-----BEGIN PUBLIC KEY-----
+-----BEGIN RSA PUBLIC KEY-----
+ssh-rsa AAAAB3NzaC1yc2EFAKE user@host
+the private key is stored securely in the vault
+key rotation policy documentation page
+rotate the signing keys quarterly please
+-----BEGIN ENCRYPTED DATA-----

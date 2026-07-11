@@ -1,0 +1,11 @@
+# email hard negatives
+not an email address at all
+user at example dot com
+@handle mention on the timeline
+plainword-no-at-symbol
+john.doe@ missing the domain
+@example.com
+double@@example.com
+see the contact page for details
+name (at) domain (dot) com
+visit http://example.com/page today

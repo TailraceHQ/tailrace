@@ -1,0 +1,11 @@
+# ssn hard negatives (invalid parts or no context)
+000-12-3456 invalid area
+666-12-3456 invalid area
+900-12-3456 invalid area
+123-00-6789 invalid group
+123-45-0000 invalid serial
+the number 123456789 without any context
+phone 123-45-6 too short
+order 12-345-6789 wrong grouping
+call 800-555-0123 today
+just some text about social topics generally
