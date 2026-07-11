@@ -1,0 +1,46 @@
+name: PR
+
+on:
+  pull_request:
+    types: [opened, edited, synchronize, reopened]
+
+concurrency:
+  group: pr-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  title:
+    name: Conventional commit title
+    runs-on: ubuntu-latest
+    steps:
+      - uses: amannn/action-semantic-pull-request@v5
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          # Matches docs/conventions.md — conventional commits.
+          types: |
+            feat
+            fix
+            chore
+            refactor
+            docs
+            test
+            ci
+            perf
+            build
+            revert
+          requireScope: false
+
+  dependency-review:
+    name: Dependency review
+    runs-on: ubuntu-latest
+    # Only runs on pull_request (not push); needs dependency graph enabled on the repo.
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/dependency-review-action@v4
+        with:
+          fail-on-severity: high
