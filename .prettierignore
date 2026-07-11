@@ -1,6 +1,8 @@
 **/dist/**
 **/node_modules/**
 **/.turbo/**
+**/.next/**
+**/.source/**
 pnpm-lock.yaml
 CHANGELOG.md
 **/CHANGELOG.md

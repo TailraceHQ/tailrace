@@ -1,0 +1,36 @@
+name: Docs preview
+
+# Builds the docs site on PRs that touch docs/app or core types.
+# Connect the repo to Vercel with Root Directory = apps/web (uses apps/web/vercel.json)
+# to get automatic PR deploy previews — that is the D0 deploy-preview path.
+
+on:
+  pull_request:
+    paths:
+      - "apps/web/**"
+      - "packages/core/**"
+      - "pnpm-lock.yaml"
+      - "turbo.json"
+      - "vercel.json"
+      - ".github/workflows/docs-preview.yml"
+
+concurrency:
+  group: docs-preview-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build docs site
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm turbo run build --filter=@tailrace/web...

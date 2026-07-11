@@ -1,0 +1,28 @@
+---
+title: Tailrace docs
+description: In-process agent data governance for TypeScript - detect, tokenize, and enforce policy at every boundary.
+mode: tutorial
+---
+
+Welcome. These docs are scaffolding for milestone D0 (see `docs/site/DOCS_AGENTS.md`). Content fills in across D1–D5.
+
+## Twoslash smoke test
+
+This snippet imports `@tailrace/core` and must type-check in CI. A broken snippet fails the docs build.
+
+```ts twoslash
+import { createTailrace } from "@tailrace/core";
+
+const tailrace = createTailrace();
+```
+
+## Sections
+
+| Section                            | What belongs here                |
+| ---------------------------------- | -------------------------------- |
+| [Get Started](/docs/get-started)   | The 5-minute quickstart tutorial |
+| [Guides](/docs/guides)             | Task-shaped how-tos              |
+| [Concepts](/docs/concepts)         | Mental models and explanations   |
+| [Reference](/docs/reference)       | API, schema, errors, CLI         |
+| [Integrations](/docs/integrations) | Per-framework entry pages        |
+| [Playground](/docs/playground)     | Client-side Tier 0 demo          |

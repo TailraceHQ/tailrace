@@ -7,6 +7,16 @@ node_modules/
 # Build output
 dist/
 .turbo/
+.next/
+.source/
+out/
+
+# Next.js / Fumadocs generated (apps/web)
+**/*.tsbuildinfo
+apps/web/next-env.d.ts
+
+# Vercel
+.vercel/
 
 # Env
 .env
