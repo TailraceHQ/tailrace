@@ -15,18 +15,16 @@ import { encodeModelProvider } from "@tailrace/ai-sdk";
 ## Signature
 
 ```ts
-function encodeModelProvider(
-  model: Pick<LanguageModelV2, "provider" | "modelId">,
-): string;
+function encodeModelProvider(model: Pick<LanguageModelV2, "provider" | "modelId">): string;
 ```
 
 ## Returns
 
-| Input | Output |
-| --- | --- |
-| `provider: "openai"`, `modelId: "gpt-4o"` | `"openai/gpt-4o"` |
-| `modelId: "openai/gpt-4o"` (gateway-style) | `"openai/gpt-4o"` |
-| `modelId: ""` | `provider` or `"unknown"` |
+| Input                                      | Output                    |
+| ------------------------------------------ | ------------------------- |
+| `provider: "openai"`, `modelId: "gpt-4o"`  | `"openai/gpt-4o"`         |
+| `modelId: "openai/gpt-4o"` (gateway-style) | `"openai/gpt-4o"`         |
+| `modelId: ""`                              | `provider` or `"unknown"` |
 
 ## Use in policy
 

@@ -26,12 +26,12 @@ Every `check` follows the same path:
 
 `createTailrace()` with no arguments:
 
-| Entity | Action |
-| --- | --- |
-| Secrets (`api_key`, `jwt`, `private_key`, …) | **block** |
-| Email, phone, credit card, IBAN, SSN | **tokenize** |
-| IP address | allow |
-| Egress sinks (`egress:*`) | **detokenize** |
+| Entity                                       | Action         |
+| -------------------------------------------- | -------------- |
+| Secrets (`api_key`, `jwt`, `private_key`, …) | **block**      |
+| Email, phone, credit card, IBAN, SSN         | **tokenize**   |
+| IP address                                   | allow          |
+| Egress sinks (`egress:*`)                    | **detokenize** |
 
 Secrets cannot be overridden to `allow` without `dangerouslyAllowSecrets: true`.
 
@@ -51,8 +51,8 @@ const model = tailrace.model(openai("gpt-4o"));
 
 ## Next steps
 
-| Goal | Link |
-| --- | --- |
-| Block a fake key in five minutes | [Quickstart](/docs/get-started/quickstart) |
+| Goal                             | Link                                                            |
+| -------------------------------- | --------------------------------------------------------------- |
+| Block a fake key in five minutes | [Quickstart](/docs/get-started/quickstart)                      |
 | Models, tools, streaming, egress | [Protect PII in the AI SDK](/docs/guides/protect-pii-in-ai-sdk) |
-| API surface | [@tailrace/ai-sdk reference](/docs/reference/ai-sdk) |
+| API surface                      | [@tailrace/ai-sdk reference](/docs/reference/ai-sdk)            |

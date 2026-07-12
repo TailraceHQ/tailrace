@@ -50,10 +50,10 @@ const model = tailrace.model(openai("gpt-4o"), {
 });
 ```
 
-| Option | Purpose |
-| --- | --- |
-| `agent` | Selects `identities` overrides in your policy document. Defaults to `"default"`. |
-| `workflowId` | Vault scope for tokens. Same ID + same value → same token every time. |
+| Option       | Purpose                                                                          |
+| ------------ | -------------------------------------------------------------------------------- |
+| `agent`      | Selects `identities` overrides in your policy document. Defaults to `"default"`. |
+| `workflowId` | Vault scope for tokens. Same ID + same value → same token every time.            |
 
 Pass the same `workflowId` to `model`, `tools`, and `restore` within one conversation.
 
@@ -116,10 +116,10 @@ const model = tailrace.model(openai("gpt-4o"), {
 });
 ```
 
-| Mode | Behavior |
-| --- | --- |
-| `abort` | Hold-back scan; throw `PolicyViolationError`; fail-closed |
-| `buffer` | Buffer full response; check at end; throw on block |
+| Mode     | Behavior                                                                      |
+| -------- | ----------------------------------------------------------------------------- |
+| `abort`  | Hold-back scan; throw `PolicyViolationError`; fail-closed                     |
+| `buffer` | Buffer full response; check at end; throw on block                            |
 | `redact` | Replace blocked spans with `[ENTITY]`; stream continues - **not fail-closed** |
 
 Input blocking always aborts before the provider runs. `redact` applies only to streaming output.

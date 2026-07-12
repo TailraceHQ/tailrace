@@ -46,7 +46,7 @@ import { openai } from "@ai-sdk/openai";
 
 const tailrace = withAiSdk(createTailrace());
 const model = tailrace.model(openai("gpt-4o"));
-const tools = tailrace.tools({ /* ... */ });
+const tools = tailrace.tools({/* ... */});
 ```
 
 `tailrace.restore` and `tailrace.check` remain available on the same object.
