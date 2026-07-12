@@ -1,0 +1,5 @@
+{
+  "version": 1,
+  "agent": "claude-code",
+  "vaultKey": "demo2-vault-key-not-a-production-secret"
+}

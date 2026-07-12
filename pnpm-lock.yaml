@@ -108,6 +108,25 @@ importers:
 
   benchmarks: {}
 
+  examples/claude-code:
+    dependencies:
+      '@tailrace/cli':
+        specifier: workspace:*
+        version: link:../../packages/cli
+      '@tailrace/core':
+        specifier: workspace:*
+        version: link:../../packages/core
+    devDependencies:
+      '@types/node':
+        specifier: ^22.10.0
+        version: 22.20.1
+      tsx:
+        specifier: ^4.19.0
+        version: 4.23.0
+      typescript:
+        specifier: ^5.7.2
+        version: 5.9.3
+
   examples/nextjs-ai-sdk:
     dependencies:
       '@ai-sdk/provider':
@@ -182,6 +201,9 @@ importers:
       '@types/node':
         specifier: ^22.10.2
         version: 22.20.1
+      vitest:
+        specifier: ^2.1.9
+        version: 2.1.9(@types/node@22.20.1)(lightningcss@1.32.0)
 
   packages/core:
     devDependencies:

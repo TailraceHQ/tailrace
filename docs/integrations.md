@@ -138,24 +138,100 @@ Parses OpenAI-format chat request bodies, `check`s message contents (boundary `m
 
 ## 4. @tailrace/cli: `tailrace` binary
 
+User guide: [`docs/guides/block-secrets-in-claude-code.md`](guides/block-secrets-in-claude-code.md).
+Docs site: `/docs/reference/cli`, `/docs/integrations/claude-code`.
+Implementation plan: [`m4-plan.md`](m4-plan.md).
+
+**Runtime:** Node >= 20 only (filesystem vault + settings merge). Depends on `@tailrace/core` only.
+
 Commands:
-- `tailrace init` - detect stack (presence of `ai`, `hono`, `next` in package.json), write `tailrace.config.ts` from a template with the default policy inlined and commented, print the 3-line integration snippet for the detected stack.
-- `tailrace scan <path|-> [--json]` - run Tier 0 over files or stdin; exit 1 if any `block`-class entity found. (Free utility value: works as a pre-commit secret scanner; mention in README.)
-- `tailrace install-hooks [--scope project|user]` - merge our hook entries into `.claude/settings.json` (project) or `~/.claude/settings.json` (user). NEVER overwrite existing hooks: parse, append to the `PreToolUse`/`PostToolUse` matcher arrays, preserve formatting where feasible, back up the original file first. Print what was added.
-- `tailrace hook` - the hook handler itself (see below).
+
+| Command | Behavior |
+|---|---|
+| `tailrace init [--force]` | Detect stack from nearest `package.json` (`next` → `ai` → `hono` → generic Node). Write `tailrace.config.ts` (app authoring) and `.tailrace/config.json` (hook hot path). Refuse overwrite unless `--force`. Print a short integration snippet. |
+| `tailrace scan <path\|-> [--json]` | Tier 0 scan of files or stdin. Exit `1` if any span resolves to `block`; exit `0` otherwise. Human output: path + entity + rule (never raw values). `--json`: machine-readable hits. Skips `node_modules`, `.git`, build dirs, binaries. |
+| `tailrace install-hooks [--scope project\|user]` | Non-destructive merge into `.claude/settings.json` (project, default) or `~/.claude/settings.json` (user). Backup existing file to `settings.json.bak-<iso>` beside it; append Tailrace `PreToolUse` / `PostToolUse` entries only if missing (idempotent; detect by command substring `tailrace hook`). Ensures `.tailrace/config.json` exists. |
+| `tailrace hook` | Claude Code hook handler (stdin JSON → stdout JSON). See below. |
+
+### Config: JSON-first for Claude Code
+
+v0.1 Claude Code path is **JSON-first**. The hook never imports or transpiles `tailrace.config.ts`.
+
+| File | Role |
+|---|---|
+| `tailrace.config.ts` | Documented authoring format for AI SDK / app runtimes (`init` writes this). |
+| `.tailrace/config.json` | Precompiled hot-path config. `init` / `install-hooks` write it. Hook loads via sync `readFile` + `JSON.parse` + `createTailrace`. |
+
+```ts
+interface CompiledCliConfig {
+  version: 1;
+  agent: string; // default "claude-code"
+  /** Prefer env `TAILRACE_VAULT_KEY` in prod */
+  vaultKey?: string;
+  /** Serialized PolicyDocument. Omit ⇒ default policy */
+  policy?: PolicyDocument;
+}
+```
+
+Supporting paths under `$CLAUDE_PROJECT_DIR` (else `cwd`):
+
+- `.tailrace/vault/` - file-backed `kvVault` (each hook is a new process; tokens need a stable key)
+- `.tailrace/audit.jsonl` - `jsonlSink` audit trail
+
+Config loading stays in `@tailrace/cli`. There is **no** `filePolicy` export from `@tailrace/core` in v0.1 (see architecture.md §5).
 
 ### Claude Code hook handler contract (`tailrace hook`)
 
-- Reads the event JSON from stdin (fields include `hook_event_name`, `tool_name`, `tool_input`).
-- Loads `tailrace.config.ts` from `$CLAUDE_PROJECT_DIR` (esbuild-register or precompiled `tailrace.config.json` fallback; document the tradeoff, prefer compiling config to JSON at `install-hooks` time and recompiling on change for speed).
-- Runs `check` on `tool_input` with boundary `{ kind: "tool", name: tool_name, direction: "out" }`, identity agent `"claude-code"` (configurable).
-- Output contract - VERIFY against current Claude Code hooks reference before implementing; as of the docs this kit was written from:
-  - allow: exit 0, no output (or JSON `permissionDecision: "allow"`).
-  - tokenize/mask: exit 0 with stdout JSON `{"hookSpecificOutput": {"hookEventName": "PreToolUse", "permissionDecision": "allow", "updatedInput": <rewritten tool_input>}}`.
-  - block: exit 0 with `permissionDecision: "deny"` and `permissionDecisionReason` naming entity + rule (never the value). Do not mix exit-code-2 signaling with JSON output - choose the JSON path exclusively.
-- Hard perf requirement: end-to-end p50 < 150ms including process spawn + config load (hooks run synchronously on every matched tool call). This forces: precompiled JSON config, lazy-nothing imports, no Tier 1 in hook mode.
-- PostToolUse variant scans `tool_response` (direction "in") in `async` fire-and-forget mode for audit only.
-- Workflow id = Claude Code `session_id` from the event payload ⇒ token stability across a whole session for free.
+Verified against the live [Claude Code hooks reference](https://code.claude.com/docs/en/hooks) at M4 implementation time. Record further drift here in the same PR when Claude Code changes.
+
+**Install shape** (`install-hooks` writes matcher `"*"` = all tools):
+
+```json
+{
+  "hooks": {
+    "PreToolUse": [{ "matcher": "*", "hooks": [{ "type": "command", "command": "tailrace hook" }] }],
+    "PostToolUse": [{ "matcher": "*", "hooks": [{ "type": "command", "command": "tailrace hook" }] }]
+  }
+}
+```
+
+Published users may use `npx @tailrace/cli hook` or a global `tailrace` on `PATH`; the installed command string is `tailrace hook`.
+
+**Stdin fields used:** `session_id`, `hook_event_name`, `tool_name`, `tool_input` (PreToolUse); PostToolUse also `tool_response`. Unknown `hook_event_name` → exit 0, empty stdout (forward-compatible).
+
+**Identity / workflow:** agent from config (default `"claude-code"`); `workflowId = session_id` (fallback `"default"`) ⇒ token stability across a Claude Code session.
+
+**Boundaries:**
+
+| Event | Payload | Boundary |
+|---|---|---|
+| PreToolUse | `tool_input` | `{ kind: "tool", name: tool_name, direction: "out" }` |
+| PostToolUse | `tool_response` | `{ kind: "tool", name: tool_name, direction: "in" }` |
+
+**Output contract - JSON path exclusively.** Always exit `0` for policy decisions. Do not use exit-code-2 for deny (Claude Code ignores stdout JSON on exit 2). Process errors (bad JSON, missing config) exit `1` with a stderr message; Claude Code treats that as a non-blocking hook failure, not a clean deny.
+
+| Case | Exit | Stdout |
+|---|---|---|
+| Clean PreToolUse (no rewrite) | 0 | empty (prefer empty over explicit `"allow"` when unchanged) |
+| PreToolUse tokenize/mask | 0 | `hookSpecificOutput` with `hookEventName: "PreToolUse"`, `permissionDecision: "allow"`, `updatedInput` = **full** rewritten `tool_input` (not a patch) |
+| PreToolUse block | 0 | `permissionDecision: "deny"`, `permissionDecisionReason` naming entity + rule (never the value) |
+| PostToolUse (any outcome) | 0 | empty. Audit-only in v0.1: scan for decisions/emit; **do not** rewrite (`updatedToolOutput`) or deny. Optional stderr note behind `TAILRACE_DEBUG=1` only |
+
+Example deny:
+
+```json
+{
+  "hookSpecificOutput": {
+    "hookEventName": "PreToolUse",
+    "permissionDecision": "deny",
+    "permissionDecisionReason": "Blocked by data policy: api_key may not be sent to tool (rule: …)"
+  }
+}
+```
+
+**Perf:** end-to-end p50 < 150ms including process spawn + config load (CI gate `hook-spawn-to-exit`). Forces: JSON-only config, single bundled bin, no Tier 1 in hook mode, defer vault fs until a tokenize action is required.
+
+**Out of scope for v0.1 hooks:** `permissionDecision: "ask"` / `"defer"`, PostToolUse rewrite, UserPromptSubmit scanning, Tier 1 NER.
 
 ## 5. Shared integration rules
 

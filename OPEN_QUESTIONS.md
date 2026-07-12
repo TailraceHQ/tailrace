@@ -13,7 +13,7 @@ resolved in the docs, locked for v0.1, or explicitly deferred before v0.1 ships 
   `{ value: … }` so object-scan can walk leaves. A tool that natively returns `{ value: … }` is
   fine today (objects pass through unchanged); if we ever need to distinguish the envelope from a
   real `{ value }` payload after unwrapping arrays/primitives, introduce a tagged envelope.
-  _Site:_ `packages/ai-sdk/src/wrap-tools.ts`.
+  _Site:_ `packages/ai-sdk/src/wrap-tools.ts`. Same pattern used in `packages/cli/src/commands/hook.ts`.
 
 ## Locked for v0.1 (M2)
 
@@ -72,3 +72,25 @@ wording may still lag until M5 triage.
 - **Demo 1 semantics.** Block = secret never reaches provider; mock model default; egress restore
   explicit in route handler (`examples/nextjs-ai-sdk`).
   _Was:_ Locked for v0.1 (M3).
+
+- **CLI commands (v0.1).** `init`, `scan`, `install-hooks`, `hook` only - no subcommand aliases.
+  _Was:_ Locked for v0.1 (M4). See docs/integrations.md §4.
+
+- **Claude Code hook I/O.** JSON path exclusively (exit 0 for policy decisions). Clean allow =
+  empty stdout; tokenize/mask = `permissionDecision: "allow"` + full `updatedInput`; block =
+  `permissionDecision: "deny"` + reason (entity + rule). Never exit-code-2 for policy deny.
+  Verified against https://code.claude.com/docs/en/hooks at M4.
+  _Was:_ Locked for v0.1 (M4).
+
+- **Hook config + vault.** Hook loads `.tailrace/config.json` only (no TS transpile). File-backed
+  `kvVault` under `.tailrace/vault/`; master key from config or `TAILRACE_VAULT_KEY`. Agent default
+  `"claude-code"`; `workflowId` = Claude Code `session_id`. PostToolUse audit-only (no rewrite/deny).
+  Matcher `"*"` for PreToolUse + PostToolUse. `install-hooks` non-destructive with backup.
+  _Was:_ Locked for v0.1 (M4).
+
+- **No `filePolicy` in core.** Config loading stays in `@tailrace/cli`. architecture.md §5 updated.
+  _Was:_ Locked for v0.1 (M4).
+
+- **Demo 2 in CI.** Scripted stdin fixtures for the hook binary; live Claude Code walkthrough is
+  human-only. Dogfood: CI runs `tailrace scan` once the command lands (exclude intentional fixtures).
+  _Was:_ Locked for v0.1 (M4).

@@ -1,0 +1,65 @@
+---
+title: Claude Code
+description: Wire Tailrace as Claude Code PreToolUse / PostToolUse hooks - block secrets, tokenize PII, audit tool I/O.
+mode: integration
+---
+
+Enforce data policy on every Claude Code tool call. PreToolUse denies secrets and rewrites tokenized PII before the tool runs. PostToolUse records audit lines without rewriting results in v0.1.
+
+## Quickstart
+
+```bash
+pnpm add -D @tailrace/cli
+npx @tailrace/cli init
+npx @tailrace/cli install-hooks
+```
+
+Ensure `tailrace` is on `PATH` inside Claude Code sessions (workspace bin, global install, or wrap the installed command with `npx @tailrace/cli hook` if needed).
+
+## Boundaries covered
+
+| Claude Code event           | Tailrace boundary                          | Direction | v0.1 behavior                      |
+| --------------------------- | ------------------------------------------ | --------- | ---------------------------------- |
+| PreToolUse `tool_input`     | `{ kind: "tool", name, direction: "out" }` | Outbound  | deny / tokenize via `updatedInput` |
+| PostToolUse `tool_response` | `{ kind: "tool", name, direction: "in" }`  | Inbound   | audit only                         |
+
+Identity agent defaults to `"claude-code"`. Workflow id is Claude Code `session_id`.
+
+## Settings shape
+
+`install-hooks` merges (non-destructively):
+
+```json
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "*",
+        "hooks": [{ "type": "command", "command": "tailrace hook" }]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "*",
+        "hooks": [{ "type": "command", "command": "tailrace hook" }]
+      }
+    ]
+  }
+}
+```
+
+## Runnable example
+
+```bash
+git clone <repo>
+cd tailrace
+pnpm install
+pnpm --filter example-claude-code demo:2
+```
+
+Scripted stdin fixtures exercise deny + tokenize + audit without a live Claude Code binary. Interactive walkthrough: [`examples/claude-code`](https://github.com/tailrace/tailrace/tree/main/examples/claude-code).
+
+## Guides
+
+- [Block secrets in Claude Code](/docs/guides/block-secrets-in-claude-code)
+- [CLI reference](/docs/reference/cli)

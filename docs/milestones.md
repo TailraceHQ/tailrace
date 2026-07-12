@@ -37,10 +37,13 @@ Implementation plan: [`m3-plan.md`](m3-plan.md).
 - [x] examples/nextjs-ai-sdk runs Demos 1 & 3 (below)
 
 ## M4: Claude Code CLI
-- [ ] `tailrace init`, `tailrace scan`, `tailrace install-hooks` (non-destructive settings merge with backup), `tailrace hook`
-- [ ] Hook handler meets the output contract in integrations.md §4 - verified against the live Claude Code hooks reference at implementation time (update the doc if it drifted)
-- [ ] Hook p50 < 150ms measured in CI (spawn-to-exit on a representative tool_input)
-- [ ] examples/claude-code walkthrough runs Demo 2
+
+Implementation plan: [`m4-plan.md`](m4-plan.md). User guide: [`guides/block-secrets-in-claude-code.md`](guides/block-secrets-in-claude-code.md).
+
+- [x] `tailrace init`, `tailrace scan`, `tailrace install-hooks` (non-destructive settings merge with backup), `tailrace hook`
+- [x] Hook handler meets the output contract in integrations.md §4 - verified against the live Claude Code hooks reference at implementation time (update the doc if it drifted)
+- [x] Hook p50 < 150ms measured in CI (spawn-to-exit on a representative tool_input)
+- [x] examples/claude-code walkthrough runs Demo 2
 
 ## M5: MCP + Hono + polish
 - [ ] @tailrace/mcp transport wrapper with JSON-RPC error synthesis on block
