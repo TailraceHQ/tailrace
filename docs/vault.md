@@ -14,7 +14,7 @@ base32 (`[A-Z2-7]`). §4's restore scan is `<LABEL_[a-z0-9]{8}>` and the example
 contains a `9`, which RFC 4648 cannot produce. Generation and restore regexes MUST share one
 alphabet constant so tokens never silently fail to restore.
 
-- `workflowKey = HMAC-SHA256(masterKey, workflowId)` — master key from `createTailrace({ vault: { key } })` or `TAILRACE_VAULT_KEY` env; if absent, a random per-process key is generated and a one-line notice logged (tokens then don't survive restarts — fine for dev, documented).
+- `workflowKey = HMAC-SHA256(masterKey, workflowId)` - master key from `createTailrace({ vault: { key } })` or `TAILRACE_VAULT_KEY` env; if absent, a random per-process key is generated and a one-line notice logged (tokens then don't survive restarts - fine for dev, documented).
 - `normalizedValue`: trim; lowercase for `email`; digits-only for `phone`/`credit_card`. Normalization map is per-entity and documented.
 - Determinism is per `(workflowId, entityClass, value)`. No workflowId ⇒ workflowId = "default".
 - All crypto via WebCrypto. No Node `crypto` imports in core.
@@ -29,7 +29,7 @@ interface Vault {
 }
 ```
 
-Ships: `memoryVault()` (Map + TTL sweep; default) and `kvVault(kv)` where `kv` is a minimal `{ get(key): Promise<string|null>; put(key, value, opts?: { expirationTtl }): Promise<void>; delete(key) }` — structurally compatible with Cloudflare KV and adaptable to Upstash/Vercel KV/ioredis with 5-line shims (ship the shims in docs, not code). Storage keys: `tailrace:v1:{workflowId}:{token}`. **Values stored encrypted**: AES-256-GCM with a key derived `HMAC(masterKey, "storage")`, random IV per entry, so a leaked KV namespace doesn't leak PII. Default TTL 24h, configurable.
+Ships: `memoryVault()` (Map + TTL sweep; default) and `kvVault(kv)` where `kv` is a minimal `{ get(key): Promise<string|null>; put(key, value, opts?: { expirationTtl }): Promise<void>; delete(key) }` - structurally compatible with Cloudflare KV and adaptable to Upstash/Vercel KV/ioredis with 5-line shims (ship the shims in docs, not code). Storage keys: `tailrace:v1:{workflowId}:{token}`. **Values stored encrypted**: AES-256-GCM with a key derived `HMAC(masterKey, "storage")`, random IV per entry, so a leaked KV namespace doesn't leak PII. Default TTL 24h, configurable.
 
 ## 3. Format-preserving mode
 
@@ -43,12 +43,18 @@ Everything else falls back to `<LABEL_id>` with a compile-time warning. The toke
 
 - Scans input for token patterns (`<LABEL_[a-z0-9]{8}>` plus the three format-preserving shapes, which are detected via vault lookup of recomputed ids).
 - Only runs when boundary kind is `egress` and the sink's policy says `detokenize` (policy-engine.md §3.5 invariant).
-- Unknown token (not in vault / expired): leave as-is, emit audit decision `{ action: "restore_miss" }`. Never throw — expired tokens in old transcripts are normal.
+- Unknown token (not in vault / expired): leave as-is, emit audit decision `{ action: "restore_miss" }`. Never throw - expired tokens in old transcripts are normal.
 - Restores right-to-left by offset.
 
 ## 5. Streaming note (for @tailrace/ai-sdk)
 
-Model output arrives in chunks; tokens can split across chunk boundaries. The stream transform keeps a carry buffer of `maxTokenLength - 1` chars: emit everything except the tail that could be a token prefix, scan on each append, flush carry on stream end. Same carry technique applies to output-side detection. Test with adversarial chunkings (1-char chunks; chunk boundary mid-token).
+Model output arrives in chunks; tokens and detected entities can split across chunk boundaries. The
+stream transform keeps a carry of `holdback` chars and, after detecting on the **full** buffer,
+emits only through `min(len - holdback, earliest start of a span that straddles that cut)` so a
+match is never bisected. Apply actions to that prefix once; keep the raw suffix as carry; flush on
+stream end. Same technique for output-side detection in `@tailrace/ai-sdk`. Test with adversarial
+chunkings (1-char chunks; chunk boundary mid-token; entity straddling the carry cut on inputs
+longer than the holdback window).
 
 ## 6. Tests that must exist
 

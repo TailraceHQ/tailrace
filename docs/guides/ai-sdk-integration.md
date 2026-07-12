@@ -4,7 +4,7 @@ User-facing companion to [`integrations.md`](../integrations.md) §1. For accept
 
 ## Overview
 
-`@tailrace/ai-sdk` sits between your application and the Vercel AI SDK. It does not implement policy rules — it constructs the correct `Boundary` and `Identity`, calls `tailrace.check` / `tailrace.restore`, and translates failures into forms the AI SDK understands.
+`@tailrace/ai-sdk` sits between your application and the Vercel AI SDK. It does not implement policy rules - it constructs the correct `Boundary` and `Identity`, calls `tailrace.check` / `tailrace.restore`, and translates failures into forms the AI SDK understands.
 
 ```
 Your route → wrapModel / wrapTools → tailrace.check → provider / tool

@@ -19,7 +19,7 @@ pnpm --filter @tailrace/core build
 pnpm --filter @tailrace/ai-sdk build
 ```
 
-## Demo 1 — interactive
+## Demo 1: interactive
 
 Start the dev server:
 
@@ -29,9 +29,9 @@ pnpm --filter example-nextjs-ai-sdk dev
 
 Open [http://localhost:3000](http://localhost:3000).
 
-### Run A — block a secret
+### Run A: block a secret
 
-Click **Run A — block secret** or send a prompt that includes the fake Stripe test key:
+Click **Run A - block secret** or send a prompt that includes the fake Stripe test key:
 
 ```text
 Use key sk_test_51FakeKeyForTailraceTests000FAKE and email customer@example.com
@@ -52,9 +52,9 @@ Use key sk_test_51FakeKeyForTailraceTests000FAKE and email customer@example.com
 
 The secret never reaches the mock model. Check the server console: Tailrace audit lines list `entity` and `contentHash`, never the raw key.
 
-### Run B — tokenize and restore
+### Run B: tokenize and restore
 
-Click **Run B — tokenize + restore** or send:
+Click **Run B - tokenize + restore** or send:
 
 ```text
 Please email customer@example.com about the invoice.
@@ -79,7 +79,7 @@ The route handler ([`app/api/chat/route.ts`](app/api/chat/route.ts)):
 
 1. Creates a per-request `workflowId` from the `x-workflow-id` header.
 2. Wraps a mock echo model with `tailrace.model(...)`.
-3. Calls `generateText` — Tailrace scans the prompt before the mock runs.
+3. Calls `generateText` - Tailrace scans the prompt before the mock runs.
 4. On success, calls `tailrace.restore` at `{ kind: "egress", sink: "ui" }` before responding.
 5. Maps `PolicyViolationError` to 422 JSON.
 
@@ -91,7 +91,7 @@ The client sends `x-workflow-id: <uuid>` on each request. Use the same ID across
 
 Set `DEMO_LIVE=1` and replace `createEchoModel()` with a real provider model. CI always uses the mock.
 
-## Demo 3 — token stability
+## Demo 3: token stability
 
 ```bash
 pnpm --filter example-nextjs-ai-sdk demo:3

@@ -122,6 +122,17 @@ export interface CheckOptions {
    * Default: throw. Used by `@tailrace/ai-sdk` for `streamBlockBehavior: "redact"`.
    */
   applyBlockAs?: "mask";
+  /**
+   * Streaming hold-back (docs/vault.md §5). String inputs only.
+   * Detects+resolves on the full input once; applies only spans fully within the safe
+   * emit prefix; returns raw {@link CheckResult.remainder} to carry.
+   */
+  stream?: {
+    /** Trailing chars that may still grow into a match. */
+    holdback: number;
+    /** When true, flush the entire buffer (no hold-back). */
+    final?: boolean;
+  };
 }
 
 /** A per-entity rule; either a bare action or an action with modifiers. */
@@ -240,6 +251,11 @@ export interface CheckResult<T> {
   output: T;
   decisions: Decision[];
   blocked: false;
+  /**
+   * Raw suffix held back when {@link CheckOptions.stream} is set on a string input.
+   * Absent for non-streaming checks.
+   */
+  remainder?: string;
 }
 
 /**

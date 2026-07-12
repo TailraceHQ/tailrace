@@ -1,4 +1,4 @@
-# M3 Implementation Plan — @tailrace/ai-sdk
+# M3 Implementation Plan: @tailrace/ai-sdk
 
 > **Status: complete.** Acceptance criteria in [`milestones.md`](milestones.md) §M3 are checked off. This file is retained as the historical build plan; normative runtime behavior lives in [`integrations.md`](integrations.md) §1 and [`policy-engine.md`](policy-engine.md) §5. User-facing walkthrough: [`guides/ai-sdk-integration.md`](guides/ai-sdk-integration.md).
 
@@ -8,7 +8,7 @@ Normative acceptance criteria: [`milestones.md`](milestones.md) §M3. Integratio
 
 | Topic | Decision |
 |---|---|
-| Public API | **Option C** — `wrapModel` / `wrapTools` + `withAiSdk()` fluent helper |
+| Public API | **Option C**: `wrapModel` / `wrapTools` + `withAiSdk()` fluent helper |
 | AI SDK pin | **`ai@^5`** peer; bind types against installed middleware |
 | Model boundary | `{ kind: "model", provider }` for **input and output** (not `telemetry`) |
 | Provider encoding | `${providerId}/${modelId}`; gateway-style `modelId` with `/` used as-is |
@@ -20,7 +20,7 @@ Normative acceptance criteria: [`milestones.md`](milestones.md) §M3. Integratio
 
 ---
 
-## Phase 0 — Dependencies and types scaffold
+## Phase 0: Dependencies and types scaffold
 
 **Goal:** `@tailrace/ai-sdk` compiles against real `ai@^5` types; no runtime behavior yet.
 
@@ -34,7 +34,7 @@ Normative acceptance criteria: [`milestones.md`](milestones.md) §M3. Integratio
 
 ---
 
-## Phase 1 — Core: `applyBlockAs` for stream redact
+## Phase 1: Core: `applyBlockAs` for stream redact
 
 **Goal:** Support `streamBlockBehavior: "redact"` without policy logic in the integration.
 
@@ -47,7 +47,7 @@ Normative acceptance criteria: [`milestones.md`](milestones.md) §M3. Integratio
    }
    ```
 
-2. Thread through `Tailrace.check` signature (optional third arg or `ctx` extension — prefer third arg to keep `CheckContext` pure).
+2. Thread through `Tailrace.check` signature (optional third arg or `ctx` extension - prefer third arg to keep `CheckContext` pure).
 
 3. In `applyActions`: when `applyBlockAs: "mask"` and action is `block`, apply `mask` instead of throwing. Audit `Decision` keeps `action: "block"` and adds optional `appliedAs: "mask"`.
 
@@ -59,7 +59,7 @@ Normative acceptance criteria: [`milestones.md`](milestones.md) §M3. Integratio
 
 ---
 
-## Phase 2 — Shared integration helpers
+## Phase 2: Shared integration helpers
 
 **Goal:** DRY boundary/identity/context construction used by model + tools + stream transforms.
 
@@ -77,25 +77,25 @@ Create `packages/ai-sdk/src/internal/` (not exported):
 
 ---
 
-## Phase 3 — `wrapModel` middleware
+## Phase 3: `wrapModel` middleware
 
 **Goal:** `transformParams`, `wrapGenerate`, `wrapStream` wired end-to-end.
 
-### 3a — `transformParams`
+### 3a: `transformParams`
 
 - Scan all text parts in `params` (prompt/messages).
 - `tailrace.check(messagesObject, { boundary: { kind: "model", provider }, ... })`.
 - Return rewritten params.
 - Test: fake Stripe key in user message → throws; email → tokenized in params.
 
-### 3b — `wrapGenerate`
+### 3b: `wrapGenerate`
 
 - Await `doGenerate()`, extract output text from result.
 - `check` output string at model boundary.
 - Rewrite or throw.
 - Test: mock model returning secret → throws; returning email echo → tokenized.
 
-### 3c — `wrapStream` (three transforms)
+### 3c: `wrapStream` (three transforms)
 
 | File | Mode |
 |---|---|
@@ -113,7 +113,7 @@ Adversarial tests:
 - Chunk split mid `sk_test_` (block path)
 - `redact` mode: stream completes, output contains `[API_KEY]`, no raw secret
 
-### 3d — `wrapModel` assembly
+### 3d: `wrapModel` assembly
 
 - `wrapLanguageModel({ model, middleware: tailraceMiddleware })`.
 - Export `wrapModel(tailrace, model, opts)`.
@@ -122,7 +122,7 @@ Adversarial tests:
 
 ---
 
-## Phase 4 — `wrapTools`
+## Phase 4: `wrapTools`
 
 **Goal:** Type-preserving tool wrapper.
 
@@ -137,7 +137,7 @@ Export `wrapTools(tailrace, tools, opts)`.
 
 ---
 
-## Phase 5 — Fluent API (`withAiSdk`)
+## Phase 5: Fluent API (`withAiSdk`)
 
 **Goal:** Option C without core importing `ai`.
 
@@ -163,7 +163,7 @@ Remove or update `// SPEC-QUESTION` comments in `packages/ai-sdk/src/index.ts`.
 
 ---
 
-## Phase 6 — Demo 3 regression test (ai-sdk package)
+## Phase 6: Demo 3 regression test (ai-sdk package)
 
 **Goal:** Milestones Demo 3 spec in integration tests (extends core's 50-step test).
 
@@ -179,7 +179,7 @@ Keep existing core test; this test proves the **wrappers** preserve token stabil
 
 ---
 
-## Phase 7 — `examples/nextjs-ai-sdk`
+## Phase 7: `examples/nextjs-ai-sdk`
 
 **Goal:** Demos 1 & 3 runnable from fresh clone.
 
@@ -219,14 +219,14 @@ Wire example into pnpm workspace (`pnpm-workspace.yaml`).
 
 ---
 
-## Phase 8 — CI and docs polish
+## Phase 8: CI and docs polish
 
 1. `@tailrace/ai-sdk` tests in turbo `test` pipeline (currently `--passWithNoTests`).
 2. eslint boundary: ai-sdk imports only `@tailrace/core` public API + `ai`.
 3. Update `packages/ai-sdk/README.md` (≤ 10 line quickstart, both API forms, `streamBlockBehavior` table).
 4. Promote M3 locked items in `OPEN_QUESTIONS.md` to Resolved.
 5. Check off M3 boxes in `milestones.md` when green.
-6. **Docs site (M3):** quickstart, protect-pii guide, reference/ai-sdk/*, integrations/nextjs — see `apps/web/content/docs/`.
+6. **Docs site (M3):** quickstart, protect-pii guide, reference/ai-sdk/*, integrations/nextjs - see `apps/web/content/docs/`.
 
 ---
 

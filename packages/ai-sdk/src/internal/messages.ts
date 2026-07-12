@@ -186,8 +186,10 @@ export function extractGenerateText(content: LanguageModelV2Content[]): string {
 
 /**
  * Rewrite text parts in generate content from a checked full-text string.
- * When the checked string length/layout changes (tokenize/mask), replace the first
- * text part with the full output and clear subsequent text parts.
+ *
+ * v0.1: when tokenize/mask changes length, collapse all model text parts into the
+ * first part (full checked string) and blank the rest. Per-part proportional rewrite
+ * can land later if multi-part outputs become common.
  */
 export function applyGenerateText(
   content: LanguageModelV2Content[],

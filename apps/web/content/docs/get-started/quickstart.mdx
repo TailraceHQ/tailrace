@@ -65,7 +65,7 @@ const prompt =
   "Use key sk_test_51FakeKeyForTailraceTests000FAKE to call the API.";
 ```
 
-**Expected:** `PolicyViolationError` — the call aborts and the provider is never contacted.
+**Expected:** `PolicyViolationError` - the call aborts and the provider is never contacted.
 
 ```text
 policy blocked entity "api_key" via rule "entities.api_key"
@@ -98,7 +98,7 @@ Send a prompt with only an email:
 ```ts
 const prompt = "Please email customer@example.com about the invoice.";
 const { text } = await generateText({ model, prompt });
-// text contains <EMAIL_xxxxxxxx> — what the model saw
+// text contains <EMAIL_xxxxxxxx> - what the model saw
 ```
 
 Restore at egress before returning to the client:
@@ -128,6 +128,6 @@ Open [http://localhost:3000](http://localhost:3000) and try **Run A** and **Run 
 
 ## Where next
 
-- [Protect PII in the AI SDK](/docs/guides/protect-pii-in-ai-sdk) — tools, streaming, workflow IDs
-- [Boundaries](/docs/concepts) — model, tool, egress mental model
-- [AI SDK reference](/docs/reference/ai-sdk) — `wrapModel`, options, streaming modes
+- [Protect PII in the AI SDK](/docs/guides/protect-pii-in-ai-sdk) - tools, streaming, workflow IDs
+- [Boundaries](/docs/concepts) - model, tool, egress mental model
+- [AI SDK reference](/docs/reference/ai-sdk) - `wrapModel`, options, streaming modes

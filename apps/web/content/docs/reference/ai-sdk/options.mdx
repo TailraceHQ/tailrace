@@ -65,7 +65,7 @@ Non-streaming `wrapGenerate` always throws on block regardless of this option.
 
 **Type:** `(decisions: Decision[]) => void`
 
-Called after each successful `check` with audit decisions. Decisions include `entity`, `rule`, `contentHash`, and span offsets — **never raw values**.
+Called after each successful `check` with audit decisions. Decisions include `entity`, `rule`, `contentHash`, and span offsets - **never raw values**.
 
 Also forwarded to Tailrace audit sinks configured on the instance.
 
@@ -91,4 +91,4 @@ tailrace.model(openai("gpt-4o"), {
 ## Related
 
 - [wrapModel](/docs/reference/ai-sdk/wrap-model)
-- [Protect PII guide — streaming](/docs/guides/protect-pii-in-ai-sdk#step-5--configure-streaming-optional)
+- [Protect PII guide - streaming](/docs/guides/protect-pii-in-ai-sdk#step-5--configure-streaming-optional)

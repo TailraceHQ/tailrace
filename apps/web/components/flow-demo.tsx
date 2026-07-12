@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 import { FlowDemoCode, flowDemoFilename } from "@/components/flow-demo-code";
 
+const STEP_MS = 4000;
+
 const STEPS = [
   {
     id: "input",
@@ -17,7 +19,7 @@ const prompt = \`
   },
   {
     id: "detect",
-    label: "Detect",
+    label: "Detection",
     detail: "Tier 0 recognizers find spans in-process",
     code: `// Spans (no raw values in audit)
 [
@@ -28,7 +30,7 @@ const prompt = \`
   },
   {
     id: "resolve",
-    label: "Policy resolve",
+    label: "Policy Resolve",
     detail: "boundary × identity × entity → action",
     code: `// Default policy
 email   → tokenize  (entities.email)
@@ -60,7 +62,7 @@ throw PolicyViolationError("api_key")
     id: "restore",
     label: "Restore at egress",
     detail: "Detokenize only at trusted sinks",
-    code: `// Route handler — egress boundary
+    code: `// Route handler - egress boundary
 await tailrace.restore(text, {
   boundary: { kind: "egress", sink: "ui" },
 });
@@ -75,13 +77,17 @@ export function FlowDemo() {
   const [step, setStep] = useState(0);
   const [paused, setPaused] = useState(false);
 
+  const goToStep = (index: number) => {
+    setStep(index);
+  };
+
   useEffect(() => {
     if (paused) return;
-    const id = window.setInterval(() => {
+    const id = window.setTimeout(() => {
       setStep((s) => (s + 1) % STEPS.length);
-    }, 2800);
-    return () => window.clearInterval(id);
-  }, [paused]);
+    }, STEP_MS);
+    return () => window.clearTimeout(id);
+  }, [step, paused]);
 
   const current = STEPS[step]!;
   const isRestore = current.id === "restore";
@@ -123,14 +129,20 @@ export function FlowDemo() {
         <div className="flex flex-col justify-center p-4">
           <div className="flex flex-wrap items-center gap-1.5">
             {PIPELINE.map((id, i) => {
-              const meta = STEPS.find((s) => s.id === id)!;
+              const stepIndex = STEPS.findIndex((s) => s.id === id);
+              const meta = STEPS[stepIndex]!;
               const active = current.id === id;
-              const past = STEPS.findIndex((s) => s.id === current.id) > i;
+              const past = step > stepIndex;
               return (
                 <div key={id} className="flex items-center gap-1.5">
-                  <div
+                  <button
+                    type="button"
+                    aria-label={`Go to ${meta.label}`}
+                    aria-current={active ? "step" : undefined}
+                    onClick={() => goToStep(stepIndex)}
                     className={[
-                      "rounded-md border px-2 py-1 text-[11px] font-medium transition-all duration-500",
+                      "cursor-pointer rounded-md border px-2 py-1 text-[11px] font-medium transition-all duration-500",
+                      "hover:border-fd-primary/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fd-primary/40",
                       active
                         ? "border-fd-primary bg-fd-primary/10 text-fd-primary scale-105 shadow-sm"
                         : past
@@ -139,7 +151,7 @@ export function FlowDemo() {
                     ].join(" ")}
                   >
                     {meta.label}
-                  </div>
+                  </button>
                   {i < PIPELINE.length - 1 ? (
                     <span
                       className={[
@@ -155,12 +167,17 @@ export function FlowDemo() {
             })}
           </div>
 
-          <div
+          <button
+            type="button"
+            aria-label="Go to Restore at egress"
+            aria-current={isRestore ? "step" : undefined}
+            onClick={() => goToStep(STEPS.findIndex((s) => s.id === "restore"))}
             className={[
-              "mt-4 flex items-start gap-2 rounded-lg border border-dashed p-3 transition-all duration-500",
+              "mt-4 flex w-full cursor-pointer items-start gap-2 rounded-lg border border-dashed p-3 text-left transition-all duration-500",
+              "hover:border-violet-500/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500/40",
               isRestore
                 ? "border-violet-500/50 bg-violet-500/5"
-                : "border-fd-border/50 bg-transparent opacity-50",
+                : "border-fd-border/50 bg-transparent opacity-50 hover:opacity-80",
             ].join(" ")}
           >
             <span className="mt-0.5 text-fd-muted-foreground">↳</span>
@@ -177,7 +194,7 @@ export function FlowDemo() {
                 Never at model · tool · MCP · telemetry boundaries
               </div>
             </div>
-          </div>
+          </button>
 
           <div className="mt-4 flex gap-1">
             {STEPS.map((s, i) => (
@@ -185,7 +202,7 @@ export function FlowDemo() {
                 key={s.id}
                 type="button"
                 aria-label={`Go to ${s.label}`}
-                onClick={() => setStep(i)}
+                onClick={() => goToStep(i)}
                 className={[
                   "h-1 flex-1 rounded-full transition-all duration-300",
                   i === step ? "bg-fd-primary" : "bg-fd-muted hover:bg-fd-muted-foreground/30",

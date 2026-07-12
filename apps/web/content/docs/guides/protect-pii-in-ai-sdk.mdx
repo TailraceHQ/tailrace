@@ -4,7 +4,7 @@ description: Wrap models and tools, configure streaming block behavior, and rest
 mode: guide
 ---
 
-Use `@tailrace/ai-sdk` to enforce data policy on Vercel AI SDK model calls and tool executions — in-process, with no proxy.
+Use `@tailrace/ai-sdk` to enforce data policy on Vercel AI SDK model calls and tool executions - in-process, with no proxy.
 
 ## When to use this
 
@@ -17,7 +17,7 @@ Use `@tailrace/ai-sdk` to enforce data policy on Vercel AI SDK model calls and t
 - [Quickstart](/docs/get-started/quickstart) completed, or equivalent `createTailrace` + `wrapModel` setup
 - `ai@^5` and a provider package (`@ai-sdk/openai`, etc.)
 
-## Step 1 — Choose an API shape
+## Step 1: Choose an API shape
 
 Two equivalent forms ship in v0.1:
 
@@ -41,7 +41,7 @@ const model = wrapModel(tailrace, openai("gpt-4o"));
 const tools = wrapTools(tailrace, { search: searchTool });
 ```
 
-## Step 2 — Set agent and workflow ID
+## Step 2: Set agent and workflow ID
 
 ```ts
 const model = tailrace.model(openai("gpt-4o"), {
@@ -57,7 +57,7 @@ const model = tailrace.model(openai("gpt-4o"), {
 
 Pass the same `workflowId` to `model`, `tools`, and `restore` within one conversation.
 
-## Step 3 — Wrap tools
+## Step 3: Wrap tools
 
 ```ts
 import { tool } from "ai";
@@ -88,7 +88,7 @@ Blocked by data policy: api_key may not be sent to tool:fetchOrder:out (rule: en
 
 Tools without `execute` are not wrapped.
 
-## Step 4 — Restore at egress
+## Step 4: Restore at egress
 
 The model wrapper tokenizes PII in prompts and completions. Your HTTP handler (or trusted UI sink) restores tokens:
 
@@ -106,13 +106,13 @@ return Response.json({ text: output });
 
 Pick a sink name that matches your policy (`egress:ui`, `egress:*`, etc.).
 
-## Step 5 — Configure streaming (optional)
+## Step 5: Configure streaming (optional)
 
 For `streamText`, choose how policy **`block`** on model **output** is handled:
 
 ```ts
 const model = tailrace.model(openai("gpt-4o"), {
-  streamBlockBehavior: "abort", // default — recommended
+  streamBlockBehavior: "abort", // default - recommended
 });
 ```
 
@@ -120,7 +120,7 @@ const model = tailrace.model(openai("gpt-4o"), {
 | --- | --- |
 | `abort` | Hold-back scan; throw `PolicyViolationError`; fail-closed |
 | `buffer` | Buffer full response; check at end; throw on block |
-| `redact` | Replace blocked spans with `[ENTITY]`; stream continues — **not fail-closed** |
+| `redact` | Replace blocked spans with `[ENTITY]`; stream continues - **not fail-closed** |
 
 Input blocking always aborts before the provider runs. `redact` applies only to streaming output.
 
@@ -161,10 +161,10 @@ You called `restore` at a model or tool boundary. Use `{ kind: "egress", sink: "
 
 **Stream aborts on benign output**
 
-A secret-class pattern matched in model output. Default policy blocks echoed secrets. Adjust policy only with care — secrets cannot be overridden to `allow` without `dangerouslyAllowSecrets: true`.
+A secret-class pattern matched in model output. Default policy blocks echoed secrets. Adjust policy only with care - secrets cannot be overridden to `allow` without `dangerouslyAllowSecrets: true`.
 
 ## Related
 
-- [Next.js integration](/docs/integrations/nextjs) — runnable Demo 1 app
+- [Next.js integration](/docs/integrations/nextjs) - runnable Demo 1 app
 - [wrapModel reference](/docs/reference/ai-sdk/wrap-model)
 - [streamBlockBehavior reference](/docs/reference/ai-sdk/options#streamblockbehavior)
