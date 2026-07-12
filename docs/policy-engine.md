@@ -89,9 +89,27 @@ Resolution must be pure and synchronous: `resolve(policy, entity, boundary, iden
 All integrations call one core method:
 
 ```ts
-tailrace.check(input: string | JsonObject, ctx: { boundary: Boundary; identity: Identity; workflowId?: string })
-  : Promise<{ output: typeof input; decisions: Decision[]; blocked: false } >
-  // or throws PolicyViolationError (blocked)
+interface CheckOptions {
+  /**
+   * When policy resolves to `block`, apply this action instead of throwing.
+   * Default: throw. Only `@tailrace/ai-sdk` passes this, and only for
+   * `streamBlockBehavior: "redact"` (integrations.md §1.4).
+   */
+  applyBlockAs?: "mask";
+}
+
+tailrace.check(
+  input: string | JsonObject,
+  ctx: { boundary: Boundary; identity: Identity; workflowId?: string },
+  options?: CheckOptions,
+): Promise<{ output: typeof input; decisions: Decision[]; blocked: false }>
+// or throws PolicyViolationError (blocked) when applyBlockAs is unset
 ```
 
-Plus `tailrace.restore(input, ctx)` for egress boundaries. Integrations contain NO policy logic — they only construct the right `Boundary`/`Identity` and translate errors.
+When `applyBlockAs: "mask"` is set and the resolved action is `block`, the value is masked in output
+and the audit decision keeps `action: "block"` with optional `appliedAs: "mask"`. Policy resolution
+is unchanged — this is integration-level translation of `block` at the streaming surface, not a
+policy override.
+
+Plus `tailrace.restore(input, ctx)` for egress boundaries. Integrations contain NO policy logic —
+they only construct the right `Boundary`/`Identity` and translate errors.

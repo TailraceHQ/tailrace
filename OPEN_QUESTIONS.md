@@ -5,22 +5,6 @@ resolved in the docs, locked for v0.1, or explicitly deferred before v0.1 ships 
 
 ## Open
 
-- **Fluent integration form (`tailrace.model` / `tailrace.tools` / `tailrace.mcp`).** The specs show a
-  fluent form on the gate instance (docs/integrations.md §1–2), but `@tailrace/core` cannot import
-  host framework types (AI SDK, MCP SDK) without breaking its zero-dependency, edge-safe boundary
-  (docs/architecture.md §2). M0 ships the narrower standalone form: `wrapModel(tailrace, model)`,
-  `wrapTools(tailrace, tools)`, `wrapTransport(tailrace, transport)`. **Decision needed in M3:** add
-  the fluent form via declaration merging + runtime registration on the instance, or keep the
-  standalone functions and update the specs. Prefer whichever keeps `core` framework-free.
-  _Sites:_ `packages/ai-sdk/src/index.ts`, `packages/mcp/src/index.ts`, `packages/hono/src/index.ts`.
-
-- **Exact host types for integration wrappers.** M0 wrappers are generic over the host object type.
-  Bind the real types at implementation time, verified against the installed version (the live
-  interface wins on mechanics, docs/conventions.md §Agent workflow notes):
-  - `@tailrace/ai-sdk` → `LanguageModel`, `ToolSet`, `wrapLanguageModel` middleware signature (M3).
-  - `@tailrace/mcp` → `Transport` from `@modelcontextprotocol/sdk` (M5).
-  - `@tailrace/hono` → `MiddlewareHandler` / `Context` (M5).
-
 - **Tier 1 NER model choice.** Pick the specific GLiNER-class ONNX model with the best F1-per-MB and
   record candidates + benchmark results here (docs/detection.md §3). _Site:_
   `packages/recognizer-ner/src/index.ts`.
@@ -59,4 +43,26 @@ wording may still lag until M5 triage.
 
 ## Resolved
 
-_(none yet - promote "Locked for v0.1" items here once the normative specs fully absorb them)_
+- **Fluent + standalone API (Option C).** `wrapModel` / `wrapTools` and `withAiSdk(tailrace)` for
+  `tailrace.model()` / `tailrace.tools()`. Core stays framework-free; fluent methods live in
+  `@tailrace/ai-sdk` only. See docs/integrations.md §1.
+  _Was:_ Locked for v0.1 (M3).
+
+- **AI SDK version pin.** `ai@^5` peer; types bound against installed `LanguageModelV2` middleware
+  (`@ai-sdk/provider@2.x` matching `ai@5.0.x`).
+  _Was:_ Locked for v0.1 (M3) / Open (partial).
+
+- **Model boundary for input and output.** Both use `{ kind: "model", provider }`. Do not use
+  `telemetry` for AI SDK middleware in v0.1.
+  _Was:_ Locked for v0.1 (M3).
+
+- **Provider encoding.** `${providerId}/${modelId}`; gateway-style model IDs with `/` used as-is.
+  _Was:_ Locked for v0.1 (M3).
+
+- **Streaming output block modes.** `streamBlockBehavior`: `abort` (default), `buffer`, `redact`
+  (`applyBlockAs: "mask"`). Non-stream generate always throws on block.
+  _Was:_ Locked for v0.1 (M3).
+
+- **Demo 1 semantics.** Block = secret never reaches provider; mock model default; egress restore
+  explicit in route handler (`examples/nextjs-ai-sdk`).
+  _Was:_ Locked for v0.1 (M3).

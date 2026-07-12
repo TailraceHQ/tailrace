@@ -26,6 +26,8 @@ export interface ApplyContext {
   vault: Vault;
   masterKey: Uint8Array;
   workflowId: string;
+  /** When set, `block` actions are applied as this instead of throwing. */
+  applyBlockAs?: "mask";
 }
 
 interface CollapsedItem extends ApplyItem {
@@ -93,7 +95,8 @@ function replaceInString(text: string, start: number, end: number, replacement: 
 }
 
 /**
- * Apply actions right-to-left. Throws {@link PolicyViolationError} on `block`.
+ * Apply actions right-to-left. Throws {@link PolicyViolationError} on `block`
+ * unless {@link ApplyContext.applyBlockAs} remaps the block.
  */
 export async function applyActions<T extends string | JsonObject>(
   input: T,
@@ -103,7 +106,7 @@ export async function applyActions<T extends string | JsonObject>(
   const collapsed = collapseOverlaps(items);
 
   const blocks = collapsed.filter((i) => i.action === "block");
-  if (blocks.length > 0) {
+  if (blocks.length > 0 && ctx.applyBlockAs !== "mask") {
     const decisions = blocks.map((b) => ({ ...b.decision, action: "block" as const }));
     const first = decisions[0]!;
     throw new PolicyViolationError(
@@ -146,7 +149,10 @@ export async function applyActions<T extends string | JsonObject>(
     }
 
     for (const item of group) {
-      const action = item.action;
+      const resolvedAction = item.action;
+      // Integration remapping: policy still resolved to block; apply as mask.
+      const action: Action =
+        resolvedAction === "block" && ctx.applyBlockAs === "mask" ? "mask" : resolvedAction;
       const value = item.value || extractValue(input, item.span);
       let replacement = value;
 
@@ -168,7 +174,11 @@ export async function applyActions<T extends string | JsonObject>(
       }
 
       leaf = replaceInString(leaf, item.span.start, item.span.end, replacement);
-      decisions.push(item.decision);
+      const decision: Decision =
+        resolvedAction === "block" && ctx.applyBlockAs === "mask"
+          ? { ...item.decision, action: "block", appliedAs: "mask" }
+          : item.decision;
+      decisions.push(decision);
     }
 
     if (typeof output === "string") {

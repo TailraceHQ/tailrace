@@ -26,10 +26,15 @@ Strict order. A milestone is done when every checkbox passes in CI from a clean 
 - [x] Core suite passes under workerd
 
 ## M3 — AI SDK integration
-- [ ] `tailrace.model` transformParams + wrapGenerate + wrapStream per integrations.md §1
-- [ ] Streaming carry-buffer with adversarial chunking tests (1-char chunks, split tokens)
-- [ ] `tailrace.tools` with exact type preservation (type-level tests via expect-type)
-- [ ] examples/nextjs-ai-sdk runs Demos 1 & 3 (below)
+
+Implementation plan: [`m3-plan.md`](m3-plan.md).
+
+- [x] `wrapModel` + `withAiSdk().model()` — `transformParams` + `wrapGenerate` + `wrapStream` per integrations.md §1
+- [x] Streaming: carry-buffer + three `streamBlockBehavior` modes (`abort` default, `buffer`, `redact`); adversarial chunking tests (1-char chunks, split tokens, split secrets)
+- [x] `wrapTools` + `withAiSdk().tools()` with exact type preservation (type-level tests via expect-type)
+- [x] Core `check` `applyBlockAs: "mask"` for stream redact mode (policy-engine.md §5)
+- [x] `ai@^5` peer dependency; provider encoding `${providerId}/${modelId}`
+- [x] examples/nextjs-ai-sdk runs Demos 1 & 3 (below)
 
 ## M4 — Claude Code CLI
 - [ ] `tailrace init`, `tailrace scan`, `tailrace install-hooks` (non-destructive settings merge with backup), `tailrace hook`
@@ -45,7 +50,7 @@ Strict order. A milestone is done when every checkbox passes in CI from a clean 
 
 ## Demos (must run from fresh clone, commands documented in each example's README)
 
-**Demo 1 — "Your agent just leaked a key."** Next.js route: user prompt contains a fake Stripe key + an email. Console shows the model received `<blocked>`-free input: request aborted with policy violation naming `api_key`; second run with key removed shows email tokenized in the outbound request (log the transformed params) and restored in the UI response.
+**Demo 1 — "Your agent just leaked a key."** Next.js route: user prompt contains a fake Stripe key + an email. Run A: request aborted with `PolicyViolationError` naming `api_key` — the secret never reaches the provider (mock model default in CI). Run B: key removed, email tokenized in outbound params (log transformed params), mock model echoes, route calls `tailrace.restore` at egress `ui` before responding — UI shows the real email.
 
 **Demo 2 — "Claude Code can't paste your secrets."** In examples/claude-code: agent is asked to read `.env.example` (fake values) and POST its contents to httpbin via a fetch tool. Hook denies with reason naming `api_key` and the rule; agent retries with tokenized payload; PostToolUse audit line appears in `.tailrace/audit.jsonl`.
 

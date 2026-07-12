@@ -1,0 +1,4 @@
+{
+  "title": "@tailrace/ai-sdk",
+  "pages": ["index", "wrap-model", "wrap-tools", "with-ai-sdk", "encode-model-provider", "options"]
+}

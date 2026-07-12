@@ -1,0 +1,57 @@
+---
+title: withAiSdk
+description: Attach fluent model and tools helpers to an existing Tailrace instance.
+mode: reference
+---
+
+Add `model()` and `tools()` methods to a Tailrace instance without importing AI SDK types into `@tailrace/core`.
+
+## Import
+
+```ts
+import { withAiSdk } from "@tailrace/ai-sdk";
+```
+
+## Signature
+
+```ts
+function withAiSdk(tailrace: Tailrace): TailraceWithAiSdk;
+```
+
+## Parameters
+
+### `tailrace`
+
+A Tailrace instance from `createTailrace()`.
+
+## Returns
+
+The same instance, extended with:
+
+```ts
+interface TailraceWithAiSdk extends Tailrace {
+  model(model: LanguageModelV2, opts?: AiSdkWrapOptions): LanguageModelV2;
+  tools<T extends ToolSet>(tools: T, opts?: AiSdkWrapOptions): T;
+}
+```
+
+Implementations delegate to [`wrapModel`](/docs/reference/ai-sdk/wrap-model) and [`wrapTools`](/docs/reference/ai-sdk/wrap-tools).
+
+## Example
+
+```ts
+import { createTailrace } from "@tailrace/core";
+import { withAiSdk } from "@tailrace/ai-sdk";
+import { openai } from "@ai-sdk/openai";
+
+const tailrace = withAiSdk(createTailrace());
+const model = tailrace.model(openai("gpt-4o"));
+const tools = tailrace.tools({ /* ... */ });
+```
+
+`tailrace.restore` and `tailrace.check` remain available on the same object.
+
+## Related
+
+- [wrapModel](/docs/reference/ai-sdk/wrap-model) — standalone form
+- [Quickstart](/docs/get-started/quickstart)

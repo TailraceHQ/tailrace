@@ -1,0 +1,88 @@
+---
+title: wrapTools
+description: Wrap a ToolSet so tool arguments and return values pass through Tailrace policy.
+mode: reference
+---
+
+Wrap each tool's `execute` function so arguments and results are checked at the **tool** boundary.
+
+## Import
+
+```ts
+import { wrapTools } from "@tailrace/ai-sdk";
+```
+
+## Signature
+
+```ts
+function wrapTools<T extends ToolSet>(
+  tailrace: Tailrace,
+  tools: T,
+  opts?: AiSdkWrapOptions,
+): T;
+```
+
+## Parameters
+
+### `tailrace`
+
+A Tailrace instance from `createTailrace()`.
+
+### `tools`
+
+An AI SDK `ToolSet` object (for example the `tools` argument to `generateText` or an agent).
+
+### `opts`
+
+Optional. See [AiSdkWrapOptions](/docs/reference/ai-sdk/options). `streamBlockBehavior` has no effect on tools.
+
+## Returns
+
+A tool set with the **same type** `T`. Type inference must match the input; degraded inference is a bug.
+
+Tools **without** `execute` are copied unchanged.
+
+## Check boundaries
+
+| Phase | Boundary |
+| --- | --- |
+| Before `execute` | `{ kind: "tool", name, direction: "out" }` |
+| After `execute` | `{ kind: "tool", name, direction: "in" }` |
+
+## Throws
+
+On policy `block`, throws a standard `Error` (not `PolicyViolationError`) with message:
+
+```text
+Blocked by data policy: {entity} may not be sent to {boundary} (rule: {rule})
+```
+
+The AI SDK surfaces this to the model as a tool error.
+
+## Example
+
+```ts
+import { tool } from "ai";
+import { z } from "zod";
+import { createTailrace } from "@tailrace/core";
+import { wrapTools } from "@tailrace/ai-sdk";
+
+const tailrace = createTailrace();
+
+const tools = wrapTools(
+  tailrace,
+  {
+    lookup: tool({
+      description: "Look up a record",
+      inputSchema: z.object({ id: z.string() }),
+      execute: async ({ id }) => ({ id, status: "ok" }),
+    }),
+  },
+  { workflowId: "run-1" },
+);
+```
+
+## Related
+
+- [wrapModel](/docs/reference/ai-sdk/wrap-model)
+- [Protect PII guide](/docs/guides/protect-pii-in-ai-sdk)

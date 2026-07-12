@@ -20,6 +20,7 @@ import { resolve } from "./policy/resolve";
 import { validatePolicy } from "./policy/validate";
 import type {
   CheckContext,
+  CheckOptions,
   CheckResult,
   Decision,
   JsonObject,
@@ -122,6 +123,7 @@ export function createTailrace(options: TailraceOptions = {}): Tailrace {
   const check = async <T extends string | JsonObject>(
     input: T,
     ctx: CheckContext,
+    options?: CheckOptions,
   ): Promise<CheckResult<T>> => {
     const workflowId = ctx.workflowId ?? "default";
     const identity = {
@@ -162,6 +164,7 @@ export function createTailrace(options: TailraceOptions = {}): Tailrace {
         vault,
         masterKey,
         workflowId,
+        ...(options?.applyBlockAs !== undefined ? { applyBlockAs: options.applyBlockAs } : {}),
       });
       audit.emit("check", workflowId, decisions);
       return { output, decisions, blocked: false };

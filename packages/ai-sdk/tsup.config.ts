@@ -7,4 +7,5 @@ export default defineConfig({
   clean: true,
   sourcemap: true,
   target: "es2022",
+  external: ["ai", "@ai-sdk/provider", "@tailrace/core"],
 });

@@ -1,0 +1,53 @@
+---
+title: encodeModelProvider
+description: Encode a LanguageModelV2 as a policy boundary provider string.
+mode: reference
+---
+
+Convert an AI SDK model's `provider` and `modelId` into the string used in `{ kind: "model", provider }` boundaries and policy glob keys.
+
+## Import
+
+```ts
+import { encodeModelProvider } from "@tailrace/ai-sdk";
+```
+
+## Signature
+
+```ts
+function encodeModelProvider(
+  model: Pick<LanguageModelV2, "provider" | "modelId">,
+): string;
+```
+
+## Returns
+
+| Input | Output |
+| --- | --- |
+| `provider: "openai"`, `modelId: "gpt-4o"` | `"openai/gpt-4o"` |
+| `modelId: "openai/gpt-4o"` (gateway-style) | `"openai/gpt-4o"` |
+| `modelId: ""` | `provider` or `"unknown"` |
+
+## Use in policy
+
+```ts
+definePolicy({
+  boundaries: {
+    "openai/*": { entities: { email: "tokenize" } },
+    "openai/gpt-4o-mini": { entities: { email: "allow" } },
+  },
+});
+```
+
+Exact keys beat globs. Model globs do not match tool or MCP boundary keys.
+
+## Example
+
+```ts
+encodeModelProvider({ provider: "openai", modelId: "gpt-4o" });
+// "openai/gpt-4o"
+```
+
+## Related
+
+- [wrapModel](/docs/reference/ai-sdk/wrap-model)

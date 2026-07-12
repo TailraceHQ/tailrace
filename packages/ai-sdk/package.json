@@ -26,16 +26,23 @@
   ],
   "scripts": {
     "build": "tsup",
-    "test": "vitest run --passWithNoTests",
-    "typecheck": "tsc --noEmit"
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit && tsc --noEmit -p tsconfig.testd.json"
   },
   "dependencies": {
     "@tailrace/core": "workspace:*"
   },
   "peerDependencies": {
-    "ai": ">=4"
+    "ai": "^5"
   },
   "publishConfig": {
     "access": "public"
+  },
+  "devDependencies": {
+    "@ai-sdk/provider": "2.0.3",
+    "ai": "^5.0.210",
+    "expect-type": "^1.4.0",
+    "vitest": "^2.1.9",
+    "zod": "^4.4.3"
   }
 }
