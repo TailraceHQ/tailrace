@@ -5,7 +5,9 @@ The policy engine answers one question: **given a detected entity span, a bounda
 ## 1. Core types
 
 ```ts
-type Action = "allow" | "mask" | "tokenize" | "block" | "review"; // review: typed, throws NotImplementedError in v0.1
+type Action = "allow" | "mask" | "tokenize" | "block" | "review" | "detokenize";
+// review: typed, throws NotImplementedError in v0.1
+// detokenize: egress-only; rejected by definePolicy outside egress boundary keys
 
 type EntityClass =
   // secrets (Tier 0, deterministic)

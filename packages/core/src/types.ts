@@ -7,7 +7,7 @@
  */
 
 /** What the policy engine decides to do with a detected span. */
-export type Action = "allow" | "mask" | "tokenize" | "block" | "review";
+export type Action = "allow" | "mask" | "tokenize" | "block" | "review" | "detokenize";
 
 /** Deterministic, Tier 0 secret classes. `block` on these cannot be relaxed to `allow`
  * without `dangerouslyAllowSecrets` (docs/policy-engine.md §3.3). */
@@ -41,6 +41,20 @@ export const SECRET_ENTITY_CLASSES: readonly SecretEntityClass[] = [
   "high_entropy_secret",
   "connection_string",
 ];
+
+/** Structured PII classes (Tier 0). */
+export const PII_ENTITY_CLASSES: readonly PiiEntityClass[] = [
+  "email",
+  "phone",
+  "credit_card",
+  "iban",
+  "ssn",
+  "ip_address",
+  "url_credentials",
+];
+
+/** Free-text PII classes (Tier 1 NER). */
+export const NER_ENTITY_CLASSES: readonly NerEntityClass[] = ["person", "location", "organization"];
 
 /** A trust boundary a value is about to cross. */
 export type Boundary =
@@ -81,7 +95,7 @@ export interface Recognizer {
 
 /** One resolved policy outcome for one span. Never carries the raw value. */
 export interface Decision {
-  action: Action | "detokenize" | "restore_miss";
+  action: Action | "restore_miss";
   entity: EntityClass;
   boundary: Boundary;
   identity: Identity;
@@ -166,6 +180,14 @@ export interface AuditEvent {
 /** A destination for audit events (console, JSONL, otel, custom). */
 export interface AuditSink {
   emit(event: AuditEvent): void | Promise<void>;
+}
+
+/**
+ * Line writer for {@link jsonlSink}. Callers supply filesystem or remote adapters;
+ * core never touches the filesystem.
+ */
+export interface AuditWriter {
+  write(line: string): void | Promise<void>;
 }
 
 /** Master-key and TTL options for the built-in vaults. */

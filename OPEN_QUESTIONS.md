@@ -1,7 +1,7 @@
 # Open Questions
 
 Tracks `// SPEC-QUESTION:` items left in the code (docs/AGENTS.md §When uncertain). Each is either
-resolved in the docs or explicitly deferred to a milestone before v0.1 ships (milestone M5).
+resolved in the docs, locked for v0.1, or explicitly deferred before v0.1 ships (milestone M5).
 
 ## Open
 
@@ -25,6 +25,36 @@ resolved in the docs or explicitly deferred to a milestone before v0.1 ships (mi
   record candidates + benchmark results here (docs/detection.md §3). _Site:_
   `packages/recognizer-ner/src/index.ts`.
 
+## Locked for v0.1 (M2)
+
+Decided during policy engine + vault implementation. Spec docs updated where noted; remaining
+wording may still lag until M5 triage.
+
+- **Boundary key encoding.** model → provider string; tool → `tool:{name}:{direction}`; mcp →
+  `mcp:{server}/{tool}`; telemetry → `telemetry`; egress → `egress:{sink}`. Glob `*` matches
+  remainder; exact > longer glob > shorter.
+  _Sites:_ `packages/core/src/policy/boundary.ts`, docs/policy-engine.md (examples only).
+
+- **Default policy document.** All `SecretEntityClass` → `block`; all `PiiEntityClass` →
+  `tokenize`; NER unset (falls through to `defaults.action` = `allow`);
+  `boundaries["egress:*"].entities["*"]` → `detokenize`.
+  _Sites:_ `packages/core/src/policy/default.ts`.
+
+- **detokenize as Action.** `Action` includes `"detokenize"`; runtime validation rejects it outside
+  egress boundary keys. Spec §1 Action union updated to match.
+  _Sites:_ `packages/core/src/types.ts`, `packages/core/src/policy/validate.ts`,
+  docs/policy-engine.md.
+
+- **Mask label configurability.** `[${entity.toUpperCase()}]` with no per-entity override yet.
+  _Sites:_ `packages/core/src/vault/token.ts` (`maskLabel`).
+
+- **block-pii membership.** All `PiiEntityClass` + all `NerEntityClass`.
+  _Sites:_ `packages/core/src/policy/resolve.ts`.
+
+- **Token-id alphabet.** Custom lowercase alphanumeric `[a-z0-9]` (not RFC 4648 base32), shared by
+  generation and restore regexes. Documented in docs/vault.md §1.
+  _Sites:_ `packages/core/src/vault/alphabet.ts`, docs/vault.md.
+
 ## Resolved
 
-_(none yet)_
+_(none yet - promote "Locked for v0.1" items here once the normative specs fully absorb them)_

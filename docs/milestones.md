@@ -3,27 +3,27 @@
 Strict order. A milestone is done when every checkbox passes in CI from a clean clone.
 
 ## M0 — Repo skeleton
-- [ ] pnpm + Turborepo monorepo with all packages from architecture.md §1 stubbed (types + `NotImplementedError` bodies)
-- [ ] tsup builds ESM+CJS+dts for every package; `pnpm build` green
-- [ ] Vitest wired incl. workers pool for core; `pnpm test` green (empty suites fine)
-- [ ] eslint + prettier + no-restricted-imports boundary rule; CI workflow runs build/test/lint/bench on PR
-- [ ] benchmarks/ harness runs a placeholder benchmark and enforces a threshold (proves the perf-gate mechanism)
+- [x] pnpm + Turborepo monorepo with all packages from architecture.md §1 stubbed (types + `NotImplementedError` bodies)
+- [x] tsup builds ESM+CJS+dts for every package; `pnpm build` green
+- [x] Vitest wired incl. workers pool for core; `pnpm test` green (empty suites fine)
+- [x] eslint + prettier + no-restricted-imports boundary rule; CI workflow runs build/test/lint/bench on PR
+- [x] benchmarks/ harness runs a placeholder benchmark and enforces a threshold (proves the perf-gate mechanism)
 
 ## M1 — Detection (Tier 0)
-- [ ] All Tier 0 recognizers from detection.md §2 with validators
-- [ ] Fixture corpus per entity (synthetic values only); precision/recall gates ≥ 0.95 enforced in CI
-- [ ] Span merging per detection.md §4; object scanning per §5
-- [ ] Perf gate: 4KB fixture p50 < 5ms in CI benchmark
-- [ ] Core bundle size gate: < 60KB gzipped, enforced in CI
+- [x] All Tier 0 recognizers from detection.md §2 with validators
+- [x] Fixture corpus per entity (synthetic values only); precision/recall gates ≥ 0.95 enforced in CI
+- [x] Span merging per detection.md §4; object scanning per §5
+- [x] Perf gate: 4KB fixture p50 < 5ms in CI benchmark
+- [x] Core bundle size gate: < 60KB gzipped, enforced in CI
 
 ## M2 — Policy engine + vault
-- [ ] `definePolicy` with full typing + runtime validation; resolution algorithm per policy-engine.md §3 with property-based tests (fast-check) over rule precedence
-- [ ] Secrets-cannot-be-allowed rule + `dangerouslyAllowSecrets` escape hatch
-- [ ] `tailrace.check` and `tailrace.restore` end-to-end; actions incl. format-preserving tokenization
-- [ ] memoryVault + kvVault with encrypted-at-rest test (vault.md §6 complete)
-- [ ] Audit emitter with console + JSONL sinks; every decision carries rule path + contentHash, zero raw values (test greps audit output for fixture values)
-- [ ] Default zero-config policy works: `createTailrace()` blocks a Stripe key, tokenizes an email
-- [ ] Core suite passes under workerd
+- [x] `definePolicy` with full typing + runtime validation; resolution algorithm per policy-engine.md §3 with property-based tests (fast-check) over rule precedence
+- [x] Secrets-cannot-be-allowed rule + `dangerouslyAllowSecrets` escape hatch
+- [x] `tailrace.check` and `tailrace.restore` end-to-end; actions incl. format-preserving tokenization
+- [x] memoryVault + kvVault with encrypted-at-rest test (vault.md §6 complete)
+- [x] Audit emitter with console + JSONL sinks; every decision carries rule path + contentHash, zero raw values (test greps audit output for fixture values)
+- [x] Default zero-config policy works: `createTailrace()` blocks a Stripe key, tokenizes an email
+- [x] Core suite passes under workerd
 
 ## M3 — AI SDK integration
 - [ ] `tailrace.model` transformParams + wrapGenerate + wrapStream per integrations.md §1
