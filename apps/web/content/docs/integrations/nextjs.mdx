@@ -1,0 +1,83 @@
+---
+title: Next.js
+description: Run Tailrace with the Vercel AI SDK in a Next.js App Router route — block secrets, tokenize PII, restore at egress.
+mode: integration
+---
+
+Enforce data policy on AI SDK model calls in Next.js. Scan prompts before they reach a provider, scan completions on the way back, and restore tokenized PII at egress for your UI.
+
+## Quickstart
+
+```ts
+// app/api/chat/route.ts
+import { createTailrace, PolicyViolationError } from "@tailrace/core";
+import { withAiSdk } from "@tailrace/ai-sdk";
+import { openai } from "@ai-sdk/openai";
+import { generateText } from "ai";
+
+const tailrace = withAiSdk(createTailrace());
+
+export async function POST(req: Request) {
+  const { prompt } = await req.json();
+  const workflowId = req.headers.get("x-workflow-id") ?? crypto.randomUUID();
+
+  const model = tailrace.model(openai("gpt-4o"), { workflowId, agent: "chat" });
+
+  try {
+    const result = await generateText({ model, prompt });
+    const restored = await tailrace.restore(result.text, {
+      boundary: { kind: "egress", sink: "ui" },
+      identity: { agent: "chat" },
+      workflowId,
+    });
+    return Response.json({ text: restored.output });
+  } catch (err) {
+    if (err instanceof PolicyViolationError) {
+      return Response.json({ error: { type: "policy_violation", message: err.message } }, { status: 422 });
+    }
+    throw err;
+  }
+}
+```
+
+## Boundaries covered
+
+| Location | Tailrace boundary | Direction |
+| --- | --- | --- |
+| Request prompt → model | `{ kind: "model", provider: "openai/gpt-4o" }` | Outbound to provider |
+| Model completion → app | Same model boundary | Inbound from provider |
+| HTTP response → browser | `{ kind: "egress", sink: "ui" }` | Restore (explicit `restore` call) |
+| Tool args / results | `{ kind: "tool", name, direction }` | Out / in (with `wrapTools`) |
+
+Provider strings use `${providerId}/${modelId}`. Policy globs like `openai/*` match accordingly.
+
+## Runnable example
+
+```bash
+git clone <repo>
+cd tailrace
+pnpm install
+pnpm --filter example-nextjs-ai-sdk dev
+```
+
+Open [http://localhost:3000](http://localhost:3000).
+
+| Button | Expected outcome |
+| --- | --- |
+| Run A — block secret | 422, `entity: api_key`, secret never hits mock model |
+| Run B — tokenize + restore | 200, UI shows real email, `modelSaw` shows token |
+
+Source: [`examples/nextjs-ai-sdk`](https://github.com/tailrace/tailrace/tree/main/examples/nextjs-ai-sdk) in the monorepo.
+
+## Edge vs Node
+
+The example sets `export const runtime = "nodejs"`. `@tailrace/core` and `@tailrace/ai-sdk` also run on Edge when your provider and AI SDK usage are Edge-compatible. Keep vault keys in environment variables (`TAILRACE_VAULT_KEY` or `createTailrace({ vault: { key } })`).
+
+## Guides
+
+- [Protect PII in the AI SDK](/docs/guides/protect-pii-in-ai-sdk)
+- [Quickstart](/docs/get-started/quickstart)
+
+## Reference
+
+- [AI SDK package](/docs/reference/ai-sdk)

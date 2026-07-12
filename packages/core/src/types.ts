@@ -105,6 +105,23 @@ export interface Decision {
   span: { path: string; start: number; end: number };
   /** SHA-256 of the raw value, hex - for audit correlation only. */
   contentHash: string;
+  /**
+   * When {@link CheckOptions.applyBlockAs} remaps a `block` to another applied action,
+   * the resolved policy action stays `block` and this records what was applied.
+   */
+  appliedAs?: "mask";
+}
+
+/**
+ * Per-call options for {@link Tailrace.check}. Integration-only knobs; does not change
+ * policy resolution (docs/policy-engine.md §5).
+ */
+export interface CheckOptions {
+  /**
+   * When policy resolves to `block`, apply this action instead of throwing.
+   * Default: throw. Used by `@tailrace/ai-sdk` for `streamBlockBehavior: "redact"`.
+   */
+  applyBlockAs?: "mask";
 }
 
 /** A per-entity rule; either a bare action or an action with modifiers. */
@@ -230,8 +247,15 @@ export interface CheckResult<T> {
  * `Boundary`/`Identity` and translate errors; they contain no policy logic.
  */
 export interface Tailrace {
-  /** Detect + resolve + apply. Throws {@link PolicyViolationError} on a `block`. */
-  check<T extends string | JsonObject>(input: T, ctx: CheckContext): Promise<CheckResult<T>>;
+  /**
+   * Detect + resolve + apply. Throws {@link PolicyViolationError} on a `block`
+   * unless {@link CheckOptions.applyBlockAs} remaps the block.
+   */
+  check<T extends string | JsonObject>(
+    input: T,
+    ctx: CheckContext,
+    options?: CheckOptions,
+  ): Promise<CheckResult<T>>;
   /** Restore tokens at a trusted `egress` boundary. Throws at any other boundary. */
   restore<T extends string | JsonObject>(input: T, ctx: CheckContext): Promise<CheckResult<T>>;
 }

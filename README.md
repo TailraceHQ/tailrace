@@ -9,9 +9,8 @@
 workflow-scoped tokenization, and per-agent data-flow policy enforced at the model, tool, and MCP
 boundaries. No proxy, no sidecar, no network call in the request hot path.
 
-> Status: **early development (v0.1, milestone M0 - repo skeleton).** The public API surface and
-> package boundaries are in place; detection, policy, vault, and integrations land across milestones
-> M1–M5. See [`docs/milestones.md`](docs/milestones.md).
+> Status: **early development (v0.1, milestone M3).** Detection, policy, vault, audit, and the
+> Vercel AI SDK integration ship in `@tailrace/core` + `@tailrace/ai-sdk`.
 
 ## Why
 
@@ -34,14 +33,29 @@ workflow, and restore it only at trusted egress.
 ## Quickstart
 
 ```ts
-// Ships with milestone M3.
 import { createTailrace } from "@tailrace/core";
+import { withAiSdk } from "@tailrace/ai-sdk";
 import { openai } from "@ai-sdk/openai";
 
-const tailrace = createTailrace(); // zero config: secrets blocked, common PII tokenized
+const tailrace = withAiSdk(createTailrace()); // zero config: secrets blocked, common PII tokenized
 const model = tailrace.model(openai("gpt-4o"));
 // Use `model` anywhere you'd use the AI SDK model - sensitive values never leave the process.
 ```
+
+Runnable demos: [`examples/nextjs-ai-sdk`](examples/nextjs-ai-sdk).
+
+## Documentation
+
+| Resource                                                                            | Description                                       |
+| ----------------------------------------------------------------------------------- | ------------------------------------------------- |
+| [Quickstart](apps/web/content/docs/get-started/quickstart.mdx)                      | Block a secret and tokenize email in five minutes |
+| [Protect PII in the AI SDK](apps/web/content/docs/guides/protect-pii-in-ai-sdk.mdx) | Models, tools, streaming, egress restore          |
+| [@tailrace/ai-sdk reference](apps/web/content/docs/reference/ai-sdk/index.mdx)      | `wrapModel`, `wrapTools`, options                 |
+| [Next.js integration](apps/web/content/docs/integrations/nextjs.mdx)                | Runnable Demo 1                                   |
+| [Package README](packages/ai-sdk/README.md)                                         | Install and API overview                          |
+| [Integrations spec](docs/integrations.md)                                           | Normative behavior                                |
+
+Run the docs site locally: `pnpm --filter @tailrace/web dev`.
 
 ## Development
 

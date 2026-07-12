@@ -4,22 +4,119 @@ Integrations construct `Boundary` + `Identity`, call `tailrace.check`/`tailrace.
 
 ## 1. @tailrace/ai-sdk — Vercel AI SDK middleware (flagship)
 
-Public API:
+**Peer dependency:** `ai@^5`. User guide: [`docs/guides/ai-sdk-integration.md`](guides/ai-sdk-integration.md). Docs site: `/docs/reference/ai-sdk`. Types bind against the installed package (`LanguageModelV2` middleware:
+`transformParams`, `wrapGenerate`, `wrapStream`). As of `ai@5.0.x`, middleware is
+`LanguageModelV2Middleware` from `@ai-sdk/provider@2.x` (pinned as a matching devDependency in
+`@tailrace/ai-sdk`). Prompt shape is `LanguageModelV2Prompt` (system string content; user/assistant
+part arrays). Stream parts use `text-delta` (not a single `text` chunk type). Record further drift
+here in the same PR when upgrading `ai`.
+
+### Public API (both forms — Option C)
+
+Standalone functions (framework-free call sites, tree-shake friendly):
 
 ```ts
-tailrace.model(model: LanguageModel, opts?: { agent?: string; workflowId?: string | (() => string) }): LanguageModel
-tailrace.tools<T extends ToolSet>(tools: T, opts?: { agent?: string; workflowId?: string }): T
+import { wrapModel, wrapTools } from "@tailrace/ai-sdk";
+
+const model = wrapModel(tailrace, openai("gpt-4o"), opts);
+const tools = wrapTools(tailrace, { crm: crmTool }, opts);
 ```
 
-`tailrace.model` wraps via the AI SDK's `wrapLanguageModel` middleware API:
-- `transformParams`: run `check` (boundary `model`, provider string from the wrapped model's `modelId/provider`) over the prompt messages — system, user, assistant, and tool-result content parts. Rewrite in place.
-- `wrapGenerate`: `check` the output text at boundary `telemetry`-safe form is NOT done here; output scanning uses the same `model` boundary with `direction` semantics folded into policy defaults. Detected secrets in output ⇒ apply policy (a model echoing a secret back is a real case).
-- `wrapStream`: sliding-window scan + carry buffer per vault.md §5.
-- Pin to the AI SDK major version in peerDependencies; check the installed `ai` package's middleware signature at build time and adapt — verify against the current AI SDK docs before implementing, do not code from memory.
+Fluent form via `withAiSdk` (same implementations, ergonomic quickstart):
 
-`tailrace.tools` wraps each tool's `execute`: `check` args at `{ kind: "tool", name, direction: "out" }`, `check` the return value at `direction: "in"`. Blocked ⇒ throw; the AI SDK surfaces tool errors to the model, which is the desired self-correction loop. Preserve the tool's type signature exactly (generics, no `any`).
+```ts
+import { withAiSdk } from "@tailrace/ai-sdk";
 
-Error translation: `PolicyViolationError` from `transformParams` should abort the call with a clear, value-free message; from tools, it becomes the tool's error result string: `"Blocked by data policy: {entity} may not be sent to {boundary} (rule: {rule})"`.
+const tailrace = withAiSdk(createTailrace());
+const model = tailrace.model(openai("gpt-4o"), opts);
+const tools = tailrace.tools({ crm: crmTool }, opts);
+```
+
+`@tailrace/core` MUST NOT import `ai` or host framework types. Fluent methods live entirely in `@tailrace/ai-sdk`.
+
+### Wrap options
+
+```ts
+type StreamBlockBehavior = "abort" | "buffer" | "redact";
+
+interface AiSdkWrapOptions {
+  agent?: string;
+  workflowId?: string | (() => string);
+  /** Output streaming only. Default: "abort" (fail-closed). See §1.4. */
+  streamBlockBehavior?: StreamBlockBehavior;
+  onDecision?: (decisions: Decision[]) => void;
+}
+```
+
+### 1.1 Model boundary (input and output)
+
+Prompt and completion scanning both use the **same model boundary**:
+
+```ts
+{ kind: "model", provider: string }
+```
+
+Do **not** use the `telemetry` boundary for AI SDK middleware in v0.1.
+
+**Provider encoding:** `${providerId}/${modelId}` from the wrapped model after middleware overrides (e.g. `openai/gpt-4o`). This matches policy glob keys like `openai/*` and exact keys like `openai/gpt-4o` (policy-engine.md §3).
+
+Normalization rules:
+
+- If `modelId` already contains `/` (gateway-style `provider/model`), use it as-is — do not double-prefix.
+- If `modelId` is missing, fall back to `providerId` alone.
+
+### 1.2 `wrapModel` / `tailrace.model`
+
+Wrap via the AI SDK `wrapLanguageModel` middleware API (`transformParams`, `wrapGenerate`, `wrapStream`).
+
+**`transformParams`:** Run `check` over prompt messages — system, user, assistant, and tool-result **text** parts. Skip image/file/binary parts in v0.1. Rewrite in place. On `block`, throw `PolicyViolationError` (call never reaches the provider).
+
+**`wrapGenerate`:** After the model returns, run `check` on output text at the same model boundary. On `block`, throw `PolicyViolationError` before returning to the caller. On `tokenize`/`mask`/`allow`, rewrite in place.
+
+**`wrapStream`:** See §1.4. Reuse the carry-buffer technique from vault.md §5 for detection across chunk boundaries.
+
+### 1.3 `wrapTools` / `tailrace.tools`
+
+Wrap each tool's `execute`:
+
+- Args: `check` at `{ kind: "tool", name, direction: "out" }`
+- Return value: `check` at `{ kind: "tool", name, direction: "in" }`
+
+Tools without an `execute` function pass through unchanged.
+
+Blocked ⇒ throw; the AI SDK surfaces tool errors to the model (self-correction loop). Preserve the tool set's type signature exactly (generics, no `any`).
+
+**Error translation:**
+
+| Surface | `PolicyViolationError` becomes |
+|---|---|
+| `transformParams` / `wrapGenerate` | Aborted call; value-free message |
+| `wrapStream` (`abort` / `buffer`) | Failed stream; `PolicyViolationError` |
+| `wrapStream` (`redact`) | Stream continues with masked spans |
+| Tool `execute` | Tool error string: `"Blocked by data policy: {entity} may not be sent to {boundary} (rule: {rule})"` |
+
+### 1.4 Streaming output — `streamBlockBehavior`
+
+Policy still resolves to `block`; the integration chooses how to **translate** `block` at the streaming surface (same pattern as tool error strings vs abort).
+
+| Mode | Behavior | Fail-closed? | Streaming UX |
+|---|---|---|---|
+| **`abort`** (default) | Hold-back scan + carry buffer; cancel upstream; throw `PolicyViolationError` if any span resolves to `block` | Yes | Incremental output for confirmed-safe prefix |
+| **`buffer`** | Accumulate entire response; run `check` once at end; throw on `block` | Yes | No incremental output until complete |
+| **`redact`** | Hold-back scan; on `block`, apply as **`mask`** (not tokenize) and continue streaming | No — opt-in | Stream never aborts; secrets become `[ENTITY]` labels |
+
+**Not supported:** emit-then-scan without hold-back (partial secret leakage).
+
+For **`redact`**, pass `applyBlockAs: "mask"` on `check` (policy-engine.md §5). Audit records the resolved action as `block` plus `appliedAs: "mask"`.
+
+Non-streaming `wrapGenerate` always uses throw-on-`block` semantics (no `streamBlockBehavior` override).
+
+### 1.5 Tests (M3 acceptance)
+
+- Adversarial streaming chunking: 1-char chunks, chunk boundary mid-token, chunk boundary mid-`sk_test_` prefix.
+- All three `streamBlockBehavior` modes.
+- Type-level: `expect-type` tests that wrapped tools preserve generics.
+- Provider encoding: `openai/*` glob matches combined `openai/gpt-4o` boundary.
 
 ## 2. @tailrace/mcp — MCP client wrapper
 
@@ -28,6 +125,8 @@ tailrace.mcp<T extends Transport>(transport: T, opts: { server: string; agent?: 
 ```
 
 Wraps an MCP SDK client transport: intercept outbound `tools/call` requests (`check` arguments, boundary `{ kind: "mcp", server, tool, direction: "out" }`) and inbound results (`direction: "in"`). Blocked outbound ⇒ synthesize a JSON-RPC error result to the caller with the policy message (do not tear down the transport). Also scan `resources/read` results (direction "in"). Pin `@modelcontextprotocol/sdk` as peer; verify current transport interface from the SDK source before implementing.
+
+Standalone + fluent (`withMcp`) same pattern as §1 when implemented in M5.
 
 ## 3. @tailrace/hono — middleware
 

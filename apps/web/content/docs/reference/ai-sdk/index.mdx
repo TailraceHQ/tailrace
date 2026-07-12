@@ -1,0 +1,45 @@
+---
+title: AI SDK
+description: Reference for @tailrace/ai-sdk — wrap models and tools, fluent helpers, and streaming options.
+mode: reference
+---
+
+`@tailrace/ai-sdk` integrates Tailrace with the [Vercel AI SDK](https://sdk.vercel.ai) (`ai@^5`).
+
+## Install
+
+```bash
+pnpm add @tailrace/core @tailrace/ai-sdk ai
+```
+
+Peer dependency: `ai@^5`.
+
+## Exports
+
+| Export | Description |
+| --- | --- |
+| [`withAiSdk`](/docs/reference/ai-sdk/with-ai-sdk) | Attach fluent `model` / `tools` to a Tailrace instance |
+| [`wrapModel`](/docs/reference/ai-sdk/wrap-model) | Middleware wrapper for `LanguageModelV2` |
+| [`wrapTools`](/docs/reference/ai-sdk/wrap-tools) | Type-preserving wrapper for a `ToolSet` |
+| [`encodeModelProvider`](/docs/reference/ai-sdk/encode-model-provider) | Provider string encoding for policy keys |
+| [`AiSdkWrapOptions`](/docs/reference/ai-sdk/options) | Shared options type |
+| [`StreamBlockBehavior`](/docs/reference/ai-sdk/options#streamblockbehavior) | Streaming output block modes |
+
+Types: `TailraceWithAiSdk`, `AiSdkWrapOptions`, `StreamBlockBehavior`.
+
+## Default behavior
+
+With `createTailrace()` and no custom policy:
+
+- Secret-class entities → **block**
+- Email, phone, credit card, IBAN, SSN → **tokenize**
+- Model input block → throw before provider call
+- Model output block (stream default) → throw after hold-back scan
+
+See [`@tailrace/core` default policy](/docs/concepts) for the full table.
+
+## See also
+
+- [Quickstart](/docs/get-started/quickstart)
+- [Protect PII guide](/docs/guides/protect-pii-in-ai-sdk)
+- [Normative spec](https://github.com/tailrace/tailrace/blob/main/docs/integrations.md)

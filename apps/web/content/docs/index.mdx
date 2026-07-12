@@ -1,28 +1,58 @@
 ---
-title: Tailrace docs
-description: In-process agent data governance for TypeScript - detect, tokenize, and enforce policy at every boundary.
+title: Introduction
+description: How Tailrace governs agent data flows in-process — detect, policy, apply, audit, and restore at egress.
 mode: tutorial
 ---
 
-Welcome. These docs are scaffolding for milestone D0 (see `docs/site/DOCS_AGENTS.md`). Content fills in across D1–D5.
+Tailrace is agent data governance for TypeScript. It sits **inside your process** at model, tool, and MCP boundaries — detecting secrets and PII, applying policy, and restoring tokenized values only where you trust.
 
-## Twoslash smoke test
+No proxy. No sidecar. No required network call on the request hot path.
 
-This snippet imports `@tailrace/core` and must type-check in CI. A broken snippet fails the docs build.
+<FlowDemo />
 
-```ts twoslash
-import { createTailrace } from "@tailrace/core";
+## The pipeline
 
-const tailrace = createTailrace();
+Every `check` follows the same path:
+
+1. **Input** — A string or JSON object crosses a boundary (model prompt, tool args, MCP payload).
+2. **Detect** — Tier 0 recognizers find entity spans with JSON-pointer paths.
+3. **Policy resolve** — For each span: `entity × boundary × identity → action`.
+4. **Apply** — `block` throws · `tokenize` writes the vault · `mask` replaces inline · `allow` passes through.
+5. **Audit** — Async emit with rule path and content hash — never raw values.
+
+**Restore** is separate: `tailrace.restore()` runs only at `{ kind: "egress", sink }` boundaries. Calling restore at a model or tool boundary throws — by design.
+
+## Default policy
+
+`createTailrace()` with no arguments:
+
+| Entity | Action |
+| --- | --- |
+| Secrets (`api_key`, `jwt`, `private_key`, …) | **block** |
+| Email, phone, credit card, IBAN, SSN | **tokenize** |
+| IP address | allow |
+| Egress sinks (`egress:*`) | **detokenize** |
+
+Secrets cannot be overridden to `allow` without `dangerouslyAllowSecrets: true`.
+
+## Where Tailrace sits
+
+```text
+Your app ──► wrapModel / wrapTools / MCP wrapper ──► tailrace.check ──► provider or tool
+                                                      │
+                                                      └──► audit (async)
 ```
 
-## Sections
+For the Vercel AI SDK, one line wraps the model:
 
-| Section                            | What belongs here                |
-| ---------------------------------- | -------------------------------- |
-| [Get Started](/docs/get-started)   | The 5-minute quickstart tutorial |
-| [Guides](/docs/guides)             | Task-shaped how-tos              |
-| [Concepts](/docs/concepts)         | Mental models and explanations   |
-| [Reference](/docs/reference)       | API, schema, errors, CLI         |
-| [Integrations](/docs/integrations) | Per-framework entry pages        |
-| [Playground](/docs/playground)     | Client-side Tier 0 demo          |
+```ts
+const model = tailrace.model(openai("gpt-4o"));
+```
+
+## Next steps
+
+| Goal | Link |
+| --- | --- |
+| Block a fake key in five minutes | [Quickstart](/docs/get-started/quickstart) |
+| Models, tools, streaming, egress | [Protect PII in the AI SDK](/docs/guides/protect-pii-in-ai-sdk) |
+| API surface | [@tailrace/ai-sdk reference](/docs/reference/ai-sdk) |

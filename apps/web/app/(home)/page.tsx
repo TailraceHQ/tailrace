@@ -14,7 +14,7 @@ export default function HomePage() {
         href="/docs"
         className="rounded-lg bg-fd-primary px-4 py-2 text-sm font-medium text-fd-primary-foreground"
       >
-        Read the docs
+        Introduction
       </Link>
     </div>
   );

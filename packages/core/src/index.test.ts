@@ -55,6 +55,27 @@ describe("createTailrace zero-config", () => {
     expect(decisions.some((d) => d.entity === "email" && d.action === "tokenize")).toBe(true);
     expect(decisions.every((d) => d.contentHash.length === 64)).toBe(true);
   });
+
+  it("applyBlockAs: mask remaps block without throwing", async () => {
+    const tailrace = createTailrace({ vault: { key: "test-key" } });
+    const secret = "sk_test_" + "51FakeKeyForTailraceTests000FAKE";
+    const { output, decisions } = await tailrace.check(`key ${secret}`, modelCtx, {
+      applyBlockAs: "mask",
+    });
+    expect(output).toBe("key [API_KEY]");
+    expect(output).not.toContain(secret);
+    const blocked = decisions.find((d) => d.entity === "api_key");
+    expect(blocked?.action).toBe("block");
+    expect(blocked?.appliedAs).toBe("mask");
+  });
+
+  it("default check still throws on block when applyBlockAs is unset", async () => {
+    const tailrace = createTailrace({ vault: { key: "test-key" } });
+    const secret = "sk_test_" + "51FakeKeyForTailraceTests000FAKE";
+    await expect(tailrace.check(`key ${secret}`, modelCtx)).rejects.toBeInstanceOf(
+      PolicyViolationError,
+    );
+  });
 });
 
 describe("restore", () => {

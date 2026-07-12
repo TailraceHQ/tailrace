@@ -1,0 +1,133 @@
+---
+title: Quickstart
+description: Block a fake API key and tokenize an email in an AI SDK route in under five minutes.
+mode: tutorial
+---
+
+Build an AI SDK route that **blocks secrets before they reach a model** and **tokenizes email**, then restores it at egress for your UI.
+
+## What you will build
+
+A server route that:
+
+1. Rejects prompts containing a fake Stripe test key with `PolicyViolationError`.
+2. Tokenizes `customer@example.com` in the outbound prompt.
+3. Restores the email in the HTTP response at a trusted egress boundary.
+
+## Install
+
+```bash
+pnpm add @tailrace/core @tailrace/ai-sdk ai @ai-sdk/openai
+```
+
+`ai@^5` must be installed alongside `@tailrace/ai-sdk`.
+
+## Create Tailrace
+
+Zero configuration blocks secrets and tokenizes common PII.
+
+```ts
+import { createTailrace } from "@tailrace/core";
+import { withAiSdk } from "@tailrace/ai-sdk";
+
+export const tailrace = withAiSdk(createTailrace());
+```
+
+## Wrap the model
+
+Use the wrapped model with any AI SDK API (`generateText`, `streamText`, agents).
+
+```ts
+import { openai } from "@ai-sdk/openai";
+import { generateText } from "ai";
+
+const workflowId = crypto.randomUUID();
+
+const model = tailrace.model(openai("gpt-4o"), {
+  agent: "demo",
+  workflowId,
+});
+
+const { text } = await generateText({
+  model,
+  prompt: userPrompt,
+});
+```
+
+Tailrace scans the prompt in `transformParams` **before** the provider is called.
+
+## Trigger a block
+
+Send a prompt containing a fake test key (never use real secrets in examples):
+
+```ts
+const prompt =
+  "Use key sk_test_51FakeKeyForTailraceTests000FAKE to call the API.";
+```
+
+**Expected:** `PolicyViolationError` — the call aborts and the provider is never contacted.
+
+```text
+policy blocked entity "api_key" via rule "entities.api_key"
+```
+
+Catch it in your route and return 422:
+
+```ts
+import { PolicyViolationError } from "@tailrace/core";
+
+try {
+  await generateText({ model, prompt });
+} catch (err) {
+  if (err instanceof PolicyViolationError) {
+    return Response.json(
+      { error: { type: "policy_violation", entity: err.decisions[0]?.entity } },
+      { status: 422 },
+    );
+  }
+  throw err;
+}
+```
+
+Seeing the block is the payoff. The secret never leaves your process.
+
+## Tokenize, then restore
+
+Send a prompt with only an email:
+
+```ts
+const prompt = "Please email customer@example.com about the invoice.";
+const { text } = await generateText({ model, prompt });
+// text contains <EMAIL_xxxxxxxx> — what the model saw
+```
+
+Restore at egress before returning to the client:
+
+```ts
+const restored = await tailrace.restore(text, {
+  boundary: { kind: "egress", sink: "ui" },
+  identity: { agent: "demo" },
+  workflowId,
+});
+
+return Response.json({ text: restored.output });
+// "Please email customer@example.com about the invoice."
+```
+
+Detokenization **only** runs at egress. Calling `restore` at a model boundary throws.
+
+## Runnable example
+
+From the Tailrace monorepo:
+
+```bash
+pnpm --filter example-nextjs-ai-sdk dev
+```
+
+Open [http://localhost:3000](http://localhost:3000) and try **Run A** and **Run B**.
+
+## Where next
+
+- [Protect PII in the AI SDK](/docs/guides/protect-pii-in-ai-sdk) — tools, streaming, workflow IDs
+- [Boundaries](/docs/concepts) — model, tool, egress mental model
+- [AI SDK reference](/docs/reference/ai-sdk) — `wrapModel`, options, streaming modes

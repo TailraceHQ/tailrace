@@ -1,0 +1,94 @@
+---
+title: Options
+description: AiSdkWrapOptions and StreamBlockBehavior for model and tool wrappers.
+mode: reference
+---
+
+Shared configuration for [`wrapModel`](/docs/reference/ai-sdk/wrap-model), [`wrapTools`](/docs/reference/ai-sdk/wrap-tools), and [`withAiSdk`](/docs/reference/ai-sdk/with-ai-sdk).
+
+## AiSdkWrapOptions
+
+```ts
+interface AiSdkWrapOptions {
+  agent?: string;
+  workflowId?: string | (() => string);
+  streamBlockBehavior?: StreamBlockBehavior;
+  onDecision?: (decisions: Decision[]) => void;
+}
+```
+
+### `agent`
+
+**Type:** `string`  
+**Default:** `"default"`
+
+Identity agent id for policy resolution. Matches keys under `identities` in your policy document.
+
+### `workflowId`
+
+**Type:** `string | (() => string)`  
+**Default:** `"default"`
+
+Vault scope for tokenization. The same workflow ID and detected value produce the same token on every check.
+
+Use a chat session ID, thread ID, or per-run UUID. Pass the same value to `restore` at egress.
+
+### `streamBlockBehavior`
+
+**Type:** `"abort" | "buffer" | "redact"`  
+**Default:** `"abort"`  
+**Applies to:** `wrapStream` only (model output streaming)
+
+Controls how a policy **`block`** on model output is translated. Input blocking always throws before the provider runs.
+
+#### `abort`
+
+Hold-back scan with a 128-character carry buffer. Safe prefix text is emitted incrementally. On block: cancel the stream and throw `PolicyViolationError`.
+
+**Fail-closed.** Recommended default.
+
+#### `buffer`
+
+Accumulate the entire stream, run one `check` at end, throw on block. No incremental output until the stream completes.
+
+**Fail-closed.** Use for very long single-line secrets (large JWTs, PEM keys) that exceed the carry window.
+
+#### `redact`
+
+Hold-back scan. On block, apply **`mask`** (`[ENTITY]` labels) instead of throwing. Stream continues.
+
+**Not fail-closed.** Opt-in only. Audit decisions record `action: "block"` with `appliedAs: "mask"`.
+
+Non-streaming `wrapGenerate` always throws on block regardless of this option.
+
+### `onDecision`
+
+**Type:** `(decisions: Decision[]) => void`
+
+Called after each successful `check` with audit decisions. Decisions include `entity`, `rule`, `contentHash`, and span offsets — **never raw values**.
+
+Also forwarded to Tailrace audit sinks configured on the instance.
+
+## StreamBlockBehavior
+
+```ts
+type StreamBlockBehavior = "abort" | "buffer" | "redact";
+```
+
+## Example
+
+```ts
+tailrace.model(openai("gpt-4o"), {
+  agent: "billing-bot",
+  workflowId: () => getSessionId(),
+  streamBlockBehavior: "abort",
+  onDecision: (decisions) => {
+    metrics.count("tailrace.decisions", decisions.length);
+  },
+});
+```
+
+## Related
+
+- [wrapModel](/docs/reference/ai-sdk/wrap-model)
+- [Protect PII guide — streaming](/docs/guides/protect-pii-in-ai-sdk#step-5--configure-streaming-optional)

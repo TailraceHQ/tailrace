@@ -1,0 +1,86 @@
+---
+title: wrapModel
+description: Wrap a LanguageModelV2 with Tailrace middleware — scan prompts, completions, and streams.
+mode: reference
+---
+
+Wrap a language model so prompts and generated text pass through Tailrace policy at the **model** boundary.
+
+## Import
+
+```ts
+import { wrapModel } from "@tailrace/ai-sdk";
+```
+
+## Signature
+
+```ts
+function wrapModel(
+  tailrace: Tailrace,
+  model: LanguageModelV2,
+  opts?: AiSdkWrapOptions,
+): LanguageModelV2;
+```
+
+## Parameters
+
+### `tailrace`
+
+A Tailrace instance from `createTailrace()`.
+
+### `model`
+
+Any AI SDK `LanguageModelV2` (for example from `@ai-sdk/openai`).
+
+### `opts`
+
+Optional. See [AiSdkWrapOptions](/docs/reference/ai-sdk/options).
+
+## Returns
+
+A new `LanguageModelV2` that delegates to the original model through Tailrace middleware. Pass it to `generateText`, `streamText`, or other AI SDK APIs.
+
+## Middleware hooks
+
+| Hook | When | On `block` |
+| --- | --- | --- |
+| `transformParams` | Before provider call | Throws `PolicyViolationError`; provider not called |
+| `wrapGenerate` | After non-streaming completion | Throws `PolicyViolationError` |
+| `wrapStream` | On each stream chunk | Depends on `streamBlockBehavior` (default: throw) |
+
+Scanned content: **text** parts in prompt messages. Non-text parts pass through in v0.1.
+
+## Provider encoding
+
+The model boundary uses `encodeModelProvider(model)`:
+
+- `openai` + `gpt-4o` → `openai/gpt-4o`
+- Gateway id `openai/gpt-4o` → `openai/gpt-4o` (no double prefix)
+
+Policy keys such as `openai/*` match this string.
+
+## Example
+
+```ts
+import { createTailrace } from "@tailrace/core";
+import { wrapModel } from "@tailrace/ai-sdk";
+import { openai } from "@ai-sdk/openai";
+import { generateText } from "ai";
+
+const tailrace = createTailrace();
+const model = wrapModel(tailrace, openai("gpt-4o"), {
+  agent: "support",
+  workflowId: "sess-1",
+});
+
+await generateText({ model, prompt: "Hello" });
+```
+
+## Throws
+
+- **`PolicyViolationError`** — policy resolved to `block` on input or non-streaming output, or on streaming output when `streamBlockBehavior` is `abort` or `buffer`.
+
+## Related
+
+- [wrapTools](/docs/reference/ai-sdk/wrap-tools)
+- [streamBlockBehavior](/docs/reference/ai-sdk/options#streamblockbehavior)
