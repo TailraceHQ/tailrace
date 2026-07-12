@@ -1,26 +1,12 @@
 /**
  * Carry-buffer size for streaming hold-back (docs/vault.md §5, integrations.md §1.4).
  *
- * Conservative fixed cap covering typical Tier 0 matchable spans (API keys, JWTs of
- * common size, emails, phones, label tokens). PEM private keys and very long JWTs may
- * exceed this; prefer `streamBlockBehavior: "buffer"` when those are in scope.
+ * Must be ≥ the longest Tier 0 matchable span we intend to hold without bisecting.
+ * 4096 covers typical API keys, emails, and common JWTs. Unbounded PEM bodies and
+ * pathological JWTs beyond this window require `streamBlockBehavior: "buffer"`.
+ *
+ * The emit cut is not purely length-based: after detection on the full buffer, any
+ * span that straddles `len - holdback` pulls the cut back to that span's start
+ * (`computeStreamEmitEnd` in @tailrace/core).
  */
-export const CARRY_BUFFER_SIZE = 128;
-
-/**
- * Hold-back helper: given accumulated unscanned text, return `{ emit, carry }` where
- * `carry` is the trailing prefix that might still grow into a match, and `emit` is safe
- * to release (empty when `final` is false and the whole buffer fits in the carry window).
- */
-export function splitCarry(
-  buffer: string,
-  carrySize: number = CARRY_BUFFER_SIZE,
-  final = false,
-): { emit: string; carry: string } {
-  if (final || buffer.length <= carrySize) {
-    return final ? { emit: buffer, carry: "" } : { emit: "", carry: buffer };
-  }
-  const emit = buffer.slice(0, buffer.length - carrySize);
-  const carry = buffer.slice(buffer.length - carrySize);
-  return { emit, carry };
-}
+export const CARRY_BUFFER_SIZE = 4096;

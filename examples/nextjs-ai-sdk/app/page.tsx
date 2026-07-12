@@ -34,7 +34,7 @@ export default function Page() {
       });
       const data = (await res.json()) as ChatResponse;
       if ("error" in data) {
-        setResult(`Blocked (${res.status}): ${data.error.entity} — ${data.error.message}`);
+        setResult(`Blocked (${res.status}): ${data.error.entity} - ${data.error.message}`);
         setMeta(`rule: ${data.error.rule}`);
       } else {
         setResult(data.text);
@@ -63,7 +63,7 @@ export default function Page() {
             void send(p);
           }}
         >
-          Run A — block secret
+          Run A - block secret
         </button>
         <button
           type="button"
@@ -74,7 +74,7 @@ export default function Page() {
             void send(p);
           }}
         >
-          Run B — tokenize + restore
+          Run B - tokenize + restore
         </button>
       </div>
 

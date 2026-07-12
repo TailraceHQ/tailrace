@@ -10,6 +10,7 @@ import { applyActions } from "./actions/apply";
 import type { ApplyItem } from "./actions/apply";
 import { getStringAtPointer } from "./actions/pointer";
 import { restoreInput } from "./actions/restore";
+import { computeStreamEmitEnd } from "./actions/stream-cut";
 import { createAuditEmitter } from "./audit/emitter";
 import { createDetectionEngine } from "./detect/engine";
 import { PolicyViolationError } from "./errors";
@@ -159,7 +160,50 @@ export function createTailrace(options: TailraceOptions = {}): Tailrace {
       });
     }
 
+    const stream = options?.stream;
+    const streamString = stream !== undefined && typeof input === "string";
+
     try {
+      if (streamString) {
+        const text = input;
+        const emitEnd = computeStreamEmitEnd(
+          text.length,
+          items.map((i) => i.span),
+          stream.holdback,
+          stream.final === true,
+        );
+
+        // Fail closed on any complete block in the full window (including carry).
+        if (options?.applyBlockAs !== "mask") {
+          const blocks = items.filter((i) => i.decision.action === "block");
+          if (blocks.length > 0) {
+            const decisions = blocks.map((b) => ({ ...b.decision, action: "block" as const }));
+            const first = decisions[0]!;
+            throw new PolicyViolationError(
+              `policy blocked entity "${first.entity}" via rule "${first.rule}"`,
+              decisions,
+            );
+          }
+        }
+
+        const toApply = items.filter((i) => i.span.end <= emitEnd);
+        const prefix = text.slice(0, emitEnd);
+        const remainder = text.slice(emitEnd);
+
+        if (prefix.length === 0) {
+          return { output: "" as T, decisions: [], blocked: false, remainder };
+        }
+
+        const { output, decisions } = await applyActions(prefix, toApply, {
+          vault,
+          masterKey,
+          workflowId,
+          ...(options?.applyBlockAs !== undefined ? { applyBlockAs: options.applyBlockAs } : {}),
+        });
+        audit.emit("check", workflowId, decisions);
+        return { output: output as T, decisions, blocked: false, remainder };
+      }
+
       const { output, decisions } = await applyActions(input, items, {
         vault,
         masterKey,

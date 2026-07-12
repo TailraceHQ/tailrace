@@ -1,10 +1,10 @@
 ---
 title: Introduction
-description: How Tailrace governs agent data flows in-process — detect, policy, apply, audit, and restore at egress.
+description: How Tailrace governs agent data flows in-process - detect, policy, apply, audit, and restore at egress.
 mode: tutorial
 ---
 
-Tailrace is agent data governance for TypeScript. It sits **inside your process** at model, tool, and MCP boundaries — detecting secrets and PII, applying policy, and restoring tokenized values only where you trust.
+Tailrace is agent data governance for TypeScript. It sits **inside your process** at model, tool, and MCP boundaries - detecting secrets and PII, applying policy, and restoring tokenized values only where you trust.
 
 No proxy. No sidecar. No required network call on the request hot path.
 
@@ -14,13 +14,13 @@ No proxy. No sidecar. No required network call on the request hot path.
 
 Every `check` follows the same path:
 
-1. **Input** — A string or JSON object crosses a boundary (model prompt, tool args, MCP payload).
-2. **Detect** — Tier 0 recognizers find entity spans with JSON-pointer paths.
-3. **Policy resolve** — For each span: `entity × boundary × identity → action`.
-4. **Apply** — `block` throws · `tokenize` writes the vault · `mask` replaces inline · `allow` passes through.
-5. **Audit** — Async emit with rule path and content hash — never raw values.
+1. **Input**: A string or JSON object crosses a boundary (model prompt, tool args, MCP payload).
+2. **Detect**: Tier 0 recognizers find entity spans with JSON-pointer paths.
+3. **Policy resolve**: For each span: `entity × boundary × identity → action`.
+4. **Apply**: `block` throws · `tokenize` writes the vault · `mask` replaces inline · `allow` passes through.
+5. **Audit**: Async emit with rule path and content hash; never raw values.
 
-**Restore** is separate: `tailrace.restore()` runs only at `{ kind: "egress", sink }` boundaries. Calling restore at a model or tool boundary throws — by design.
+**Restore** is separate: `tailrace.restore()` runs only at `{ kind: "egress", sink }` boundaries. Calling restore at a model or tool boundary throws - by design.
 
 ## Default policy
 

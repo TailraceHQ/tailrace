@@ -1,6 +1,6 @@
 ---
 title: Next.js
-description: Run Tailrace with the Vercel AI SDK in a Next.js App Router route — block secrets, tokenize PII, restore at egress.
+description: Run Tailrace with the Vercel AI SDK in a Next.js App Router route - block secrets, tokenize PII, restore at egress.
 mode: integration
 ---
 
@@ -64,8 +64,8 @@ Open [http://localhost:3000](http://localhost:3000).
 
 | Button | Expected outcome |
 | --- | --- |
-| Run A — block secret | 422, `entity: api_key`, secret never hits mock model |
-| Run B — tokenize + restore | 200, UI shows real email, `modelSaw` shows token |
+| Run A - block secret | 422, `entity: api_key`, secret never hits mock model |
+| Run B - tokenize + restore | 200, UI shows real email, `modelSaw` shows token |
 
 Source: [`examples/nextjs-ai-sdk`](https://github.com/tailrace/tailrace/tree/main/examples/nextjs-ai-sdk) in the monorepo.
 

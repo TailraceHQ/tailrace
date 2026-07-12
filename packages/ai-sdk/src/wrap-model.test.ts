@@ -215,4 +215,56 @@ describe("wrapModel wrapStream", () => {
     expect(out).not.toContain(EMAIL);
     expect(out).toMatch(/<[A-Z0-9_]+_[a-z0-9]{8}>/);
   });
+
+  it("abort: entity straddling carry cut does not leak local-part prefix", async () => {
+    const { CARRY_BUFFER_SIZE } = await import("./stream/carry-buffer");
+    const email = "john.doe@example.com";
+    const len = CARRY_BUFFER_SIZE + 100;
+    const tentativeCut = len - CARRY_BUFFER_SIZE;
+    const emailStart = tentativeCut - 5;
+    const pad = (n: number) => "#".repeat(n);
+    const text = pad(emailStart) + email + pad(len - emailStart - email.length);
+
+    const out = await collect("abort", [text]);
+    expect(out).not.toContain("john.do");
+    expect(out).not.toContain(email);
+    expect(out).toMatch(/<[A-Z0-9_]+_[a-z0-9]{8}>/);
+  });
+
+  it("redact: secret straddling carry cut is fully masked, never cleartext", async () => {
+    const { CARRY_BUFFER_SIZE } = await import("./stream/carry-buffer");
+    const len = CARRY_BUFFER_SIZE + 100;
+    const tentativeCut = len - CARRY_BUFFER_SIZE;
+    const secretStart = tentativeCut - 5;
+    const pad = (n: number) => "#".repeat(n);
+    const text = pad(secretStart) + SECRET + pad(len - secretStart - SECRET.length);
+
+    const out = await collect("redact", [text]);
+    expect(out).toContain("[API_KEY]");
+    expect(out).not.toContain(SECRET);
+    expect(out).not.toContain("sk_test_");
+  });
+
+  it("abort: onDecision fires once per applied emit (not probe+emit duplicate)", async () => {
+    const { CARRY_BUFFER_SIZE } = await import("./stream/carry-buffer");
+    const email = "once@example.com";
+    const len = CARRY_BUFFER_SIZE + 80;
+    const tentativeCut = len - CARRY_BUFFER_SIZE;
+    const emailStart = tentativeCut - 4;
+    const pad = (n: number) => "#".repeat(n);
+    const text = pad(emailStart) + email + pad(len - emailStart - email.length);
+
+    const decisionBatches: number[] = [];
+    const tailrace = createTailrace({ vault: memoryVault({ key: "audit-once" }) });
+    const model = wrapModel(tailrace, mockModel({ streamChunks: [text] }), {
+      workflowId: "audit-once",
+      streamBlockBehavior: "abort",
+      onDecision: (d) => decisionBatches.push(d.length),
+    });
+    const { stream } = await model.doStream(userPrompt("hi"));
+    const out = await readStreamText(stream);
+    expect(out).not.toContain(email);
+    // Prefix emit has no email decision; flush applies the email once.
+    expect(decisionBatches.filter((n) => n > 0).length).toBe(1);
+  });
 });

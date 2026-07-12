@@ -1,9 +1,8 @@
 /**
  * Stream transform: abort mode (default). Hold-back + carry; throw on block.
  *
- * Algorithm: accumulate raw text; before emitting a safe prefix, probe-check the
- * full buffer so a secret spanning the emit/carry cut still aborts. Then check the
- * emit slice for tokenize/mask rewrite.
+ * Single `check` per chunk with `stream.holdback` so detection runs on the full
+ * window, the emit cut never bisects a span, and audit fires once for applied spans.
  */
 
 import type { Boundary, Tailrace } from "@tailrace/core";
@@ -12,7 +11,7 @@ import type { LanguageModelV2StreamPart } from "@ai-sdk/provider";
 import { checkWithOpts } from "../internal/context";
 import { streamPartDelta, withDelta } from "../internal/messages";
 import type { AiSdkWrapOptions } from "../types";
-import { CARRY_BUFFER_SIZE, splitCarry } from "./carry-buffer";
+import { CARRY_BUFFER_SIZE } from "./carry-buffer";
 
 export function createAbortTransform(
   tailrace: Tailrace,
@@ -31,22 +30,22 @@ export function createAbortTransform(
       }
 
       const combined = carry + delta;
-      // Probe full buffer first so spanning secrets still fail closed.
-      await checkWithOpts(tailrace, combined, boundary, opts);
-
-      const { emit, carry: nextCarry } = splitCarry(combined, CARRY_BUFFER_SIZE, false);
-      if (emit.length > 0) {
-        const { output } = await checkWithOpts(tailrace, emit, boundary, opts);
+      const { output, remainder } = await checkWithOpts(tailrace, combined, boundary, opts, {
+        stream: { holdback: CARRY_BUFFER_SIZE, final: false },
+      });
+      if (output.length > 0) {
         const textPart = chunk as LanguageModelV2StreamPart & { type: "text-delta" };
         controller.enqueue(withDelta(textPart, output));
       }
-      carry = nextCarry;
+      carry = remainder ?? "";
       pendingDelta = chunk as LanguageModelV2StreamPart & { type: "text-delta" };
     },
 
     async flush(controller) {
       if (carry.length === 0) return;
-      const { output } = await checkWithOpts(tailrace, carry, boundary, opts);
+      const { output } = await checkWithOpts(tailrace, carry, boundary, opts, {
+        stream: { holdback: CARRY_BUFFER_SIZE, final: true },
+      });
       const template = pendingDelta ?? {
         type: "text-delta" as const,
         id: "tailrace-flush",

@@ -76,6 +76,33 @@ describe("createTailrace zero-config", () => {
       PolicyViolationError,
     );
   });
+
+  it("stream holdback: never bisects a straddling email; remainder stays raw", async () => {
+    const tailrace = createTailrace({ vault: { key: "stream-cut" } });
+    const email = "john.doe@example.com";
+    const holdback = 128;
+    const len = holdback + 100;
+    const tentativeCut = len - holdback;
+    const emailStart = tentativeCut - 5;
+    // Padding must not extend an email local-part (avoid [a-z0-9._%+-]+ greed).
+    const pad = (n: number) => "#".repeat(n);
+    const text = pad(emailStart) + email + pad(len - emailStart - email.length);
+
+    const { output, remainder, decisions } = await tailrace.check(text, modelCtx, {
+      stream: { holdback, final: false },
+    });
+
+    expect(output).toBe(pad(emailStart));
+    expect(output).not.toContain("john.do");
+    expect(remainder?.startsWith(email)).toBe(true);
+    expect(decisions.every((d) => d.entity !== "email")).toBe(true);
+
+    const flushed = await tailrace.check(remainder!, modelCtx, {
+      stream: { holdback, final: true },
+    });
+    expect(flushed.output).not.toContain(email);
+    expect(flushed.output).toMatch(/<[A-Z0-9_]+_[a-z0-9]{8}>/);
+  });
 });
 
 describe("restore", () => {

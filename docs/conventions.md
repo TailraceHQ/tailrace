@@ -10,10 +10,10 @@
 All errors extend `TailraceError { code: string }`:
 - `PolicyViolationError` (code `POLICY_VIOLATION`, carries `decisions: Decision[]`)
 - `PolicyValidationError` (`POLICY_INVALID`, carries key path)
-- `InvariantViolationError` (`INVARIANT`) — internal contract breaches, e.g. restore at a non-egress boundary
+- `InvariantViolationError` (`INVARIANT`) - internal contract breaches, e.g. restore at a non-egress boundary
 - `VaultError` (`VAULT`), `RecognizerError` (`RECOGNIZER`)
 - `NotImplementedError` (`NOT_IMPLEMENTED`)
-Error messages NEVER contain detected values — enforced by a test that scans all thrown messages in the suite against fixture values.
+Error messages NEVER contain detected values - enforced by a test that scans all thrown messages in the suite against fixture values.
 
 ## Testing
 - Vitest; unit tests colocated (`*.test.ts`), integration tests in `package/tests/`
@@ -30,7 +30,7 @@ Error messages NEVER contain detected values — enforced by a test that scans a
 ## Security hygiene
 - All fixture secrets/PII are synthetic (use documented fake ranges: 4242… cards, 555 phones, example.com emails, `sk_test_` style keys with FAKE marker suffix)
 - No telemetry, no network calls, no postinstall scripts in any package
-- `pnpm audit` in CI; zero prod deps in core makes this mostly moot — keep it that way
+- `pnpm audit` in CI; zero prod deps in core makes this mostly moot - keep it that way
 
 ## Git & releases
 - Conventional commits; changesets for versioning; packages version independently
@@ -38,6 +38,6 @@ Error messages NEVER contain detected values — enforced by a test that scans a
 - `main` is protected by the full CI matrix
 
 ## Agent workflow notes
-- Before implementing against an external API surface (AI SDK middleware signature, MCP SDK transports, Claude Code hook JSON contract), read the CURRENT docs/source of the installed version — these move fast; the specs in this kit describe intent, the live interface wins on mechanics. Record any drift you find by updating the relevant doc in the same PR.
+- Before implementing against an external API surface (AI SDK middleware signature, MCP SDK transports, Claude Code hook JSON contract), read the CURRENT docs/source of the installed version - these move fast; the specs in this kit describe intent, the live interface wins on mechanics. Record any drift you find by updating the relevant doc in the same PR.
 - Keep PRs scoped to one milestone checkbox where practical
 - Never commit a real credential, even expired; CI runs `tailrace scan` on the diff once M4 lands (dogfood)

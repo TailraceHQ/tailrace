@@ -38,7 +38,7 @@ interface Decision {
   identity: Identity;
   rule: string;          // dotted path of the winning rule, e.g. "identities.support-agent.tools.crm.*"
   span: { path: string; start: number; end: number }; // JSON path + offsets; NEVER the value
-  contentHash: string;   // SHA-256 of the raw value, hex — for audit correlation only
+  contentHash: string;   // SHA-256 of the raw value, hex - for audit correlation only
 }
 ```
 
@@ -72,17 +72,17 @@ For a span with entity `E`, boundary `B`, identity `I`:
 2. B-match: exact key beats glob; longer glob beats shorter; `direction` must match when present. Matching runs **within the boundary kind's keyspace** only: model patterns are bare provider globs (`openai/*`), while tool (`tool:{name}:{direction}`), mcp (`mcp:{server}/{tool}`), egress (`egress:{sink}`), and telemetry (`telemetry`) use prefixed encodings. A model glob cannot match a prefixed tool/mcp key.
 3. First candidate found wins **except**: `block` at ANY level for secret-class entities (`api_key`, `jwt`, `private_key`, `high_entropy_secret`, `connection_string`) cannot be overridden to `allow` by a more specific rule unless the rule sets `dangerouslyAllowSecrets: true`. This is deliberate friction; document it loudly.
 4. If multiple spans overlap after merging (see detection.md §4), the most restrictive action wins: `block > review > tokenize > mask > allow`.
-5. `egress` boundaries invert semantics: the resolved action for a tokenized value at a trusted egress with `"detokenize"` is vault lookup + restore. Detokenize NEVER happens at `model`, `tool(out)`, `mcp(out)`, or `telemetry` boundaries regardless of policy — hard invariant, tested.
+5. `egress` boundaries invert semantics: the resolved action for a tokenized value at a trusted egress with `"detokenize"` is vault lookup + restore. Detokenize NEVER happens at `model`, `tool(out)`, `mcp(out)`, or `telemetry` boundaries regardless of policy - hard invariant, tested.
 
 Resolution must be pure and synchronous: `resolve(policy, entity, boundary, identity) → ResolvedRule`. Precompile the policy document into lookup structures at `createTailrace()` time; per-span resolution target is < 1µs (it's map lookups, not regex over keys).
 
 ## 4. Actions semantics
 
-- **allow** — pass through untouched. Still emits an audit decision.
-- **mask** — irreversible: replace value with `[EMAIL]`-style label (configurable per entity). No vault write.
-- **tokenize** — reversible: replace with vault token (see vault.md). Format-preserving variants per vault.md §3.
-- **block** — throw `PolicyViolationError` with `{ decisions }` attached. Integrations translate this per surface (integrations.md). The error message names entity class and rule path, never the value.
-- **review** — v0.1: throw `NotImplementedError("review action ships in v0.2")` at policy compile time, not at request time, so misconfiguration surfaces immediately.
+- **allow**: pass through untouched. Still emits an audit decision.
+- **mask**: irreversible: replace value with `[EMAIL]`-style label (configurable per entity). No vault write.
+- **tokenize**: reversible: replace with vault token (see vault.md). Format-preserving variants per vault.md §3.
+- **block**: throw `PolicyViolationError` with `{ decisions }` attached. Integrations translate this per surface (integrations.md). The error message names entity class and rule path, never the value.
+- **review**: v0.1: throw `NotImplementedError("review action ships in v0.2")` at policy compile time, not at request time, so misconfiguration surfaces immediately.
 
 ## 5. The `check` primitive
 
@@ -96,20 +96,30 @@ interface CheckOptions {
    * `streamBlockBehavior: "redact"` (integrations.md §1.4).
    */
   applyBlockAs?: "mask";
+  /**
+   * Streaming hold-back (vault.md §5). String inputs only.
+   * Detect+resolve once on the full buffer; apply only spans fully inside the safe
+   * emit prefix (`min(len - holdback, earliest straddling span start)`); return the
+   * raw suffix as `remainder` for the next chunk. `final: true` flushes everything.
+   */
+  stream?: { holdback: number; final?: boolean };
 }
 
 tailrace.check(
   input: string | JsonObject,
   ctx: { boundary: Boundary; identity: Identity; workflowId?: string },
   options?: CheckOptions,
-): Promise<{ output: typeof input; decisions: Decision[]; blocked: false }>
+): Promise<{ output: typeof input; decisions: Decision[]; blocked: false; remainder?: string }>
 // or throws PolicyViolationError (blocked) when applyBlockAs is unset
 ```
 
 When `applyBlockAs: "mask"` is set and the resolved action is `block`, the value is masked in output
 and the audit decision keeps `action: "block"` with optional `appliedAs: "mask"`. Policy resolution
-is unchanged — this is integration-level translation of `block` at the streaming surface, not a
+is unchanged - this is integration-level translation of `block` at the streaming surface, not a
 policy override.
 
-Plus `tailrace.restore(input, ctx)` for egress boundaries. Integrations contain NO policy logic —
+When `stream` is set, audit emits only for spans applied to the emit prefix (once per chunk), not
+for spans held in `remainder`.
+
+Plus `tailrace.restore(input, ctx)` for egress boundaries. Integrations contain NO policy logic -
 they only construct the right `Boundary`/`Identity` and translate errors.

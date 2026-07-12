@@ -10,7 +10,7 @@ import { createAbortTransform } from "./abort";
 import { createBufferTransform } from "./buffer";
 import { createRedactTransform } from "./redact";
 
-export { CARRY_BUFFER_SIZE, splitCarry } from "./carry-buffer";
+export { CARRY_BUFFER_SIZE } from "./carry-buffer";
 
 export function createStreamTransform(
   tailrace: Tailrace,

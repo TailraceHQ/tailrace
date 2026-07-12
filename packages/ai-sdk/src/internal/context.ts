@@ -2,7 +2,14 @@
  * Build CheckContext from wrap options + boundary.
  */
 
-import type { Boundary, CheckContext, Decision, Tailrace } from "@tailrace/core";
+import type {
+  Boundary,
+  CheckContext,
+  CheckOptions,
+  CheckResult,
+  JsonObject,
+  Tailrace,
+} from "@tailrace/core";
 
 import type { AiSdkWrapOptions } from "../types";
 
@@ -23,17 +30,17 @@ export function buildCheckContext(boundary: Boundary, opts?: AiSdkWrapOptions): 
 /**
  * Run check and forward decisions to the optional wrap-level onDecision callback.
  */
-export async function checkWithOpts<T extends string | import("@tailrace/core").JsonObject>(
+export async function checkWithOpts<T extends string | JsonObject>(
   tailrace: Tailrace,
   input: T,
   boundary: Boundary,
   opts?: AiSdkWrapOptions,
-  checkOptions?: { applyBlockAs?: "mask" },
-): Promise<{ output: T; decisions: Decision[] }> {
+  checkOptions?: CheckOptions,
+): Promise<CheckResult<T>> {
   const ctx = buildCheckContext(boundary, opts);
   const result = await tailrace.check(input, ctx, checkOptions);
   if (opts?.onDecision !== undefined && result.decisions.length > 0) {
     opts.onDecision(result.decisions);
   }
-  return { output: result.output, decisions: result.decisions };
+  return result;
 }

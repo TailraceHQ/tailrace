@@ -1,5 +1,7 @@
 /**
  * Stream transform: redact mode. Hold-back + applyBlockAs mask on block spans.
+ *
+ * Same single-check hold-back as abort; blocks are masked instead of throwing.
  */
 
 import type { Boundary, Tailrace } from "@tailrace/core";
@@ -8,7 +10,7 @@ import type { LanguageModelV2StreamPart } from "@ai-sdk/provider";
 import { checkWithOpts } from "../internal/context";
 import { streamPartDelta, withDelta } from "../internal/messages";
 import type { AiSdkWrapOptions } from "../types";
-import { CARRY_BUFFER_SIZE, splitCarry } from "./carry-buffer";
+import { CARRY_BUFFER_SIZE } from "./carry-buffer";
 
 export function createRedactTransform(
   tailrace: Tailrace,
@@ -17,7 +19,6 @@ export function createRedactTransform(
 ): TransformStream<LanguageModelV2StreamPart, LanguageModelV2StreamPart> {
   let carry = "";
   let pendingDelta: (LanguageModelV2StreamPart & { type: "text-delta" }) | null = null;
-  const checkOpts = { applyBlockAs: "mask" as const };
 
   return new TransformStream({
     async transform(chunk, controller) {
@@ -28,22 +29,24 @@ export function createRedactTransform(
       }
 
       const combined = carry + delta;
-      // Probe full buffer with mask-on-block (never throws; ensures vault/audit see spans).
-      await checkWithOpts(tailrace, combined, boundary, opts, checkOpts);
-
-      const { emit, carry: nextCarry } = splitCarry(combined, CARRY_BUFFER_SIZE, false);
-      if (emit.length > 0) {
-        const { output } = await checkWithOpts(tailrace, emit, boundary, opts, checkOpts);
+      const { output, remainder } = await checkWithOpts(tailrace, combined, boundary, opts, {
+        applyBlockAs: "mask",
+        stream: { holdback: CARRY_BUFFER_SIZE, final: false },
+      });
+      if (output.length > 0) {
         const textPart = chunk as LanguageModelV2StreamPart & { type: "text-delta" };
         controller.enqueue(withDelta(textPart, output));
       }
-      carry = nextCarry;
+      carry = remainder ?? "";
       pendingDelta = chunk as LanguageModelV2StreamPart & { type: "text-delta" };
     },
 
     async flush(controller) {
       if (carry.length === 0) return;
-      const { output } = await checkWithOpts(tailrace, carry, boundary, opts, checkOpts);
+      const { output } = await checkWithOpts(tailrace, carry, boundary, opts, {
+        applyBlockAs: "mask",
+        stream: { holdback: CARRY_BUFFER_SIZE, final: true },
+      });
       const template = pendingDelta ?? {
         type: "text-delta" as const,
         id: "tailrace-flush",

@@ -34,7 +34,7 @@ import { wrapModel, wrapTools } from "@tailrace/ai-sdk";
 
 ## Wrap a model
 
-Pass the wrapped model anywhere you would pass the original — `generateText`, `streamText`, agents, and other AI SDK APIs.
+Pass the wrapped model anywhere you would pass the original - `generateText`, `streamText`, agents, and other AI SDK APIs.
 
 ```ts
 import { openai } from "@ai-sdk/openai";
@@ -126,7 +126,7 @@ const model = tailrace.model(openai("gpt-4o"), {
 | --------------------- | -------------------------------------------------------------------------------------- | ----------- |
 | **`abort`** (default) | Hold-back scan with a carry buffer; cancel the stream and throw `PolicyViolationError` | Yes         |
 | **`buffer`**          | Accumulate the full response, check once at end, throw on block                        | Yes         |
-| **`redact`**          | Hold-back scan; replace blocked spans with `[ENTITY]` labels and continue              | No — opt-in |
+| **`redact`**          | Hold-back scan; replace blocked spans with `[ENTITY]` labels and continue              | No: opt-in  |
 
 Non-streaming `generateText` always throws on `block`. There is no streaming mode that emits text before scanning (partial secret leakage).
 
@@ -148,13 +148,13 @@ interface AiSdkWrapOptions {
 | `agent`               | `"default"` | Identity for policy resolution (`identities` overrides in your policy document).     |
 | `workflowId`          | `"default"` | Scopes vault tokens. Same value across steps yields the same token for the same PII. |
 | `streamBlockBehavior` | `"abort"`   | How streaming output translates policy `block`.                                      |
-| `onDecision`          | —           | Called with audit decisions after each check. Never includes raw values.             |
+| `onDecision`          | -           | Called with audit decisions after each check. Never includes raw values.             |
 
 ## Error handling
 
 | Surface                                  | On `block`                                             |
 | ---------------------------------------- | ------------------------------------------------------ |
-| Model input (`transformParams`)          | Throws `PolicyViolationError` — provider is not called |
+| Model input (`transformParams`)          | Throws `PolicyViolationError` - provider is not called |
 | Model output (`wrapGenerate`)            | Throws `PolicyViolationError`                          |
 | Model output stream (`abort` / `buffer`) | Throws `PolicyViolationError`                          |
 | Model output stream (`redact`)           | Stream continues; blocked spans become `[ENTITY]`      |
@@ -175,7 +175,7 @@ See [`examples/nextjs-ai-sdk`](../../examples/nextjs-ai-sdk/README.md).
 
 ## Further reading
 
-- [AI SDK integration guide](../../docs/guides/ai-sdk-integration.md) — repo guide
-- [Quickstart](../../apps/web/content/docs/get-started/quickstart.mdx) — five-minute tutorial
-- [API reference](../../apps/web/content/docs/reference/ai-sdk/index.mdx) — exports and parameters
-- [Integrations spec](../../docs/integrations.md) — normative behavior
+- [AI SDK integration guide](../../docs/guides/ai-sdk-integration.md) - repo guide
+- [Quickstart](../../apps/web/content/docs/get-started/quickstart.mdx) - five-minute tutorial
+- [API reference](../../apps/web/content/docs/reference/ai-sdk/index.mdx) - exports and parameters
+- [Integrations spec](../../docs/integrations.md) - normative behavior

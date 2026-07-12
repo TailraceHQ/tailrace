@@ -9,6 +9,12 @@ resolved in the docs, locked for v0.1, or explicitly deferred before v0.1 ships 
   record candidates + benchmark results here (docs/detection.md §3). _Site:_
   `packages/recognizer-ner/src/index.ts`.
 
+- **wrapTools array/primitive envelope.** `asCheckable` wraps non-object tool args/results as
+  `{ value: … }` so object-scan can walk leaves. A tool that natively returns `{ value: … }` is
+  fine today (objects pass through unchanged); if we ever need to distinguish the envelope from a
+  real `{ value }` payload after unwrapping arrays/primitives, introduce a tagged envelope.
+  _Site:_ `packages/ai-sdk/src/wrap-tools.ts`.
+
 ## Locked for v0.1 (M2)
 
 Decided during policy engine + vault implementation. Spec docs updated where noted; remaining
