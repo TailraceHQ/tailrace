@@ -1,3 +1,8 @@
+<p align="center">
+  <img src="assets/logo/lightmode-logo.svg#gh-light-mode-only" alt="Tailrace" width="96" />
+  <img src="assets/logo/darkmode-logo.svg#gh-dark-mode-only" alt="Tailrace" width="96" />
+</p>
+
 # Tailrace
 
 **Agent data governance for TypeScript.** In-process detection of secrets and PII, reversible
