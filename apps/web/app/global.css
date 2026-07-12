@@ -26,3 +26,44 @@ html > body[data-scroll-locked] {
 .flow-demo-fade {
   animation: flow-demo-fade 0.45s ease-out;
 }
+
+.flow-demo-code-window .flow-demo-line {
+  display: table-row;
+}
+
+.flow-demo-code-window .flow-demo-line:hover {
+  background: rgba(110, 118, 129, 0.08);
+}
+
+.flow-demo-code-window .flow-tok-comment {
+  color: #8b949e;
+  font-style: italic;
+}
+
+.flow-demo-code-window .flow-tok-keyword {
+  color: #ff7b72;
+}
+
+.flow-demo-code-window .flow-tok-string {
+  color: #a5d6ff;
+}
+
+.flow-demo-code-window .flow-tok-type {
+  color: #ffa657;
+}
+
+.flow-demo-code-window .flow-tok-number {
+  color: #79c0ff;
+}
+
+.flow-demo-code-window .flow-tok-punct {
+  color: #c9d1d9;
+}
+
+.flow-demo-code-window .flow-tok-operator {
+  color: #d2a8ff;
+}
+
+.flow-demo-code-window .flow-tok-plain {
+  color: #e6edf3;
+}

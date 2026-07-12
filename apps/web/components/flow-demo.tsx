@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { FlowDemoCode, flowDemoFilename } from "@/components/flow-demo-code";
 
 const STEPS = [
   {
@@ -84,6 +85,7 @@ export function FlowDemo() {
 
   const current = STEPS[step]!;
   const isRestore = current.id === "restore";
+  const { filename, lang } = flowDemoFilename(current.id);
 
   return (
     <div className="not-prose my-8 overflow-hidden rounded-xl border border-fd-border bg-fd-card text-fd-card-foreground shadow-sm">
@@ -113,12 +115,7 @@ export function FlowDemo() {
             <span className="rounded bg-fd-muted px-1.5 py-0.5 font-mono text-[10px]">agent</span>
             support-bot · workflow sess-7f3a
           </div>
-          <pre
-            key={current.id}
-            className="flow-demo-fade overflow-x-auto rounded-lg bg-fd-muted/50 p-3 text-[11px] leading-relaxed text-fd-foreground"
-          >
-            <code>{current.code}</code>
-          </pre>
+          <FlowDemoCode key={current.id} code={current.code} lang={lang} filename={filename} />
           <p className="mt-2 text-xs text-fd-muted-foreground">{current.detail}</p>
         </div>
 
