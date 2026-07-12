@@ -74,4 +74,4 @@ v0.1 ships `staticPolicy(doc)` (the default; wraps a local `definePolicy` result
 
 ## 6. Public API surface (top-level exports of @tailrace/core)
 
-`createTailrace`, `definePolicy`, `defineRecognizer`, `memoryVault`, `kvVault`, `staticPolicy`, error classes, and all public types. Anything else is internal. Keep this list short — every export is API we maintain forever.
+`createTailrace`, `definePolicy`, `defineRecognizer`, `memoryVault`, `kvVault`, `staticPolicy`, `consoleSink`, `jsonlSink`, error classes, and all public types. Anything else is internal. Keep this list short - every export is API we maintain forever.

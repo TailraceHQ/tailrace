@@ -5,9 +5,14 @@ Tokenization is reversible masking with **workflow-scoped determinism**: the sam
 ## 1. Token derivation
 
 ```
-tokenId = base32(HMAC-SHA256(workflowKey, entityClass || 0x00 || normalizedValue))[0..8]
+tokenId = encode(HMAC-SHA256(workflowKey, entityClass || 0x00 || normalizedValue))[0..8]
 token   = `<${LABEL}_${tokenId}>`        // e.g. <EMAIL_a3f2k9qx>
 ```
+
+**Token-id alphabet (normative):** lowercase alphanumeric `[a-z0-9]` (36 chars), **not** RFC 4648
+base32 (`[A-Z2-7]`). §4's restore scan is `<LABEL_[a-z0-9]{8}>` and the example id `a3f2k9qx`
+contains a `9`, which RFC 4648 cannot produce. Generation and restore regexes MUST share one
+alphabet constant so tokens never silently fail to restore.
 
 - `workflowKey = HMAC-SHA256(masterKey, workflowId)` — master key from `createTailrace({ vault: { key } })` or `TAILRACE_VAULT_KEY` env; if absent, a random per-process key is generated and a one-line notice logged (tokens then don't survive restarts — fine for dev, documented).
 - `normalizedValue`: trim; lowercase for `email`; digits-only for `phone`/`credit_card`. Normalization map is per-entity and documented.
