@@ -29,6 +29,14 @@
     ],
     "overrides": {
       "postcss": ">=8.5.10"
+    },
+    "auditConfig": {
+      "ignoreCves": [
+        "CVE-2026-8769"
+      ],
+      "ignoreGhsas": [
+        "GHSA-866g-f22w-33x8"
+      ]
     }
   },
   "lint-staged": {

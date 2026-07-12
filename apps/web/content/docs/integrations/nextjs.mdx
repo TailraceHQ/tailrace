@@ -33,7 +33,10 @@ export async function POST(req: Request) {
     return Response.json({ text: restored.output });
   } catch (err) {
     if (err instanceof PolicyViolationError) {
-      return Response.json({ error: { type: "policy_violation", message: err.message } }, { status: 422 });
+      return Response.json(
+        { error: { type: "policy_violation", message: err.message } },
+        { status: 422 },
+      );
     }
     throw err;
   }
@@ -42,12 +45,12 @@ export async function POST(req: Request) {
 
 ## Boundaries covered
 
-| Location | Tailrace boundary | Direction |
-| --- | --- | --- |
-| Request prompt → model | `{ kind: "model", provider: "openai/gpt-4o" }` | Outbound to provider |
-| Model completion → app | Same model boundary | Inbound from provider |
-| HTTP response → browser | `{ kind: "egress", sink: "ui" }` | Restore (explicit `restore` call) |
-| Tool args / results | `{ kind: "tool", name, direction }` | Out / in (with `wrapTools`) |
+| Location                | Tailrace boundary                              | Direction                         |
+| ----------------------- | ---------------------------------------------- | --------------------------------- |
+| Request prompt → model  | `{ kind: "model", provider: "openai/gpt-4o" }` | Outbound to provider              |
+| Model completion → app  | Same model boundary                            | Inbound from provider             |
+| HTTP response → browser | `{ kind: "egress", sink: "ui" }`               | Restore (explicit `restore` call) |
+| Tool args / results     | `{ kind: "tool", name, direction }`            | Out / in (with `wrapTools`)       |
 
 Provider strings use `${providerId}/${modelId}`. Policy globs like `openai/*` match accordingly.
 
@@ -62,10 +65,10 @@ pnpm --filter example-nextjs-ai-sdk dev
 
 Open [http://localhost:3000](http://localhost:3000).
 
-| Button | Expected outcome |
-| --- | --- |
-| Run A - block secret | 422, `entity: api_key`, secret never hits mock model |
-| Run B - tokenize + restore | 200, UI shows real email, `modelSaw` shows token |
+| Button                     | Expected outcome                                     |
+| -------------------------- | ---------------------------------------------------- |
+| Run A - block secret       | 422, `entity: api_key`, secret never hits mock model |
+| Run B - tokenize + restore | 200, UI shows real email, `modelSaw` shows token     |
 
 Source: [`examples/nextjs-ai-sdk`](https://github.com/tailrace/tailrace/tree/main/examples/nextjs-ai-sdk) in the monorepo.
 

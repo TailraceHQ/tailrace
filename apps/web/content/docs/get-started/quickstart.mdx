@@ -61,8 +61,7 @@ Tailrace scans the prompt in `transformParams` **before** the provider is called
 Send a prompt containing a fake test key (never use real secrets in examples):
 
 ```ts
-const prompt =
-  "Use key sk_test_51FakeKeyForTailraceTests000FAKE to call the API.";
+const prompt = "Use key sk_test_51FakeKeyForTailraceTests000FAKE to call the API.";
 ```
 
 **Expected:** `PolicyViolationError` - the call aborts and the provider is never contacted.

@@ -125,7 +125,11 @@ function highlightLine(line: string, lang: CodeLang): ReactNode[] {
   return nodes;
 }
 
-export function FlowDemoCode({ code, lang = "typescript", filename = "agent.ts" }: FlowDemoCodeProps) {
+export function FlowDemoCode({
+  code,
+  lang = "typescript",
+  filename = "agent.ts",
+}: FlowDemoCodeProps) {
   const lines = useMemo(() => code.split("\n"), [code]);
 
   return (

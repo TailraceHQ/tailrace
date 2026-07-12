@@ -42,11 +42,11 @@ A new `LanguageModelV2` that delegates to the original model through Tailrace mi
 
 ## Middleware hooks
 
-| Hook | When | On `block` |
-| --- | --- | --- |
-| `transformParams` | Before provider call | Throws `PolicyViolationError`; provider not called |
-| `wrapGenerate` | After non-streaming completion | Throws `PolicyViolationError` |
-| `wrapStream` | On each stream chunk | Depends on `streamBlockBehavior` (default: throw) |
+| Hook              | When                           | On `block`                                         |
+| ----------------- | ------------------------------ | -------------------------------------------------- |
+| `transformParams` | Before provider call           | Throws `PolicyViolationError`; provider not called |
+| `wrapGenerate`    | After non-streaming completion | Throws `PolicyViolationError`                      |
+| `wrapStream`      | On each stream chunk           | Depends on `streamBlockBehavior` (default: throw)  |
 
 Scanned content: **text** parts in prompt messages. Non-text parts pass through in v0.1.
 

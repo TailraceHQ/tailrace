@@ -15,11 +15,7 @@ import { wrapTools } from "@tailrace/ai-sdk";
 ## Signature
 
 ```ts
-function wrapTools<T extends ToolSet>(
-  tailrace: Tailrace,
-  tools: T,
-  opts?: AiSdkWrapOptions,
-): T;
+function wrapTools<T extends ToolSet>(tailrace: Tailrace, tools: T, opts?: AiSdkWrapOptions): T;
 ```
 
 ## Parameters
@@ -44,10 +40,10 @@ Tools **without** `execute` are copied unchanged.
 
 ## Check boundaries
 
-| Phase | Boundary |
-| --- | --- |
+| Phase            | Boundary                                   |
+| ---------------- | ------------------------------------------ |
 | Before `execute` | `{ kind: "tool", name, direction: "out" }` |
-| After `execute` | `{ kind: "tool", name, direction: "in" }` |
+| After `execute`  | `{ kind: "tool", name, direction: "in" }`  |
 
 ## Throws
 
