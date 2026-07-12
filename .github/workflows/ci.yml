@@ -43,6 +43,19 @@ jobs:
       - run: pnpm build
       - run: pnpm test
       - run: pnpm test:workers
+      - run: pnpm --filter example-claude-code demo:2
+      # Dogfood scanner on production CLI sources (tests embed synthetic secrets on purpose).
+      - name: Dogfood tailrace scan
+        run: |
+          CLI=packages/cli/dist/cli.cjs
+          node "$CLI" scan packages/cli/src/internal
+          node "$CLI" scan packages/cli/src/templates
+          node "$CLI" scan packages/cli/src/cli.ts
+          node "$CLI" scan packages/cli/src/index.ts
+          for f in packages/cli/src/commands/*.ts; do
+            case "$f" in *.test.ts) continue ;; esac
+            node "$CLI" scan "$f"
+          done
 
   gates:
     name: Size + benchmarks

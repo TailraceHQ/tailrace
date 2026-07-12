@@ -1,11 +1,18 @@
 # @tailrace/cli
 
-The `tailrace` binary.
+The `tailrace` binary: scaffold config, scan for secrets, and enforce policy in Claude Code hooks.
 
-- `tailrace init` - detect the stack and scaffold `tailrace.config.ts` with the default policy.
-- `tailrace scan <path|->` - Tier 0 secret/PII scan of files or stdin; exits 1 on a `block`-class hit. Doubles as a pre-commit secret scanner.
-- `tailrace install-hooks` - non-destructively merge Tailrace hook entries into Claude Code `settings.json` (with a backup).
-- `tailrace hook` - the Claude Code hook handler (p50 < 150ms).
+```bash
+pnpm add -D @tailrace/cli
+pnpm exec tailrace init
+pnpm exec tailrace install-hooks   # merges PreToolUse/PostToolUse into .claude/settings.json
+```
 
-> **M0 skeleton.** Commands throw `NotImplementedError` until milestone M4
-> (see [`docs/milestones.md`](../../docs/milestones.md)).
+Hook hot path loads `.tailrace/config.json` only (no TypeScript transpile). Spawn-to-exit p50 is gated under 150ms in CI.
+
+| Command                   | Purpose                                                              |
+| ------------------------- | -------------------------------------------------------------------- |
+| `tailrace init`           | Write `tailrace.config.ts` + `.tailrace/config.json`                 |
+| `tailrace scan <path\|->` | Tier 0 scan; exit 1 on block-class entities (`--json`)               |
+| `tailrace install-hooks`  | Non-destructive Claude Code settings merge (`--scope project\|user`) |
+| `tailrace hook`           | Claude Code hook handler (stdin JSON → stdout JSON)                  |

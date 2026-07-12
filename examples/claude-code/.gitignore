@@ -1,0 +1,4 @@
+node_modules/
+.tailrace/audit.jsonl
+.tailrace/vault/
+.claude/settings.json.bak-*

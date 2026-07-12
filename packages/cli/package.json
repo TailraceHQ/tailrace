@@ -5,7 +5,7 @@
   "license": "MIT",
   "type": "module",
   "bin": {
-    "tailrace": "./dist/cli.js"
+    "tailrace": "./dist/cli.cjs"
   },
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
@@ -28,14 +28,15 @@
   ],
   "scripts": {
     "build": "tsup",
-    "test": "vitest run --passWithNoTests",
+    "test": "vitest run",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@tailrace/core": "workspace:*"
   },
   "devDependencies": {
-    "@types/node": "^22.10.2"
+    "@types/node": "^22.10.2",
+    "vitest": "^2.1.9"
   },
   "publishConfig": {
     "access": "public"

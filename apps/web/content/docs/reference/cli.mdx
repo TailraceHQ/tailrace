@@ -1,0 +1,72 @@
+---
+title: CLI
+description: Reference for the tailrace binary - init, scan, install-hooks, and the Claude Code hook handler.
+mode: reference
+---
+
+`@tailrace/cli` ships the `tailrace` binary. Runtime: Node >= 20. Depends on `@tailrace/core` only.
+
+## Install
+
+```bash
+pnpm add -D @tailrace/cli
+```
+
+## Commands
+
+| Command                                          | Description                                                        |
+| ------------------------------------------------ | ------------------------------------------------------------------ |
+| `tailrace init [--force]`                        | Detect stack; write `tailrace.config.ts` + `.tailrace/config.json` |
+| `tailrace scan <path\|-> [--json]`               | Tier 0 scan; exit 1 on any `block`-class hit                       |
+| `tailrace install-hooks [--scope project\|user]` | Merge hooks into Claude Code settings (backup first)               |
+| `tailrace hook`                                  | Claude Code PreToolUse / PostToolUse handler (stdin → stdout)      |
+
+## `init`
+
+Detects `next` → `ai` → `hono` → generic Node from nearest `package.json`. Refuses to overwrite `tailrace.config.ts` unless `--force`. Prints a short integration snippet for the detected stack.
+
+## `scan`
+
+Walks files (skips `node_modules`, `.git`, build dirs, binaries) or reads stdin when path is `-`. Exit `1` if any span resolves to `block`. Human output: path + entity + rule (never raw values). `--json` emits a machine-readable array of hits.
+
+## `install-hooks`
+
+| Flag              | Default | Effect                                                 |
+| ----------------- | ------- | ------------------------------------------------------ |
+| `--scope project` | yes     | `$CLAUDE_PROJECT_DIR/.claude/settings.json` (or `cwd`) |
+| `--scope user`    |         | `~/.claude/settings.json`                              |
+
+Appends matcher `"*"` PreToolUse + PostToolUse command hooks with `command: "tailrace hook"` only if not already present. Ensures `.tailrace/config.json` exists.
+
+## `hook`
+
+JSON path exclusively for policy decisions (always exit 0). Process errors exit 1.
+
+| Case             | Stdout                                                |
+| ---------------- | ----------------------------------------------------- |
+| Clean PreToolUse | empty                                                 |
+| Tokenize / mask  | `permissionDecision: "allow"` + full `updatedInput`   |
+| Block            | `permissionDecision: "deny"` + reason (entity + rule) |
+| PostToolUse      | empty (audit-only in v0.1)                            |
+
+Config: `.tailrace/config.json` only (no TS transpile on the hot path). Identity agent default `"claude-code"`; `workflowId` = Claude Code `session_id`.
+
+Perf budget: spawn-to-exit p50 < 150ms (CI gate).
+
+## Compiled config
+
+```json
+{
+  "version": 1,
+  "agent": "claude-code",
+  "vaultKey": "<hex>",
+  "policy": {}
+}
+```
+
+Omit `policy` for the default (secrets → block, common PII → tokenize). Prefer `TAILRACE_VAULT_KEY` over committing `vaultKey` in prod.
+
+## Guides
+
+- [Block secrets in Claude Code](/docs/guides/block-secrets-in-claude-code)
+- [Claude Code integration](/docs/integrations/claude-code)

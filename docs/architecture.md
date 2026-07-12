@@ -70,7 +70,7 @@ interface PolicySource {
 }
 ```
 
-v0.1 ships `staticPolicy(doc)` (the default; wraps a local `definePolicy` result) and `fileP olicy(path)` (Node only, for the CLI). A future `remotePolicy(url, key)` is out of scope but must be implementable against this interface with no core changes. Audit sinks follow the same pattern: `AuditSink` interface, local sinks shipped, remote sink later.
+v0.1 ships `staticPolicy(doc)` (the default; wraps a local `definePolicy` result). File-based policy loading for Claude Code lives in `@tailrace/cli` (reads `.tailrace/config.json` and passes a `PolicyDocument` into `createTailrace`) - it is **not** a `@tailrace/core` export. A future `remotePolicy(url, key)` is out of scope but must be implementable against this interface with no core changes. Audit sinks follow the same pattern: `AuditSink` interface, local sinks shipped, remote sink later.
 
 ## 6. Public API surface (top-level exports of @tailrace/core)
 

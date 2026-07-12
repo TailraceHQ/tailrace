@@ -1,8 +1,11 @@
 {
-  "note": "Perf-gate baseline (docs/conventions.md §Performance CI). A run whose p50 exceeds budget * 1.2 fails CI. Update these numbers in the same PR that intentionally changes performance, with justification in the PR description. Real budgets (Tier 0 4KB p50 < 5ms, etc.) replace this placeholder in M1.",
+  "note": "Perf-gate baseline (docs/conventions.md §Performance CI). A run whose p50 exceeds budget * 1.2 fails CI. Update these numbers in the same PR that intentionally changes performance, with justification in the PR description. hook-spawn-to-exit also enforces an absolute p50 < 150ms gate (milestones.md §M4).",
   "benchmarks": {
     "placeholder-4kb-scan": {
       "p50Ms": 0.5
+    },
+    "hook-spawn-to-exit": {
+      "p50Ms": 125
     }
   }
 }
