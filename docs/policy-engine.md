@@ -46,6 +46,19 @@ interface Decision {
 
 Matches the `definePolicy` example in the product spec: top-level `defaults`, `entities` (entity → engine + default action), `boundaries` (per-boundary overrides, with glob keys like `"mcp:salesforce/*"` and `"openai/*"`), and `identities` (per-agent override trees that nest the same `entities`/`boundaries` shape). `definePolicy` validates the document at build time via types and at runtime via a schema check that throws `PolicyValidationError` with a path to the offending key.
 
+### Zero-config default (`createTailrace()` with no args)
+
+Explicit per-entity choices, not a blanket "all PII tokenize":
+
+| Entity class | Default action | Rationale |
+|---|---|---|
+| All `SecretEntityClass` | `block` | Prime directive |
+| `email`, `phone`, `credit_card`, `iban`, `ssn` | `tokenize` | Common structured PII |
+| `ip_address` | `allow` | IPs appear in legitimate flows; blanket tokenization is aggressive |
+| `url_credentials` | `block` | Credential-in-URL shape is secret-class in practice |
+| NER (`person`, `location`, `organization`) | unset → `defaults.action` (`allow`) | Tier 1 optional; no default enforcement |
+| `boundaries["egress:*"].entities["*"]` | `detokenize` | Trusted egress restore |
+
 ## 3. Resolution algorithm (normative)
 
 For a span with entity `E`, boundary `B`, identity `I`:
@@ -56,7 +69,7 @@ For a span with entity `E`, boundary `B`, identity `I`:
    c. `boundaries[B-match].entities[E]` (a boundary key may also map `"*"` and pseudo-classes like `"block-pii"`)
    d. `entities[E].action`
    e. `defaults.action`
-2. B-match: exact key beats glob; longer glob beats shorter; `direction` must match when present.
+2. B-match: exact key beats glob; longer glob beats shorter; `direction` must match when present. Matching runs **within the boundary kind's keyspace** only: model patterns are bare provider globs (`openai/*`), while tool (`tool:{name}:{direction}`), mcp (`mcp:{server}/{tool}`), egress (`egress:{sink}`), and telemetry (`telemetry`) use prefixed encodings. A model glob cannot match a prefixed tool/mcp key.
 3. First candidate found wins **except**: `block` at ANY level for secret-class entities (`api_key`, `jwt`, `private_key`, `high_entropy_secret`, `connection_string`) cannot be overridden to `allow` by a more specific rule unless the rule sets `dangerouslyAllowSecrets: true`. This is deliberate friction; document it loudly.
 4. If multiple spans overlap after merging (see detection.md §4), the most restrictive action wins: `block > review > tokenize > mask > allow`.
 5. `egress` boundaries invert semantics: the resolved action for a tokenized value at a trusted egress with `"detokenize"` is vault lookup + restore. Detokenize NEVER happens at `model`, `tool(out)`, `mcp(out)`, or `telemetry` boundaries regardless of policy — hard invariant, tested.

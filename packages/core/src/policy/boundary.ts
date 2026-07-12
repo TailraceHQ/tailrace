@@ -1,13 +1,14 @@
 /**
  * Boundary key encoding and glob matching for policy resolution.
  *
- * // SPEC-QUESTION: Boundary key encoding - docs/policy-engine.md shows examples like
- * // `mcp:salesforce/*` and `openai/*` but does not define the full encoding for tool /
- * // mcp / egress keys. Locked for v0.1: model → provider; tool → `tool:{name}:{direction}`;
- * // mcp → `mcp:{server}/{tool}`; telemetry → `telemetry`; egress → `egress:{sink}`.
+ * Encodings: model → provider; tool → `tool:{name}:{direction}`; mcp →
+ * `mcp:{server}/{tool}`; telemetry → `telemetry`; egress → `egress:{sink}`.
+ * Glob matching is kind-scoped (docs/policy-engine.md §3).
  */
 
 import type { Boundary } from "../types";
+
+export type BoundaryKind = Boundary["kind"];
 
 /** Encode a {@link Boundary} as the string key used in policy `boundaries` maps. */
 export function boundaryKey(boundary: Boundary): string {
@@ -28,6 +29,18 @@ export function boundaryKey(boundary: Boundary): string {
 /** True when a boundary pattern / key refers to an egress sink. */
 export function isEgressBoundaryKey(key: string): boolean {
   return key === "egress" || key.startsWith("egress:");
+}
+
+/**
+ * Resolve the boundary kind for an encoded key or policy pattern.
+ * Model keys are bare provider strings; tool/mcp/egress/telemetry use prefixed encodings.
+ */
+export function boundaryKindOf(keyOrPattern: string): BoundaryKind {
+  if (keyOrPattern === "telemetry") return "telemetry";
+  if (isEgressBoundaryKey(keyOrPattern)) return "egress";
+  if (keyOrPattern.startsWith("tool:")) return "tool";
+  if (keyOrPattern.startsWith("mcp:")) return "mcp";
+  return "model";
 }
 
 /**
@@ -64,10 +77,13 @@ export function globMatch(pattern: string, key: string): boolean {
 
 /**
  * Return patterns that match `key`, ordered most-specific first:
- * exact > longer glob > shorter glob.
+ * exact > longer glob > shorter glob. Matching is kind-scoped: only patterns whose
+ * {@link boundaryKindOf} equals the key's kind are considered (so `openai/*` cannot
+ * match `tool:openai/foo:out`).
  */
 export function matchBoundaryPatterns(key: string, patterns: readonly string[]): string[] {
-  const matched = patterns.filter((p) => globMatch(p, key));
+  const kind = boundaryKindOf(key);
+  const matched = patterns.filter((p) => boundaryKindOf(p) === kind && globMatch(p, key));
   matched.sort((a, b) => {
     const aGlob = a.includes("*") ? 1 : 0;
     const bGlob = b.includes("*") ? 1 : 0;
