@@ -32,13 +32,15 @@ wording may still lag until M5 triage.
 
 - **Boundary key encoding.** model → provider string; tool → `tool:{name}:{direction}`; mcp →
   `mcp:{server}/{tool}`; telemetry → `telemetry`; egress → `egress:{sink}`. Glob `*` matches
-  remainder; exact > longer glob > shorter.
-  _Sites:_ `packages/core/src/policy/boundary.ts`, docs/policy-engine.md (examples only).
+  remainder; exact > longer glob > shorter; matching is kind-scoped (model globs never match
+  prefixed tool/mcp/egress/telemetry keys).
+  _Sites:_ `packages/core/src/policy/boundary.ts`, docs/policy-engine.md §3.
 
-- **Default policy document.** All `SecretEntityClass` → `block`; all `PiiEntityClass` →
-  `tokenize`; NER unset (falls through to `defaults.action` = `allow`);
+- **Default policy document.** All `SecretEntityClass` → `block`; common structured PII
+  (`email`, `phone`, `credit_card`, `iban`, `ssn`) → `tokenize`; `ip_address` → `allow`;
+  `url_credentials` → `block`; NER unset (falls through to `defaults.action` = `allow`);
   `boundaries["egress:*"].entities["*"]` → `detokenize`.
-  _Sites:_ `packages/core/src/policy/default.ts`.
+  _Sites:_ `packages/core/src/policy/default.ts`, docs/policy-engine.md §2.
 
 - **detokenize as Action.** `Action` includes `"detokenize"`; runtime validation rejects it outside
   egress boundary keys. Spec §1 Action union updated to match.

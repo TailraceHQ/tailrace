@@ -23,6 +23,19 @@ describe("defaultPolicy", () => {
     expect(resolve(compiled, "person", modelBoundary, identity).action).toBe("allow");
   });
 
+  it("allows ip_address and blocks url_credentials explicitly", () => {
+    const compiled = compilePolicy(defaultPolicy());
+    expect(resolve(compiled, "ip_address", modelBoundary, identity).action).toBe("allow");
+    expect(resolve(compiled, "url_credentials", modelBoundary, identity).action).toBe("block");
+  });
+
+  it("tokenizes common structured PII but not every PiiEntityClass", () => {
+    const compiled = compilePolicy(defaultPolicy());
+    for (const entity of ["email", "phone", "credit_card", "iban", "ssn"] as const) {
+      expect(resolve(compiled, entity, modelBoundary, identity).action).toBe("tokenize");
+    }
+  });
+
   it("detokenizes at egress sinks", () => {
     const compiled = compilePolicy(defaultPolicy());
     const egress: Boundary = { kind: "egress", sink: "ui" };
@@ -85,6 +98,38 @@ describe("resolve precedence", () => {
     };
     const compiled = compilePolicy(doc);
     expect(resolve(compiled, "email", modelBoundary, identity).action).toBe("tokenize");
+  });
+
+  it("model globs do not match prefixed tool keys", () => {
+    const doc: PolicyDocument = {
+      entities: { email: "allow" },
+      boundaries: {
+        "openai/*": { entities: { email: "tokenize" } },
+        "tool:openai/*:out": { entities: { email: "block" } },
+      },
+    };
+    const compiled = compilePolicy(doc);
+    const toolBoundary: Boundary = { kind: "tool", name: "openai/fetch", direction: "out" };
+    expect(resolve(compiled, "email", toolBoundary, identity).action).toBe("block");
+    expect(resolve(compiled, "email", modelBoundary, identity).action).toBe("tokenize");
+  });
+
+  it("model globs do not match prefixed mcp keys", () => {
+    const doc: PolicyDocument = {
+      entities: { email: "allow" },
+      boundaries: {
+        "openai/*": { entities: { email: "tokenize" } },
+        "mcp:openai/*": { entities: { email: "mask" } },
+      },
+    };
+    const compiled = compilePolicy(doc);
+    const mcpBoundary: Boundary = {
+      kind: "mcp",
+      server: "openai",
+      tool: "search",
+      direction: "out",
+    };
+    expect(resolve(compiled, "email", mcpBoundary, identity).action).toBe("mask");
   });
 
   it("secrets-cannot-be-allowed without dangerouslyAllowSecrets", () => {

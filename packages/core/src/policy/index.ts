@@ -3,7 +3,14 @@
  * Internal to core - consumed by createTailrace / definePolicy.
  */
 
-export { boundaryKey, globMatch, isEgressBoundaryKey, matchBoundaryPatterns } from "./boundary";
+export {
+  boundaryKey,
+  boundaryKindOf,
+  globMatch,
+  isEgressBoundaryKey,
+  matchBoundaryPatterns,
+} from "./boundary";
+export type { BoundaryKind } from "./boundary";
 export { compilePolicy } from "./compile";
 export type { CompiledBoundary, CompiledIdentity, CompiledPolicy } from "./compile";
 export { defaultPolicy } from "./default";
