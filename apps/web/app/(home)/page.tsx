@@ -1,8 +1,10 @@
 import Link from "next/link";
+import { Logo } from "@/components/logo";
 
 export default function HomePage() {
   return (
     <div className="flex flex-1 flex-col items-center justify-center text-center px-6">
+      <Logo size="lg" className="mb-4" />
       <h1 className="mb-3 text-3xl font-bold tracking-tight">Tailrace</h1>
       <p className="mb-8 max-w-md text-fd-muted-foreground">
         In-process agent data governance: detect secrets and PII, tokenize, enforce policy at model,
