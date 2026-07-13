@@ -17,11 +17,55 @@ const instrumentSans = Instrument_Sans({
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: "Tailrace",
+    default: "Tailrace | Agent Data Governance for Secrets and PII",
     template: "%s | Tailrace",
   },
   description:
-    "In-process agent data governance: detect secrets and PII, then block, tokenize, or restore at model, tool, and MCP boundaries.",
+    "Ship agents, not secrets. Govern agent data at the boundary with in-process detection, policy, and tokenization for secrets and PII.",
+  applicationName: "Tailrace",
+  keywords: [
+    "agent data governance",
+    "AI agent security",
+    "PII protection",
+    "secret detection",
+    "sensitive data detection",
+    "AI data loss prevention",
+    "LLM security",
+    "MCP security",
+    "AI SDK security",
+    "data tokenization",
+  ],
+  alternates: {
+    canonical: "/",
+  },
+  openGraph: {
+    type: "website",
+    url: "/",
+    siteName: "Tailrace",
+    title: "Ship agents, not secrets | Tailrace",
+    description:
+      "Govern agent data at the boundary. Detect secrets and PII in-process, then block, tokenize, or restore across model, tool, and MCP boundaries.",
+    images: [
+      {
+        url: "/link-preview.png",
+        width: 1280,
+        height: 640,
+        alt: "Tailrace - Ship agents, not secrets",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Ship agents, not secrets | Tailrace",
+    description:
+      "Govern agent data at the boundary with in-process protection for secrets and PII.",
+    images: ["/link-preview.png"],
+  },
+  category: "technology",
+  robots: {
+    index: true,
+    follow: true,
+  },
   icons: {
     icon: [
       { url: "/favicon.ico", sizes: "any" },
