@@ -1,21 +1,19 @@
-import Link from "next/link";
-import { Logo } from "@/components/logo";
+import { CtaBand } from "@/components/home/cta-band";
+import { HomeHero } from "@/components/home/hero";
+import { HowItWorks } from "@/components/home/how-it-works";
+import { InProcess } from "@/components/home/in-process";
+import { Integrations } from "@/components/home/integrations";
+import { PlaygroundCta } from "@/components/home/playground-cta";
 
 export default function HomePage() {
   return (
-    <div className="flex flex-1 flex-col items-center justify-center text-center px-6">
-      <Logo size="lg" className="mb-4" />
-      <h1 className="mb-3 text-3xl font-bold tracking-tight">Tailrace</h1>
-      <p className="mb-8 max-w-md text-fd-muted-foreground">
-        In-process agent data governance: detect secrets and PII, tokenize, enforce policy at model,
-        tool, and MCP boundaries.
-      </p>
-      <Link
-        href="/docs"
-        className="rounded-lg bg-fd-primary px-4 py-2 text-sm font-medium text-fd-primary-foreground"
-      >
-        Introduction
-      </Link>
+    <div className="home flex flex-1 flex-col">
+      <HomeHero />
+      <HowItWorks />
+      <InProcess />
+      <Integrations />
+      <PlaygroundCta />
+      <CtaBand />
     </div>
   );
 }
