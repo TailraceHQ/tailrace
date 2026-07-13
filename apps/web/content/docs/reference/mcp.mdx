@@ -1,0 +1,42 @@
+---
+title: MCP
+description: Reference for @tailrace/mcp - wrapTransport, withMcp, and McpWrapOptions.
+mode: reference
+---
+
+`@tailrace/mcp` wraps an MCP client `Transport` so outbound `tools/call` arguments and inbound tool / `resources/read` results pass through Tailrace.
+
+## Install
+
+```bash
+pnpm add @tailrace/core @tailrace/mcp @modelcontextprotocol/sdk
+```
+
+Peer dependency: `@modelcontextprotocol/sdk` `>=1` (bound against `1.29.0` `Transport`).
+
+## Exports
+
+| Export            | Description                                           |
+| ----------------- | ----------------------------------------------------- |
+| `wrapTransport`   | Standalone transport wrapper                          |
+| `withMcp`         | Attach fluent `transport(...)` to a Tailrace instance |
+| `McpWrapOptions`  | Options type                                          |
+| `TailraceWithMcp` | Fluent instance type                                  |
+
+## Options
+
+| Option       | Required | Notes                                   |
+| ------------ | -------- | --------------------------------------- |
+| `server`     | yes      | Policy key prefix `mcp:{server}/{tool}` |
+| `agent`      | no       | Default `"default"`                     |
+| `workflowId` | no       | Default `"default"`                     |
+| `onDecision` | no       | Audit callback                          |
+
+## Block shape
+
+JSON-RPC 2.0 error on the pending request id: `code: -32001`, message names entity + rule, `data: { type: "policy_violation", entity, rule }`. Transport stays open.
+
+## Guides
+
+- [Govern MCP tool calls](/docs/guides/govern-mcp-tool-calls)
+- [MCP integration](/docs/integrations/mcp)

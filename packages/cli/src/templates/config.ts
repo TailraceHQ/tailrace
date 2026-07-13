@@ -36,12 +36,13 @@ import { tailrace as base } from "./tailrace.config";
 const tailrace = withAiSdk(base);
 // const model = tailrace.model(openai("gpt-4o"));`;
     case "hono":
-      return `// Hono middleware lands in milestone M5 (@tailrace/hono).
-// For now, call tailrace.check() in your route handlers.
-import { tailrace } from "./tailrace.config";`;
+      return `import { tailraceHono } from "@tailrace/hono";
+import { tailrace } from "./tailrace.config";
+// app.use("/v1/*", tailraceHono(tailrace));`;
     case "node":
       return `// Claude Code: run \`tailrace install-hooks\` to wire PreToolUse / PostToolUse.
-// App code: import { tailrace } from "./tailrace.config";`;
+// App code: import { tailrace } from "./tailrace.config";
+// MCP: import { withMcp } from "@tailrace/mcp";`;
   }
 }
 

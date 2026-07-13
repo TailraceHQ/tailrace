@@ -1,9 +1,14 @@
 # Open Questions
 
 Tracks `// SPEC-QUESTION:` items left in the code (docs/AGENTS.md §When uncertain). Each is either
-resolved in the docs, locked for v0.1, or explicitly deferred before v0.1 ships (milestone M5).
+resolved in the docs, locked for v0.1, or explicitly deferred (post-v0.1). Milestone M5 triaged
+this list: nothing remains Open for v0.1.
 
 ## Open
+
+_(none)_
+
+## Deferred (post-v0.1)
 
 - **Tier 1 NER model choice.** Pick the specific GLiNER-class ONNX model with the best F1-per-MB and
   record candidates + benchmark results here (docs/detection.md §3). _Site:_
@@ -13,12 +18,12 @@ resolved in the docs, locked for v0.1, or explicitly deferred before v0.1 ships 
   `{ value: … }` so object-scan can walk leaves. A tool that natively returns `{ value: … }` is
   fine today (objects pass through unchanged); if we ever need to distinguish the envelope from a
   real `{ value }` payload after unwrapping arrays/primitives, introduce a tagged envelope.
-  _Site:_ `packages/ai-sdk/src/wrap-tools.ts`. Same pattern used in `packages/cli/src/commands/hook.ts`.
+  _Site:_ `packages/ai-sdk/src/wrap-tools.ts`. Same pattern used in `packages/cli/src/commands/hook.ts`
+  and `@tailrace/mcp` message helpers.
 
 ## Locked for v0.1 (M2)
 
-Decided during policy engine + vault implementation. Spec docs updated where noted; remaining
-wording may still lag until M5 triage.
+Decided during policy engine + vault implementation. Spec docs updated where noted.
 
 - **Boundary key encoding.** model → provider string; tool → `tool:{name}:{direction}`; mcp →
   `mcp:{server}/{tool}`; telemetry → `telemetry`; egress → `egress:{sink}`. Glob `*` matches
@@ -49,9 +54,19 @@ wording may still lag until M5 triage.
 
 ## Resolved
 
+- **MCP Transport binding.** Bound against `@modelcontextprotocol/sdk@1.29.0`
+  `Transport` from `@modelcontextprotocol/sdk/shared/transport`
+  (`start` / `send` / `close` / `onclose` / `onerror` / `onmessage`). See docs/integrations.md §2
+  and docs/m5-plan.md.
+  _Was:_ Open (M5 Phase 0).
+
+- **Hono MiddlewareHandler binding.** Bound against `hono@4.12.x` `MiddlewareHandler` /
+  `Context`. See docs/integrations.md §3 and docs/m5-plan.md.
+  _Was:_ Open (M5 Phase 0).
+
 - **Fluent + standalone API (Option C).** `wrapModel` / `wrapTools` and `withAiSdk(tailrace)` for
   `tailrace.model()` / `tailrace.tools()`. Core stays framework-free; fluent methods live in
-  `@tailrace/ai-sdk` only. See docs/integrations.md §1.
+  `@tailrace/ai-sdk`. MCP mirrors with `wrapTransport` + `withMcp`. See docs/integrations.md §1–§2.
   _Was:_ Locked for v0.1 (M3).
 
 - **AI SDK version pin.** `ai@^5` peer; types bound against installed `LanguageModelV2` middleware
@@ -94,3 +109,13 @@ wording may still lag until M5 triage.
 - **Demo 2 in CI.** Scripted stdin fixtures for the hook binary; live Claude Code walkthrough is
   human-only. Dogfood: CI runs `tailrace scan` once the command lands (exclude intentional fixtures).
   _Was:_ Locked for v0.1 (M4).
+
+- **MCP Option C + block synthesis.** `wrapTransport` / `withMcp`; outbound `tools/call` + inbound
+  tool / `resources/read` results; block → JSON-RPC `-32001` without tearing down the transport.
+  See docs/integrations.md §2.
+  _Was:_ Locked for v0.1 (M5).
+
+- **Hono openai-compatible middleware.** `tailraceHono`; model boundary from body `model` as-is;
+  request/JSON response block → 422; SSE abort-equivalent only (local carry-buffer, no ai-sdk import).
+  See docs/integrations.md §3.
+  _Was:_ Locked for v0.1 (M5).

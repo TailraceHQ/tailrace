@@ -1,4 +1,4 @@
 {
   "title": "Guides",
-  "pages": ["block-secrets-in-claude-code", "protect-pii-in-ai-sdk"]
+  "pages": ["block-secrets-in-claude-code", "protect-pii-in-ai-sdk", "govern-mcp-tool-calls"]
 }

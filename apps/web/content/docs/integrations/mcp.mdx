@@ -1,0 +1,38 @@
+---
+title: MCP
+description: Wrap MCP client transports with Tailrace - JSON-RPC error on block, rewrite on tokenize.
+mode: integration
+---
+
+Enforce data policy on MCP `tools/call` and `resources/read` without tearing down the transport.
+
+## Quickstart
+
+```ts
+import { createTailrace } from "@tailrace/core";
+import { withMcp } from "@tailrace/mcp";
+
+const tailrace = withMcp(createTailrace());
+const transport = tailrace.transport(sseTransport, { server: "salesforce" });
+```
+
+Peer: `@modelcontextprotocol/sdk` `>=1`.
+
+## Boundaries covered
+
+| Location                | Tailrace boundary                                        | Direction |
+| ----------------------- | -------------------------------------------------------- | --------- |
+| `tools/call` arguments  | `{ kind: "mcp", server, tool, direction: "out" }`        | Outbound  |
+| `tools/call` result     | same with `direction: "in"`                              | Inbound   |
+| `resources/read` result | `{ kind: "mcp", server, tool: "read", direction: "in" }` | Inbound   |
+
+Block → JSON-RPC error `code: -32001` with `{ type: "policy_violation", entity, rule }` (never the raw value).
+
+## Guides
+
+- [Govern MCP tool calls](/docs/guides/govern-mcp-tool-calls)
+- [Boundaries](/docs/concepts/boundaries)
+
+## Reference
+
+- [MCP package](/docs/reference/mcp)

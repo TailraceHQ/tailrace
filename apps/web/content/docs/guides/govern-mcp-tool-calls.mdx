@@ -1,0 +1,96 @@
+---
+title: Govern MCP tool calls
+description: Wrap an MCP client transport so tools/call arguments and results respect Tailrace policy without tearing down the connection.
+mode: guide
+---
+
+Use `@tailrace/mcp` to enforce data policy on MCP client transports - in-process, with no proxy.
+
+## When to use this
+
+- Agents call MCP servers that should not receive API keys or raw PII.
+- Inbound tool or `resources/read` results may contain secrets you must not feed back to the model.
+- You want a JSON-RPC error the client can handle, not a dead transport.
+
+## Prerequisites
+
+- [Quickstart](/docs/get-started/quickstart) or equivalent `createTailrace` setup
+- `@modelcontextprotocol/sdk` `>=1`
+
+## Step 1: Wrap the transport
+
+**Fluent** (recommended):
+
+```ts
+import { createTailrace } from "@tailrace/core";
+import { withMcp } from "@tailrace/mcp";
+
+const tailrace = withMcp(createTailrace());
+const transport = tailrace.transport(sseTransport, { server: "salesforce" });
+// Pass `transport` into the MCP Client.
+```
+
+**Standalone:**
+
+```ts
+import { wrapTransport } from "@tailrace/mcp";
+
+const transport = wrapTransport(tailrace, sseTransport, { server: "salesforce" });
+```
+
+`server` becomes the policy boundary key prefix: `mcp:salesforce/{tool}`.
+
+## Step 2: Set agent and workflow ID
+
+```ts
+const transport = tailrace.transport(sseTransport, {
+  server: "salesforce",
+  agent: "support-bot",
+  workflowId: sessionId,
+});
+```
+
+Defaults are `"default"` when omitted.
+
+## What gets scanned
+
+| Direction | Method                  | Boundary                                                 |
+| --------- | ----------------------- | -------------------------------------------------------- |
+| Out       | `tools/call` arguments  | `{ kind: "mcp", server, tool: name, direction: "out" }`  |
+| In        | `tools/call` result     | same with `direction: "in"`                              |
+| In        | `resources/read` result | `{ kind: "mcp", server, tool: "read", direction: "in" }` |
+
+All other JSON-RPC messages pass through unchanged. For `resources/read`, `tool` is always the literal `"read"` so policy keys stay stable.
+
+## Verify it works
+
+Outbound `tools/call` with a synthetic Stripe key (`sk_test_…FAKE`) should never reach the server. The client receives a JSON-RPC error:
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": "<request-id>",
+  "error": {
+    "code": -32001,
+    "message": "Blocked by data policy: api_key may not be sent to mcp (rule: …)",
+    "data": { "type": "policy_violation", "entity": "api_key", "rule": "…" }
+  }
+}
+```
+
+Tokenize actions rewrite `arguments` / results in place and forward.
+
+## Troubleshooting
+
+| Symptom                   | Fix                                                                              |
+| ------------------------- | -------------------------------------------------------------------------------- |
+| Nothing is scanned        | Confirm you wrapped the transport the client actually uses                       |
+| Policy key mismatch       | Match `server` and tool name to `mcp:{server}/{tool}` in `definePolicy`          |
+| Transport closed on block | Should not happen - upgrade `@tailrace/mcp`; block synthesizes an error response |
+
+## Related
+
+- [MCP integration](/docs/integrations/mcp)
+- [MCP reference](/docs/reference/mcp)
+- [Boundaries](/docs/concepts/boundaries)
+- Spec: [`docs/integrations.md`](https://github.com/tailrace/tailrace/blob/main/docs/integrations.md) §2

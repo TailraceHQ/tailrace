@@ -9,8 +9,8 @@
 workflow-scoped tokenization, and per-agent data-flow policy enforced at the model, tool, and MCP
 boundaries. No proxy, no sidecar, no network call in the request hot path.
 
-> Status: **early development (v0.1, milestone M3).** Detection, policy, vault, audit, and the
-> Vercel AI SDK integration ship in `@tailrace/core` + `@tailrace/ai-sdk`.
+> Status: **v0.1 (milestone M5).** Detection, policy, vault, audit, AI SDK, MCP, Hono, and Claude
+> Code CLI ship across `@tailrace/*`. See [`docs/milestones.md`](docs/milestones.md).
 
 ## Why
 
@@ -42,18 +42,24 @@ const model = tailrace.model(openai("gpt-4o"));
 // Use `model` anywhere you'd use the AI SDK model - sensitive values never leave the process.
 ```
 
-Runnable demos: [`examples/nextjs-ai-sdk`](examples/nextjs-ai-sdk).
+Also: [`@tailrace/mcp`](packages/mcp/README.md) (`withMcp` / `wrapTransport`) and
+[`@tailrace/hono`](packages/hono/README.md) (`tailraceHono`) for MCP transports and OpenAI-compatible
+gateways.
+
+Runnable demos: [`examples/nextjs-ai-sdk`](examples/nextjs-ai-sdk),
+[`examples/claude-code`](examples/claude-code).
 
 ## Documentation
 
-| Resource                                                                            | Description                                       |
-| ----------------------------------------------------------------------------------- | ------------------------------------------------- |
-| [Quickstart](apps/web/content/docs/get-started/quickstart.mdx)                      | Block a secret and tokenize email in five minutes |
-| [Protect PII in the AI SDK](apps/web/content/docs/guides/protect-pii-in-ai-sdk.mdx) | Models, tools, streaming, egress restore          |
-| [@tailrace/ai-sdk reference](apps/web/content/docs/reference/ai-sdk/index.mdx)      | `wrapModel`, `wrapTools`, options                 |
-| [Next.js integration](apps/web/content/docs/integrations/nextjs.mdx)                | Runnable Demo 1                                   |
-| [Package README](packages/ai-sdk/README.md)                                         | Install and API overview                          |
-| [Integrations spec](docs/integrations.md)                                           | Normative behavior                                |
+| Resource                                                                                                                                                                                                                               | Description                                       |
+| -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------- |
+| [Quickstart](apps/web/content/docs/get-started/quickstart.mdx)                                                                                                                                                                         | Block a secret and tokenize email in five minutes |
+| [Protect PII in the AI SDK](apps/web/content/docs/guides/protect-pii-in-ai-sdk.mdx)                                                                                                                                                    | Models, tools, streaming, egress restore          |
+| [Govern MCP tool calls](apps/web/content/docs/guides/govern-mcp-tool-calls.mdx)                                                                                                                                                        | Transport wrap + JSON-RPC block                   |
+| [Block secrets in Claude Code](apps/web/content/docs/guides/block-secrets-in-claude-code.mdx)                                                                                                                                          | Hooks, scan, install-hooks                        |
+| [@tailrace/ai-sdk reference](apps/web/content/docs/reference/ai-sdk/index.mdx)                                                                                                                                                         | `wrapModel`, `wrapTools`, options                 |
+| [Next.js](apps/web/content/docs/integrations/nextjs.mdx) · [MCP](apps/web/content/docs/integrations/mcp.mdx) · [Hono](apps/web/content/docs/integrations/hono.mdx) · [Claude Code](apps/web/content/docs/integrations/claude-code.mdx) | Integration pages                                 |
+| [Integrations spec](docs/integrations.md)                                                                                                                                                                                              | Normative behavior                                |
 
 Run the docs site locally: `pnpm --filter @tailrace/web dev`.
 

@@ -1,0 +1,42 @@
+---
+title: Hono
+description: Reference for @tailrace/hono - tailraceHono middleware and TailraceHonoOptions.
+mode: reference
+---
+
+`@tailrace/hono` provides OpenAI-compatible passthrough middleware for Hono. It scans chat request bodies and JSON / SSE responses at the model boundary.
+
+## Install
+
+```bash
+pnpm add @tailrace/core @tailrace/hono hono
+```
+
+Peer dependency: `hono` `>=4` (bound against `4.12.x` `MiddlewareHandler` / `Context`).
+
+## Exports
+
+| Export                | Description                        |
+| --------------------- | ---------------------------------- |
+| `tailraceHono`        | Returns a Hono `MiddlewareHandler` |
+| `TailraceHonoOptions` | Options type                       |
+
+## Options
+
+| Option       | Default               | Notes                       |
+| ------------ | --------------------- | --------------------------- |
+| `mode`       | `"openai-compatible"` | Only mode in v0.1           |
+| `agent`      | `"default"`           | `(c) => string`             |
+| `workflowId` | `"default"`           | `string` or `(c) => string` |
+| `onDecision` | -                     | Audit callback              |
+
+Boundary provider is the request body's `model` string as-is (no `${providerId}/${modelId}` rewrite).
+
+## Block shape
+
+**422** JSON `{ error: { type: "policy_violation", entity, rule } }`. SSE: one `data:` error event then close (abort-equivalent only).
+
+## Guides
+
+- [Hono integration](/docs/integrations/hono)
+- [Protect PII in the AI SDK](/docs/guides/protect-pii-in-ai-sdk)

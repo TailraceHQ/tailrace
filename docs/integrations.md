@@ -120,21 +120,121 @@ Non-streaming `wrapGenerate` always uses throw-on-`block` semantics (no `streamB
 
 ## 2. @tailrace/mcp: MCP client wrapper
 
+User guide: [`docs/guides/mcp-integration.md`](guides/mcp-integration.md).
+Docs site: `/docs/reference/mcp`, `/docs/integrations/mcp`, `/docs/guides/govern-mcp-tool-calls`.
+Implementation plan: [`m5-plan.md`](m5-plan.md).
+
+**Peer dependency:** `@modelcontextprotocol/sdk` `>=1`. Types bind against the installed SDK's
+`Transport` from `@modelcontextprotocol/sdk/shared/transport` (`start` / `send` / `close` /
+`onclose` / `onerror` / `onmessage` / optional `sessionId` / `setProtocolVersion`). As of
+`@modelcontextprotocol/sdk@1.29.0`. Record further drift here when upgrading the SDK.
+
+### Public API (Option C)
+
 ```ts
-tailrace.mcp<T extends Transport>(transport: T, opts: { server: string; agent?: string; workflowId?: string }): T
+import { wrapTransport, withMcp } from "@tailrace/mcp";
+
+const transport = wrapTransport(tailrace, sseTransport, { server: "salesforce" });
+
+const t = withMcp(createTailrace());
+const wrapped = t.transport(sseTransport, { server: "salesforce" });
 ```
 
-Wraps an MCP SDK client transport: intercept outbound `tools/call` requests (`check` arguments, boundary `{ kind: "mcp", server, tool, direction: "out" }`) and inbound results (`direction: "in"`). Blocked outbound ⇒ synthesize a JSON-RPC error result to the caller with the policy message (do not tear down the transport). Also scan `resources/read` results (direction "in"). Pin `@modelcontextprotocol/sdk` as peer; verify current transport interface from the SDK source before implementing.
+```ts
+interface McpWrapOptions {
+  server: string;
+  agent?: string;
+  workflowId?: string;
+  onDecision?: (decisions: Decision[]) => void;
+}
+```
 
-Standalone + fluent (`withMcp`) same pattern as §1 when implemented in M5.
+### Intercepted methods
+
+| Direction | JSON-RPC method | What is scanned | Boundary |
+|---|---|---|---|
+| Out | `tools/call` | `params.arguments` | `{ kind: "mcp", server, tool: params.name, direction: "out" }` |
+| In | `tools/call` result | result payload | same with `direction: "in"` |
+| In | `resources/read` result | result payload | `{ kind: "mcp", server, tool: "read", direction: "in" }` |
+
+All other JSON-RPC messages pass through unchanged. For `resources/read`, `tool` is always the
+stable literal `"read"` (not the resource URI basename) so policy keys like `mcp:salesforce/read`
+are predictable.
+
+### Block translation
+
+Do **not** tear down the transport. Synthesize a JSON-RPC 2.0 **error response** for the pending
+request id:
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": "<request-id>",
+  "error": {
+    "code": -32001,
+    "message": "Blocked by data policy: api_key may not be sent to mcp (rule: …)",
+    "data": { "type": "policy_violation", "entity": "api_key", "rule": "…" }
+  }
+}
+```
+
+- Outbound block: never `send` the request to the server; deliver the error via `onmessage`.
+- Inbound block: replace the result with the error before calling the client's `onmessage`.
+- Tokenize/mask: rewrite `arguments` / result and forward.
+
+Identity defaults: `agent` / `workflowId` → `"default"` when unset.
 
 ## 3. @tailrace/hono: middleware
 
+User guide: [`docs/guides/hono-integration.md`](guides/hono-integration.md).
+Docs site: `/docs/reference/hono`, `/docs/integrations/hono`.
+Implementation plan: [`m5-plan.md`](m5-plan.md).
+
+**Peer dependency:** `hono` `>=4`. Types bind against installed `MiddlewareHandler` / `Context`
+from `hono` (`MiddlewareHandler = (c, next) => Promise<R | void>`). As of `hono@4.12.x`.
+
 ```ts
-app.use("/v1/*", tailraceHono(tailrace, { mode: "openai-compatible", agent: (c) => c.req.header("x-agent-id") ?? "default" }))
+import { tailraceHono } from "@tailrace/hono";
+
+app.use(
+  "/v1/*",
+  tailraceHono(tailrace, {
+    mode: "openai-compatible",
+    agent: (c) => c.req.header("x-agent-id") ?? "default",
+    workflowId: (c) => c.req.header("x-workflow-id") ?? "default",
+  }),
+);
 ```
 
-Parses OpenAI-format chat request bodies, `check`s message contents (boundary `model` with provider from the request's `model` field), forwards; scans response bodies incl. SSE streaming (reuse the carry-buffer transform). Blocked ⇒ 422 JSON `{ error: { type: "policy_violation", entity, rule } }`. This package is thin by design - it exists to serve Workers users and as the shape of a future gateway plugin.
+```ts
+interface TailraceHonoOptions {
+  mode?: "openai-compatible"; // only mode in v0.1; default
+  agent?: (c: Context) => string;
+  workflowId?: string | ((c: Context) => string);
+  onDecision?: (decisions: Decision[]) => void;
+}
+```
+
+Parses OpenAI-format chat request bodies, `check`s message text contents at boundary
+`{ kind: "model", provider }` where `provider` is the request body's `model` string **as-is**,
+forwards; scans response bodies including SSE streaming.
+
+**Carry-buffer:** local reimplementation inside `@tailrace/hono` (same hold-back algorithm as
+`@tailrace/ai-sdk`). Must not import `@tailrace/ai-sdk`. No `streamBlockBehavior` option in v0.1
+(abort-equivalent only for SSE).
+
+### Block translation
+
+| Surface | Behavior |
+|---|---|
+| Request (before `next`) | **422** JSON `{ error: { type: "policy_violation", entity, rule } }` |
+| JSON response (non-SSE) | **422** same shape; do not forward the blocked body |
+| SSE (`text/event-stream`) | Cancel upstream; emit one SSE `data:` event with the same error object; close |
+
+Tokenize/mask rewrites the request/response body (or SSE text deltas) in place and continues.
+
+This package is thin by design - it exists to serve Workers users and as the shape of a future
+gateway plugin.
 
 ## 4. @tailrace/cli: `tailrace` binary
 

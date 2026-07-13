@@ -24,9 +24,7 @@ function assertAction(action: Action, path: string, underEgress: boolean): void 
   if (action === "review") {
     throw new NotImplementedError("review action ships in v0.2");
   }
-  // SPEC-QUESTION: detokenize as Action - docs describe egress invert semantics but do not
-  // add detokenize to the Action union. Locked: Action includes detokenize; valid only under
-  // egress boundary keys in definePolicy.
+  // Locked: Action includes detokenize; valid only under egress boundary keys (OPEN_QUESTIONS.md).
   if (action === "detokenize" && !underEgress) {
     throw new PolicyValidationError("detokenize is only valid under egress boundary keys", path);
   }

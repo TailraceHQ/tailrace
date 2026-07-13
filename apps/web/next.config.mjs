@@ -12,7 +12,14 @@ const config = {
   // Keep lightningcss / oxide native bindings out of the Turbopack PostCSS worker
   // bundle so `process.arch` is not replaced with a wrong compile-time target
   // (otherwise arm64 macOS looks for lightningcss.darwin-x64.node).
-  serverExternalPackages: ["typescript", "twoslash", "lightningcss", "@tailwindcss/oxide"],
+  serverExternalPackages: [
+    "typescript",
+    "twoslash",
+    "lightningcss",
+    "@tailwindcss/oxide",
+    "@tailwindcss/node",
+    "@tailwindcss/postcss",
+  ],
   transpilePackages: ["@tailrace/core"],
   // Pin Turbopack to the monorepo root so a parent lockfile is not inferred.
   turbopack: {
