@@ -26,9 +26,11 @@ describe("policy.v1.json schema", () => {
 
   it("rejects an unknown action", () => {
     expect(validate({ entities: { email: "yeet" } })).toBe(false);
-    expect(validate.errors?.some((e) => e.message?.includes("must be equal to one of the allowed values"))).toBe(
-      true,
-    );
+    expect(
+      validate.errors?.some((e) =>
+        e.message?.includes("must be equal to one of the allowed values"),
+      ),
+    ).toBe(true);
   });
 
   it("rejects extra top-level keys", () => {
