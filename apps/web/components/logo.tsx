@@ -52,10 +52,7 @@ export function Logo({ className, size = "md", withTitle = false }: LogoProps) {
   if (!withTitle) return mark;
 
   return (
-    <span
-      className={`inline-flex items-center gap-2 ${className ?? ""}`}
-      aria-label="Tailrace"
-    >
+    <span className={`inline-flex items-center gap-2 ${className ?? ""}`} aria-label="Tailrace">
       {mark}
       <span className="font-semibold">Tailrace</span>
     </span>
@@ -63,15 +60,6 @@ export function Logo({ className, size = "md", withTitle = false }: LogoProps) {
 }
 
 /** Nav helper: mark + "Tailrace" label. */
-export function LogoWithTitle({
-  className,
-  size = "md",
-}: Omit<LogoProps, "withTitle">) {
-  return (
-    <Logo
-      {...(className !== undefined ? { className } : {})}
-      size={size}
-      withTitle
-    />
-  );
+export function LogoWithTitle({ className, size = "md" }: Omit<LogoProps, "withTitle">) {
+  return <Logo {...(className !== undefined ? { className } : {})} size={size} withTitle />;
 }
