@@ -1,9 +1,17 @@
 ---
 title: Playground
-description: Interactive Tier 0 demo - paste text, see spans, toggle policy actions. Ships in D3.
+description: Paste text, see Tier 0 spans, and toggle policy actions - entirely in your browser.
 mode: concept
 ---
 
-Placeholder for the browser playground (D3).
+Paste text and watch Tier 0 detection plus policy resolution run in-process. Toggle actions to see how the same spans re-render under a different policy.
 
-Acceptance when built: works offline after load, no analytics of pasted content, visible note that scanning is 100% client-side.
+<Playground />
+
+Scanning is 100% client-side after this page loads. Pasted content is never uploaded, and the page does not ship analytics of what you paste. Once loaded, the playground works offline.
+
+## See it in practice
+
+- [Detection tiers](/docs/concepts/detection-tiers) - what Tier 0 covers and accuracy expectations
+- [Policy resolution](/docs/concepts/policy-resolution) - precedence and secrets-cannot-be-allowed
+- [Quickstart](/docs/get-started/quickstart) - the same engine in your app

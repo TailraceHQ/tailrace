@@ -1,0 +1,29 @@
+---
+title: RECOGNIZER
+description: A recognizer threw while scanning input.
+mode: reference
+---
+
+## What it means
+
+`RecognizerError` (`code: RECOGNIZER`). A detection engine threw during `scan`.
+
+## Message shape
+
+```text
+<reason> → https://tailrace.dev/docs/reference/errors/RECOGNIZER
+```
+
+## Common causes
+
+1. Custom recognizer bug.
+2. Optional Tier 1 engine misconfiguration (should degrade to Tier 0 with a warning - if you see this, the recognizer threw instead of failing open).
+
+## Fixes
+
+1. Fix or remove the custom recognizer.
+2. Ensure Tier 1 optional models fail open per product rules - never crash the host for a missing model.
+
+## Safe to catch?
+
+For `block`-configured entity classes, fail closed if detection cannot run. For availability of optional Tier 1, prefer degrade-to-Tier-0.

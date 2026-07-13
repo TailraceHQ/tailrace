@@ -54,6 +54,7 @@ Runnable demos: [`examples/nextjs-ai-sdk`](examples/nextjs-ai-sdk),
 | Resource                                                                                                                                                                                                                               | Description                                       |
 | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------- |
 | [Quickstart](apps/web/content/docs/get-started/quickstart.mdx)                                                                                                                                                                         | Block a secret and tokenize email in five minutes |
+| Concepts: [Boundaries](apps/web/content/docs/concepts/boundaries.mdx) · [Policy resolution](apps/web/content/docs/concepts/policy-resolution.mdx) · [Detection tiers](apps/web/content/docs/concepts/detection-tiers.mdx) · [Tokenization & the vault](apps/web/content/docs/concepts/tokenization-and-the-vault.mdx) · [Threat model](apps/web/content/docs/concepts/threat-model.mdx) | The mental model, with diagrams                    |
 | [Protect PII in the AI SDK](apps/web/content/docs/guides/protect-pii-in-ai-sdk.mdx)                                                                                                                                                    | Models, tools, streaming, egress restore          |
 | [Govern MCP tool calls](apps/web/content/docs/guides/govern-mcp-tool-calls.mdx)                                                                                                                                                        | Transport wrap + JSON-RPC block                   |
 | [Block secrets in Claude Code](apps/web/content/docs/guides/block-secrets-in-claude-code.mdx)                                                                                                                                          | Hooks, scan, install-hooks                        |
@@ -61,7 +62,9 @@ Runnable demos: [`examples/nextjs-ai-sdk`](examples/nextjs-ai-sdk),
 | [Next.js](apps/web/content/docs/integrations/nextjs.mdx) · [MCP](apps/web/content/docs/integrations/mcp.mdx) · [Hono](apps/web/content/docs/integrations/hono.mdx) · [Claude Code](apps/web/content/docs/integrations/claude-code.mdx) | Integration pages                                 |
 | [Integrations spec](docs/integrations.md)                                                                                                                                                                                              | Normative behavior                                |
 
-Run the docs site locally: `pnpm --filter @tailrace/web dev`.
+Live docs: [tailrace.dev](https://tailrace.dev). Run locally: `pnpm --filter @tailrace/web dev`. Wiring
+an AI tool into the docs (MCP, `llms.txt`, or per-page markdown):
+[Use with AI tools](apps/web/content/docs/get-started/use-with-ai-tools.mdx).
 
 ## Development
 

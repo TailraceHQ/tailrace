@@ -41,6 +41,30 @@ Default policy does **not** enforce NER entities - they fall through to `allow` 
 3. Different entities, overlapping → keep both; policy picks most restrictive action
 4. Sort by start; apply rewrites right-to-left
 
+```mermaid
+flowchart LR
+  Raw["Raw spans"] --> Drop["Drop below<br/>confidence threshold"]
+  Drop --> Union["Same entity + overlap<br/>union into one span"]
+  Union --> Keep["Different entity + overlap<br/>keep both"]
+  Keep --> Rewrite["Sort by start;<br/>rewrite right-to-left"]
+  Rewrite --> Final["Final spans"]
+```
+
+<Accordions>
+  <Accordion title="Deep dive: why rewrites go right-to-left">
+
+Every rewrite (`tokenize`, `mask`) changes the length of the string. If you
+rewrote left-to-right, the first replacement would shift every later span's
+offsets and you'd have to recompute them. Applying rewrites from the highest
+start offset down means each edit only touches text after the spans you have
+not processed yet, so their offsets stay valid until you reach them. Same idea
+per string leaf when scanning objects: each leaf owns its offsets, and the JSON
+Pointer path (e.g. `/messages/2/content`) tells `apply` exactly which leaf to
+rewrite - which is why objects are never flattened to one string.
+
+  </Accordion>
+</Accordions>
+
 ## Perf gate
 
 Tier 0 on a 4KB mixed fixture: p50 &lt; 5ms in CI. Detection is a commodity; policy and vault get the product effort.

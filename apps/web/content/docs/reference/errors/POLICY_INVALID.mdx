@@ -1,0 +1,31 @@
+---
+title: POLICY_INVALID
+description: The policy document failed schema or semantic validation.
+mode: reference
+---
+
+## What it means
+
+`PolicyValidationError` (`code: POLICY_INVALID`). `definePolicy` / compile rejected the document. `path` points at the offending key.
+
+## Message shape
+
+```text
+<reason> → https://tailrace.dev/docs/reference/errors/POLICY_INVALID
+```
+
+## Common causes
+
+1. Unknown action string.
+2. `detokenize` under a non-egress boundary key.
+3. Invalid `format` on an entity rule.
+
+## Fixes
+
+1. Validate against [Policy schema](/docs/reference/policy-schema) / `https://tailrace.dev/schema/policy.v1.json`.
+2. Put `detokenize` only under `egress:*` boundary keys.
+3. Use `allow` | `mask` | `tokenize` | `block` (and `review` only when you accept `NOT_IMPLEMENTED`).
+
+## Safe to catch?
+
+Usually at startup / config load. Fail closed - do not run with an invalid policy.

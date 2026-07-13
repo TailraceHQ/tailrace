@@ -41,7 +41,7 @@ NOTE: verify current Fumadocs setup APIs against its live documentation at imple
 
 **D3 - Concepts + playground**: the five concept pages (IA §2.3); the browser playground (Tier 0 engine bundled client-side; paste text → highlighted spans → toggling policy actions re-renders). Acceptance: playground works offline after load, ships no analytics of pasted content - add a visible note saying scanning is 100% client-side (this is a trust feature, treat it as such).
 
-**D4 - Machine-readable layer**: everything in machine-readable.md - llms.txt, llms-full.txt, `.md` endpoints, copy-as-markdown, JSON schema published, config-schema URL wired into the CLI's generated config, docs MCP server, agents-rules artifact behind `tailrace init`. Acceptance criteria are listed per-item in that doc.
+**D4 - Machine-readable layer**: everything in machine-readable.md - llms.txt, llms-full.txt, `.md` endpoints, copy-as-markdown, JSON schema published, config-schema URL wired into the CLI's generated config, **HTTP docs MCP at `/mcp`**, agents-rules artifact behind `tailrace init --agent-rules`. Acceptance criteria are listed per-item in that doc.
 
 **D5 - Marketing shell**: landing page (hero = real config file + `npx @tailrace/cli init` one-liner, Better Auth-style), integrations grid (one card per adapter linking to its guide), comparison page (vs Python proxy stack - factual, no FUD: deployment model table), changelog page fed by changesets.
 

@@ -1,0 +1,31 @@
+---
+title: VAULT
+description: Vault storage, encryption, or lookup failed.
+mode: reference
+---
+
+## What it means
+
+`VaultError` (`code: VAULT`). The vault adapter failed (corrupt record, collision, missing key material, KV errors).
+
+## Message shape
+
+```text
+<reason> → https://tailrace.dev/docs/reference/errors/VAULT
+```
+
+## Common causes
+
+1. Corrupt or truncated ciphertext in storage.
+2. Token collision for the same workflow key.
+3. Misconfigured vault key / KV binding.
+
+## Fixes
+
+1. Ensure a stable vault key (`TAILRACE_VAULT_KEY` or config) across the workflow lifetime.
+2. Purge or rotate workflow vault entries if records are corrupt.
+3. Check KV permissions and key encoding (hex / string as documented).
+
+## Safe to catch?
+
+At egress you may surface a user-visible failure. Prefer fail closed over returning a tokenized value as if it were restored.

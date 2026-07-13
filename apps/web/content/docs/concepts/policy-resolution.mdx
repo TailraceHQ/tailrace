@@ -44,6 +44,22 @@ For entity `E`, boundary `B`, identity `I`:
 
 First hit wins - with one hard exception.
 
+```mermaid
+flowchart TB
+  Start(["span + boundary + identity"]) --> L1{"identity + boundary<br/>rule for entity?"}
+  L1 -- yes --> Hit["candidate action"]
+  L1 -- no --> L2{"identity rule<br/>for entity?"}
+  L2 -- yes --> Hit
+  L2 -- no --> L3{"boundary rule<br/>for entity?"}
+  L3 -- yes --> Hit
+  L3 -- no --> L4{"entity default?"}
+  L4 -- yes --> Hit
+  L4 -- no --> L5["defaults.action"] --> Hit
+  Hit --> Guard{"would allow a<br/>secret-class entity?"}
+  Guard -- "yes, no dangerouslyAllowSecrets" --> Forced["forced block"]
+  Guard -- no --> Final(["final action"])
+```
+
 ## Secrets cannot be allowed by accident
 
 If any rule would `block` a **secret-class** entity, a more specific rule cannot override that to `allow` unless it sets `dangerouslyAllowSecrets: true`. Deliberate friction so a support-agent override cannot quietly ship API keys to a model.
@@ -69,6 +85,29 @@ An `example.com` email on the same path resolves to `tokenize` under the default
 ## Resolution is pure and sync
 
 `resolve(policy, entity, boundary, identity)` does map lookups only (precompiled at `createTailrace`). Target: under 1µs per span. No I/O in the resolve path.
+
+<Accordions>
+  <Accordion title="Deep dive: how resolution stays sub-microsecond">
+
+`createTailrace` compiles your policy document once, up front. Each precedence
+level becomes a flat lookup keyed by the strings it matches on:
+
+- `identities[agent].boundaries[key].entities[entity]`
+- `identities[agent].entities[entity]`
+- `boundaries[key].entities[entity]`
+- `entities[entity]`
+
+At request time `resolve` walks those maps in order and returns the first hit.
+There is no regex, no allocation, and no I/O on this path - just object property
+reads - which is what keeps it under 1µs per span.
+
+The secret guard is precomputed too: the set of secret-class entities is fixed
+at compile time, so the "would this allow a secret?" check is a single set
+membership test that only runs when the winning action is `allow`. That is why
+the guard can be a hard invariant rather than a policy option.
+
+  </Accordion>
+</Accordions>
 
 ## See it in practice
 

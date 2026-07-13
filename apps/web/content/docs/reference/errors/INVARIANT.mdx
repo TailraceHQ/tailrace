@@ -1,0 +1,29 @@
+---
+title: INVARIANT
+description: An internal contract was breached - for example restore outside egress.
+mode: reference
+---
+
+## What it means
+
+`InvariantViolationError` (`code: INVARIANT`). A hard product invariant was violated regardless of policy.
+
+## Message shape
+
+```text
+<reason> → https://tailrace.dev/docs/reference/errors/INVARIANT
+```
+
+## Common causes
+
+1. Calling `tailrace.restore` at a `model`, `tool`, `mcp`, or `telemetry` boundary.
+2. Asking the vault/actions layer to do something only egress may do.
+
+## Fixes
+
+1. Restore only at `{ kind: "egress", sink: "…" }`.
+2. Keep model/tool paths on `check` (tokenize/mask/block), not `restore`.
+
+## Safe to catch?
+
+Treat as a programmer error. Fix the call site; do not swallow and continue.

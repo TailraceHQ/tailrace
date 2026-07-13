@@ -20,6 +20,16 @@ Every `check` follows the same path:
 4. **Apply**: `block` throws · `tokenize` writes the vault · `mask` replaces inline · `allow` passes through.
 5. **Audit**: Async emit with rule path and content hash; never raw values.
 
+```mermaid
+flowchart TB
+  In["Input<br/>string or JSON at a boundary"] --> Detect["Detect<br/>Tier 0 recognizers to spans"]
+  Detect --> Resolve["Policy resolve<br/>entity x boundary x identity to action"]
+  Resolve --> Apply["Apply<br/>block · tokenize · mask · allow"]
+  Apply --> Out["Output + decisions"]
+  Apply -. "async" .-> Audit["Audit<br/>rule path + content hash"]
+  Out -. "later, egress only" .-> Restore["restore()<br/>detokenize at an egress sink"]
+```
+
 **Restore** is separate: `tailrace.restore()` runs only at `{ kind: "egress", sink }` boundaries. Calling restore at a model or tool boundary throws - by design.
 
 ## Default policy
@@ -54,6 +64,7 @@ const model = tailrace.model(openai("gpt-4o"));
 | Goal                             | Link                                                            |
 | -------------------------------- | --------------------------------------------------------------- |
 | Block a fake key in five minutes | [Quickstart](/docs/get-started/quickstart)                      |
+| Connect Cursor / Claude to docs  | [Use with AI tools](/docs/get-started/use-with-ai-tools)        |
 | Models, tools, streaming, egress | [Protect PII in the AI SDK](/docs/guides/protect-pii-in-ai-sdk) |
 | MCP transports                   | [Govern MCP tool calls](/docs/guides/govern-mcp-tool-calls)     |
 | Hono OpenAI passthrough          | [Hono integration](/docs/integrations/hono)                     |

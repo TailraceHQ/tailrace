@@ -8,7 +8,7 @@ Every page declares `mode: tutorial | guide | concept | reference | integration`
 /docs
 ├── Get Started
 │   ├── quickstart                    # THE tutorial (§2.1)
-│   └── how-tailrace-works            # 2-min overview w/ diagram; links into Concepts
+│   └── use-with-ai-tools             # MCP / llms.txt / .md connect matrix
 ├── Guides                            # task-shaped; framework tabs where applicable
 │   ├── block-secrets-in-claude-code
 │   ├── protect-pii-in-ai-sdk
