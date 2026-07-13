@@ -1,0 +1,16 @@
+---
+title: Errors
+description: Stable Tailrace error codes - what each means and where to fix the call site.
+mode: reference
+---
+
+Every Tailrace error extends `TailraceError` with a stable `code`. Messages never include detected values - only entity classes, rule paths, and hashes. Each thrown message ends with a docs URL for that code.
+
+| Code | Class | When |
+| --- | --- | --- |
+| [`POLICY_VIOLATION`](/docs/reference/errors/POLICY_VIOLATION) | `PolicyViolationError` | A `block` rule matched |
+| [`POLICY_INVALID`](/docs/reference/errors/POLICY_INVALID) | `PolicyValidationError` | Policy document failed validation |
+| [`INVARIANT`](/docs/reference/errors/INVARIANT) | `InvariantViolationError` | Contract breach (e.g. restore at non-egress) |
+| [`VAULT`](/docs/reference/errors/VAULT) | `VaultError` | Vault storage / crypto / lookup failure |
+| [`RECOGNIZER`](/docs/reference/errors/RECOGNIZER) | `RecognizerError` | Recognizer threw while scanning |
+| [`NOT_IMPLEMENTED`](/docs/reference/errors/NOT_IMPLEMENTED) | `NotImplementedError` | Specified but not shipped yet (e.g. `review`) |

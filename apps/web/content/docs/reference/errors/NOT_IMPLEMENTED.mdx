@@ -1,0 +1,29 @@
+---
+title: NOT_IMPLEMENTED
+description: A specified surface is not implemented in this release.
+mode: reference
+---
+
+## What it means
+
+`NotImplementedError` (`code: NOT_IMPLEMENTED`). The API is typed or documented but not shipped yet.
+
+## Message shape
+
+```text
+<reason> → https://tailrace.dev/docs/reference/errors/NOT_IMPLEMENTED
+```
+
+## Common causes
+
+1. Policy action `review` (human-in-the-loop) - v0.2.
+2. Other milestone-gated surfaces still throwing stubs.
+
+## Fixes
+
+1. Use `block`, `tokenize`, `mask`, or `allow` instead of `review`.
+2. Check the package changelog / milestone docs for when the surface lands.
+
+## Safe to catch?
+
+At config validation time - treat as a config error and refuse to start with that policy.

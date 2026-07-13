@@ -1,4 +1,4 @@
 {
   "title": "Reference",
-  "pages": ["ai-sdk", "cli", "mcp", "hono"]
+  "pages": ["ai-sdk", "cli", "mcp", "hono", "policy-schema", "errors"]
 }

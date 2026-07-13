@@ -1,0 +1,12 @@
+{
+  "title": "Errors",
+  "pages": [
+    "index",
+    "POLICY_VIOLATION",
+    "POLICY_INVALID",
+    "INVARIANT",
+    "VAULT",
+    "RECOGNIZER",
+    "NOT_IMPLEMENTED"
+  ]
+}

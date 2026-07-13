@@ -1,0 +1,53 @@
+---
+title: Policy schema
+description: Shape of a Tailrace policy document - defaults, entities, boundaries, identities, and the published JSON Schema.
+mode: reference
+---
+
+A policy document is what you pass to `definePolicy` / `createTailrace({ policy })`. Validate JSON configs against the published schema:
+
+```text
+https://tailrace.dev/schema/policy.v1.json
+```
+
+## Top-level fields
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `defaults.action` | action | Fallback when no entity rule matches |
+| `entities` | map of entity → rule | Default actions per entity class |
+| `boundaries` | map of boundary key → `{ entities }` | Glob keys like `openai/*`, `mcp:salesforce/*` |
+| `identities` | map of agent id → scope | Per-agent overrides (same shape as top-level scope) |
+| `dangerouslyAllowSecrets` | boolean | Required to relax secret classes away from `block` |
+
+## Actions
+
+`allow` · `mask` · `tokenize` · `block` · `review` (throws `NOT_IMPLEMENTED` in v0.1) · `detokenize` (egress keys only)
+
+A rule is either a bare action string or:
+
+```json
+{ "action": "tokenize", "format": "preserve", "dangerouslyAllowSecrets": false }
+```
+
+## Minimal example
+
+```json
+{
+  "$schema": "https://tailrace.dev/schema/policy.v1.json",
+  "entities": {
+    "api_key": "block",
+    "email": "tokenize"
+  },
+  "boundaries": {
+    "mcp:salesforce/*": {
+      "entities": { "email": "tokenize" }
+    }
+  }
+}
+```
+
+## Related
+
+- [Policy resolution](/docs/concepts/policy-resolution)
+- [Use with AI tools](/docs/get-started/use-with-ai-tools)

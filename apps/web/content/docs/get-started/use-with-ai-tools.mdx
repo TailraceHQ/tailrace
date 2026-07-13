@@ -1,0 +1,102 @@
+---
+title: Use with AI tools
+description: Connect Cursor, Claude Code, Codex, or VS Code to Tailrace docs via MCP, llms.txt, or raw markdown URLs.
+mode: tutorial
+---
+
+Tailrace docs are published for both humans and agents. You can connect an AI tool three ways - pick one.
+
+## 1. Docs MCP server (recommended)
+
+The published site exposes a read-only [Model Context Protocol](https://modelcontextprotocol.io) server at:
+
+```text
+https://tailrace.dev/mcp
+```
+
+It offers retrieval tools only (`search_docs`, `get_page`, `list_sections`) - no generation, no summarization. Opening that URL in a browser may return an error; use it from an MCP client.
+
+### Cursor
+
+Add to `.cursor/mcp.json`:
+
+```json
+{
+  "mcpServers": {
+    "tailrace-docs": {
+      "url": "https://tailrace.dev/mcp"
+    }
+  }
+}
+```
+
+### Claude Code
+
+```bash
+claude mcp add --transport http tailrace-docs https://tailrace.dev/mcp
+```
+
+### Codex
+
+```bash
+codex mcp add tailrace-docs https://tailrace.dev/mcp
+```
+
+Or in `config.toml`:
+
+```toml
+[mcp_servers.tailrace-docs]
+url = "https://tailrace.dev/mcp"
+```
+
+### VS Code (Copilot)
+
+```json
+{
+  "servers": {
+    "tailrace-docs": {
+      "type": "http",
+      "url": "https://tailrace.dev/mcp"
+    }
+  }
+}
+```
+
+### Claude (web / Desktop)
+
+Settings → Connectors → Add custom connector → paste `https://tailrace.dev/mcp`.
+
+### Try it
+
+After connecting, ask:
+
+- `Using the tailrace-docs MCP server, how do I block secrets in Claude Code?`
+- `Search Tailrace docs for tokenization and summarize the vault rules.`
+- `List the tools on tailrace-docs, then fetch the quickstart page.`
+
+Every docs page also has **Copy MCP URL** in the page actions bar.
+
+## 2. llms.txt (zero install)
+
+Fetch the curated index, then follow absolute `.md` links:
+
+```bash
+curl -sL https://tailrace.dev/llms.txt
+curl -sL https://tailrace.dev/llms-full.txt
+```
+
+## 3. Per-page markdown
+
+Append `.md` to any docs URL:
+
+```bash
+curl -sL https://tailrace.dev/docs/get-started/quickstart.md
+```
+
+Agents that send `Accept: text/markdown` also receive markdown for `/docs/*` HTML paths.
+
+## Related
+
+- [Quickstart](/docs/get-started/quickstart)
+- [Protect PII in AI SDK](/docs/guides/protect-pii-in-ai-sdk)
+- [Policy JSON Schema](https://tailrace.dev/schema/policy.v1.json)

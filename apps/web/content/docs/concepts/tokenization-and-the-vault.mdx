@@ -19,6 +19,36 @@ token   = <EMAIL_a3f2k9qx>
 - Alphabet is lowercase alphanumeric `[a-z0-9]` (shared by mint and restore)
 - No `workflowId` ⇒ `"default"` (fine for demos; use a real session id in production)
 
+<Accordions>
+  <Accordion title="Deep dive: derivation and encryption at rest">
+
+**Deriving the token.** Two HMAC steps, both WebCrypto (no Node `crypto`, so it
+runs on edge runtimes):
+
+```
+workflowKey = HMAC-SHA256(masterKey, workflowId)
+tokenId     = encode(HMAC-SHA256(workflowKey, entityClass || 0x00 || value))[0..8]
+```
+
+`value` is normalized first so trivial variants collapse to the same token: trim
+everything, lowercase `email`, digits-only for `phone` and `credit_card`. That
+is why `Alice@Example.com ` and `alice@example.com` mint one token. The
+`masterKey` comes from `createTailrace({ vault: { key } })` or
+`TAILRACE_VAULT_KEY`; with no key, a random per-process key is generated (tokens
+then don't survive a restart - fine for dev, logged once).
+
+**Encryption at rest.** The vault stores ciphertext, never the raw value:
+
+- Storage key: `tailrace:v1:{workflowId}:{token}`
+- Value: `AES-256-GCM(dataKey, rawValue)` with a random IV per entry
+- `dataKey = HMAC(masterKey, "storage")` - separate from the token key
+
+A leaked KV namespace without the master key yields no plaintext PII, only
+opaque ciphertext.
+
+  </Accordion>
+</Accordions>
+
 ## Vault adapters
 
 | Adapter          | Use                                         |

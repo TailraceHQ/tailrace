@@ -1,0 +1,33 @@
+---
+title: POLICY_VIOLATION
+description: A block policy matched - the sensitive value must not cross the boundary.
+mode: reference
+---
+
+## What it means
+
+`PolicyViolationError` (`code: POLICY_VIOLATION`). Policy resolved to `block` for one or more spans. Integrations translate this into their host failure mode (throw, JSON-RPC error, HTTP 422, Claude Code deny).
+
+## Message shape
+
+```text
+policy blocked entity "<entity>" via rule "<rule>" → https://tailrace.dev/docs/reference/errors/POLICY_VIOLATION
+```
+
+`decisions` on the error lists each blocked span (entity, boundary, rule, contentHash) - never the raw value.
+
+## Common causes
+
+1. Default policy (or yours) blocks secret classes (`api_key`, `jwt`, …) at this boundary.
+2. Prompt, tool args, or MCP payload still contains a live secret.
+3. Streaming `abort` mode hit a complete secret span mid-stream.
+
+## Fixes
+
+1. Remove the secret from the payload, or tokenize upstream and send the token.
+2. If you intentionally need the value at a trusted egress, use `tailrace.restore` only at `{ kind: "egress", sink }` - never at model/tool/mcp.
+3. Relaxing a secret to `allow` requires `dangerouslyAllowSecrets: true` on the rule (and is almost never correct).
+
+## Safe to catch?
+
+Yes at integration boundaries - map to the host error. Do not log `decisions` values that might have been attached elsewhere; hashes and entity classes only.

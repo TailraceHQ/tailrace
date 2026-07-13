@@ -30,15 +30,17 @@ Goal: an AI agent (a user's Cursor/Claude Code session, or a support bot) can di
 
 ## 5. Docs MCP server
 
-- Package: `@tailrace/docs-mcp` (public repo). Tools: `search_docs(query) → [{title, url, snippet}]` over the llms-full corpus (local index bundled at publish time - the server works offline, no API dependency), `get_page(url|slug) → markdown`.
-- One-line install docs for Claude Code (`claude mcp add …`) and Cursor on the /docs machine-readable page.
-- Keep it dumb: no generation, no summarization - retrieval only. It must never be a support chatbot; it's a filesystem for agents.
-- Acceptance: from a clean Claude Code session with the MCP server added, "how do I write a custom recognizer with tailrace?" retrieves the right guide without web access.
+- **Primary (v1):** HTTP MCP on the published docs site at `{site-url}/mcp` (Streamable HTTP). Same UX model as GitBook's `{docs-site-url}/~gitbook/mcp` - clients point Cursor / Claude / Codex / VS Code at the URL; no separate package install required for remote clients.
+- Tools (retrieval only): `search_docs(query) → [{title, url, snippet}]` (Orama index already used by `/api/search`), `get_page(url|slug) → markdown` (same pipeline as `{path}.md`), `list_sections() →` curated tree from llms.txt. No generation, no summarization - never a support chatbot.
+- Auth: public / unauthenticated (site is public). OAuth deferred until authenticated docs exist.
+- Install docs: `/docs/get-started/use-with-ai-tools` with one-liners for Claude Code (`claude mcp add --transport http …`), Cursor (`.cursor/mcp.json`), Codex, VS Code, and Claude connectors. Page actions on every docs page expose "Copy as Markdown" and a copyable MCP URL.
+- **Deferred:** `@tailrace/docs-mcp` stdio / npx package with a bundled offline index. Prefer a thin client that proxies `{site-url}/mcp` if offline packaging is needed later.
+- Acceptance: from a clean Claude Code or Cursor session with only the HTTP MCP URL configured, "how do I write a custom recognizer with tailrace?" retrieves the right guide via `search_docs` + `get_page` without HTML scraping.
 
 ## 6. Editor-agent rules artifact (the Better Auth 'Prompt/Skills' move)
 
 - `tailrace init` offers (prompted, and via `--agent-rules` flag) to write a rules file for the detected environment: `.cursor/rules/tailrace.mdc`, `CLAUDE.md` append block (fenced with `<!-- tailrace:start/end -->` markers for idempotent updates), or `AGENTS.md` append.
-- Content (~60 lines, generated from a single template in the CLI package): what Tailrace is in 2 sentences · the 4 integration one-liners · the policy config shape in miniature · the top 5 mistakes (e.g. "never call gate.restore at a model boundary - it throws INVARIANT") · links to llms.txt and the schema URL.
+- Content (~60 lines, generated from a single template in the CLI package): what Tailrace is in 2 sentences · the 4 integration one-liners · the policy config shape in miniature · the top 5 mistakes (e.g. "never call gate.restore at a model boundary - it throws INVARIANT") · links to llms.txt, the MCP URL (`/mcp`), and the schema URL.
 - Also publish the same content as an installable Anthropic Skill (follow the current skills packaging convention at implementation time) so `claude` users can add it without our CLI.
 - Acceptance: after `tailrace init --agent-rules` in a fixture project, a scripted Claude Code session wires gate.model() into an AI SDK route correctly on the first attempt using only local context.
 
@@ -51,6 +53,8 @@ Goal: an AI agent (a user's Cursor/Claude Code session, or a support bot) can di
 
 ## 8. Deferred (design for, don't build)
 
+- `@tailrace/docs-mcp` stdio package (offline bundled index) - see §5
 - OpenAPI 3.1 spec for the cloud plane API (belongs with the private repo's launch; reserve /schema/openapi.json)
 - Per-version docs and versioned llms.txt (post-1.0)
+- Authenticated / OAuth MCP endpoint (when docs gain authenticated access)
 - context7 / third-party doc-index registrations (do at launch week, not build time - it's a form, not code)

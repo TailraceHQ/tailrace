@@ -53,6 +53,26 @@ Boundary matching is **kind-scoped**:
 
 A model glob never matches a tool key. Exact keys beat longer globs; longer globs beat shorter ones.
 
+<Accordions>
+  <Accordion title="Deep dive: how a boundary key is matched">
+
+Matching is scoped by `kind` first, so keys from different kinds never collide -
+`openai/*` (model) can't accidentally match `tool:crm:out`. Within a kind, the
+most specific matching key wins, scored by specificity:
+
+| Boundary                                       | Candidate keys, most specific first                 |
+| ---------------------------------------------- | --------------------------------------------------- |
+| `{ kind: "model", provider: "openai/gpt-4o" }` | `openai/gpt-4o` → `openai/*` → `*`                  |
+| `{ kind: "tool", name: "crm", direction: "out" }` | `tool:crm:out` → `tool:crm:*` → `tool:*`         |
+| `{ kind: "mcp", server: "sf", tool: "read" }`  | `mcp:sf/read` → `mcp:sf/*` → `mcp:*`                |
+
+An exact key always beats a glob; a longer glob beats a shorter one. This runs
+inside policy resolution, so it is precompiled and pure - see
+[Policy resolution](/docs/concepts/policy-resolution).
+
+  </Accordion>
+</Accordions>
+
 ## Egress is special
 
 Detokenization is allowed **only** at `egress` sinks whose policy says `detokenize`. Calling `restore` at `model`, `tool`, `mcp`, or `telemetry` throws `InvariantViolationError` even if a policy document asks for it. Tokens stay opaque everywhere except the sinks you name.
