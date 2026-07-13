@@ -1,38 +1,71 @@
+/**
+ * Brand mark assets. Swap files under `/public/logo/` (and `assets/logo/` source)
+ * without changing call sites - keep these path constants as the single map.
+ */
+export const LOGO_ASSETS = {
+  light: "/logo/lightmode-logo.svg",
+  dark: "/logo/darkmode-logo.svg",
+} as const;
+
+type LogoSize = "sm" | "md" | "lg";
+
 type LogoProps = {
   className?: string;
-  size?: "sm" | "md" | "lg";
+  size?: LogoSize;
+  /** Show wordmark text beside the mark. */
+  withTitle?: boolean;
 };
 
-const sizeClasses = {
+const sizeClasses: Record<LogoSize, string> = {
   sm: "h-6",
   md: "h-8",
   lg: "h-16",
-} as const;
+};
 
-export function Logo({ className, size = "md" }: LogoProps) {
+/**
+ * Theme-aware Tailrace mark. Renders light + dark assets and toggles via CSS.
+ *
+ * @example
+ * ```tsx
+ * <Logo size="lg" />
+ * <Logo withTitle size="sm" />
+ * ```
+ */
+export function Logo({ className, size = "md", withTitle = false }: LogoProps) {
   const height = sizeClasses[size];
 
-  return (
-    <span className={className}>
+  const mark = (
+    <span className={withTitle ? undefined : className}>
       <img
-        src="/logo/lightmode-logo.svg"
-        alt="Tailrace"
+        src={LOGO_ASSETS.light}
+        alt={withTitle ? "" : "Tailrace"}
         className={`${height} w-auto dark:hidden`}
       />
       <img
-        src="/logo/darkmode-logo.svg"
-        alt="Tailrace"
+        src={LOGO_ASSETS.dark}
+        alt={withTitle ? "" : "Tailrace"}
         className={`hidden ${height} w-auto dark:block`}
       />
     </span>
   );
-}
 
-export function LogoWithTitle({ className, size = "md" }: LogoProps) {
+  if (!withTitle) return mark;
+
   return (
-    <span className={`inline-flex items-center gap-2 ${className ?? ""}`}>
-      <Logo size={size} />
+    <span
+      className={`inline-flex items-center gap-2 ${className ?? ""}`}
+      aria-label="Tailrace"
+    >
+      {mark}
       <span className="font-semibold">Tailrace</span>
     </span>
   );
+}
+
+/** Nav helper: mark + "Tailrace" label. */
+export function LogoWithTitle({
+  className,
+  size = "md",
+}: Omit<LogoProps, "withTitle">) {
+  return <Logo className={className} size={size} withTitle />;
 }
