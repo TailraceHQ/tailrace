@@ -17,12 +17,13 @@ export type Command = (typeof COMMANDS)[number];
 const HELP = `Usage: tailrace <command> [options]
 
 Commands:
-  init              Scaffold tailrace.config.ts + .tailrace/config.json
+  init              Scaffold tailrace.config.ts + .tailrace/config.json [--force] [--agent-rules]
   scan <path|->     Tier 0 scan; exit 1 on block-class entities [--json]
   install-hooks     Merge Claude Code PreToolUse/PostToolUse hooks [--scope project|user]
   hook              Claude Code hook handler (stdin JSON → stdout JSON)
 
-Docs: https://github.com/tailrace/tailrace
+Docs: https://tailrace.dev/docs
+MCP:  https://tailrace.dev/mcp
 `;
 
 /**

@@ -26,3 +26,7 @@ apps/web/next-env.d.ts
 
 # Logs
 *.log
+
+# Local test scratch
+.tmp-test/
+**/.tmp-test/

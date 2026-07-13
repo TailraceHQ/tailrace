@@ -1,0 +1,78 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tailrace.dev/schema/policy.v1.json",
+  "title": "TailracePolicyDocument",
+  "description": "Policy document for definePolicy / createTailrace({ policy }).",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "$schema": { "type": "string" },
+    "defaults": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "action": { "$ref": "#/$defs/action" }
+      }
+    },
+    "entities": { "$ref": "#/$defs/entityMap" },
+    "boundaries": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "entities": { "$ref": "#/$defs/entityMap" }
+        }
+      }
+    },
+    "identities": {
+      "type": "object",
+      "additionalProperties": { "$ref": "#/$defs/policyScope" }
+    },
+    "dangerouslyAllowSecrets": { "type": "boolean" }
+  },
+  "$defs": {
+    "action": {
+      "type": "string",
+      "enum": ["allow", "mask", "tokenize", "block", "review", "detokenize"]
+    },
+    "format": {
+      "type": "string",
+      "enum": ["preserve", "label"]
+    },
+    "entityRule": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["action"],
+      "properties": {
+        "action": { "$ref": "#/$defs/action" },
+        "format": { "$ref": "#/$defs/format" },
+        "dangerouslyAllowSecrets": { "type": "boolean" }
+      }
+    },
+    "entityRuleValue": {
+      "oneOf": [{ "$ref": "#/$defs/action" }, { "$ref": "#/$defs/entityRule" }]
+    },
+    "entityMap": {
+      "type": "object",
+      "additionalProperties": { "$ref": "#/$defs/entityRuleValue" }
+    },
+    "policyScope": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "entities": { "$ref": "#/$defs/entityMap" },
+        "boundaries": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "entities": { "$ref": "#/$defs/entityMap" }
+            }
+          }
+        }
+      }
+    }
+  }
+}

@@ -14,6 +14,11 @@ import {
   randomVaultKey,
   type DetectedStack,
 } from "../templates/config";
+import {
+  cursorRulesFile,
+  fencedAgentRulesBlock,
+  upsertFencedBlock,
+} from "../templates/agent-rules";
 
 async function exists(path: string): Promise<boolean> {
   try {
@@ -39,11 +44,35 @@ async function readNearestPackageJson(projectDir: string): Promise<{
   }
 }
 
+async function writeAgentRules(projectDir: string): Promise<string[]> {
+  const written: string[] = [];
+  const block = fencedAgentRulesBlock();
+
+  const cursorDir = join(projectDir, ".cursor", "rules");
+  await mkdir(cursorDir, { recursive: true });
+  const cursorPath = join(cursorDir, "tailrace.mdc");
+  await writeFile(cursorPath, cursorRulesFile(), "utf8");
+  written.push(cursorPath);
+
+  for (const name of ["CLAUDE.md", "AGENTS.md"] as const) {
+    const path = join(projectDir, name);
+    let existing = "";
+    if (await exists(path)) {
+      existing = await readFile(path, "utf8");
+    }
+    await writeFile(path, upsertFencedBlock(existing, block), "utf8");
+    written.push(path);
+  }
+
+  return written;
+}
+
 /**
  * Run `tailrace init`.
  */
 export async function runInit(args: ParsedArgs): Promise<number> {
   const force = flagBool(args.flags, "force");
+  const agentRules = flagBool(args.flags, "agent-rules");
   const paths = resolveProjectPaths();
   const configTsPath = join(paths.projectDir, "tailrace.config.ts");
 
@@ -57,7 +86,11 @@ export async function runInit(args: ParsedArgs): Promise<number> {
 
   await writeFile(configTsPath, configTsTemplate(), "utf8");
   await mkdir(paths.tailraceDir, { recursive: true });
-  await writeCompiledConfig(paths.configPath, defaultCompiledConfig(randomVaultKey()));
+  const compiled = {
+    ...defaultCompiledConfig(randomVaultKey()),
+    $schema: "https://tailrace.dev/schema/policy.v1.json",
+  };
+  await writeCompiledConfig(paths.configPath, compiled);
 
   process.stdout.write(`Wrote ${configTsPath}\n`);
   process.stdout.write(`Wrote ${paths.configPath} (hook hot path)\n`);
@@ -66,6 +99,18 @@ export async function runInit(args: ParsedArgs): Promise<number> {
   process.stdout.write(`${integrationSnippet(stack)}\n`);
   if (stack === "node") {
     process.stdout.write("\nThen: tailrace install-hooks\n");
+  }
+
+  if (agentRules) {
+    const files = await writeAgentRules(paths.projectDir);
+    process.stdout.write(`\nAgent rules:\n`);
+    for (const f of files) {
+      process.stdout.write(`  ${f}\n`);
+    }
+  } else {
+    process.stdout.write(
+      `\nTip: re-run with --agent-rules to write .cursor/rules/tailrace.mdc + CLAUDE.md / AGENTS.md blocks.\n`,
+    );
   }
 
   return 0;
