@@ -7,6 +7,131 @@ html {
   scrollbar-gutter: stable;
 }
 
+/* Homepage marketing tokens (boundary + current) */
+.home {
+  --home-paper: #f4f7f8;
+  --home-mist: #e8eef1;
+  --home-slate: #0e1418;
+  --home-accent: #0f6b6b;
+  --home-accent-fg: #f4f7f8;
+  --home-block: #b42318;
+  --home-tokenize: #b54708;
+  font-family: var(--font-display), var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+  color: var(--color-fd-foreground);
+  background-color: var(--home-paper);
+  background-image:
+    radial-gradient(
+      ellipse 90% 55% at 12% -10%,
+      color-mix(in oklab, var(--home-accent) 18%, transparent),
+      transparent 55%
+    ),
+    radial-gradient(
+      ellipse 70% 45% at 92% 8%,
+      color-mix(in oklab, var(--home-mist) 90%, transparent),
+      transparent 50%
+    ),
+    linear-gradient(180deg, var(--home-paper) 0%, var(--home-mist) 48%, var(--home-paper) 100%);
+  background-attachment: fixed;
+  position: relative;
+  isolation: isolate;
+}
+
+.dark .home {
+  --home-paper: #0e1418;
+  --home-mist: #151c22;
+  --home-accent-fg: #e8f4f4;
+  background-color: var(--home-slate);
+  background-image:
+    radial-gradient(
+      ellipse 90% 55% at 12% -10%,
+      color-mix(in oklab, var(--home-accent) 28%, transparent),
+      transparent 55%
+    ),
+    radial-gradient(
+      ellipse 70% 45% at 92% 8%,
+      color-mix(in oklab, #1a2a30 80%, transparent),
+      transparent 50%
+    ),
+    linear-gradient(180deg, var(--home-slate) 0%, var(--home-mist) 48%, var(--home-slate) 100%);
+}
+
+.home::before {
+  content: "";
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  opacity: 0.35;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='40'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='120' height='40' filter='url(%23n)' opacity='0.45'/%3E%3C/svg%3E");
+  background-size: 180px 60px;
+  animation: home-current-drift 48s linear infinite;
+  mix-blend-mode: multiply;
+}
+
+.dark .home::before {
+  opacity: 0.18;
+  mix-blend-mode: soft-light;
+}
+
+@keyframes home-current-drift {
+  from {
+    background-position: 0 0;
+  }
+  to {
+    background-position: 180px 0;
+  }
+}
+
+@keyframes home-line-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes home-policy-pulse {
+  0%,
+  100% {
+    background-color: transparent;
+  }
+  40% {
+    background-color: color-mix(in oklab, var(--home-accent) 18%, transparent);
+  }
+}
+
+.home-display {
+  font-family: var(--font-display), var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+}
+
+.home-config-line {
+  animation: home-line-in 0.45s ease-out both;
+}
+
+.home-config-line.policy-pulse {
+  animation:
+    home-line-in 0.45s ease-out both,
+    home-policy-pulse 1.8s ease-in-out 0.7s 1;
+}
+
+.home-section {
+  padding-inline: 1.25rem;
+}
+
+@media (min-width: 768px) {
+  .home-section {
+    padding-inline: 2rem;
+  }
+}
+
+.home-section-inner {
+  margin-inline: auto;
+  max-width: 72rem;
+}
+
 html > body[data-scroll-locked] {
   margin-right: 0px !important;
   --removed-body-scroll-bar-size: 0px !important;
