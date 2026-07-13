@@ -46,10 +46,13 @@ Implementation plan: [`m4-plan.md`](m4-plan.md). User guide: [`guides/block-secr
 - [x] examples/claude-code walkthrough runs Demo 2
 
 ## M5: MCP + Hono + polish
-- [ ] @tailrace/mcp transport wrapper with JSON-RPC error synthesis on block
-- [ ] @tailrace/hono incl. SSE streaming scan; 422 error shape
-- [ ] Root README with the 10-line quickstart; per-package READMEs; CHANGELOG via changesets
-- [ ] OPEN_QUESTIONS.md triaged: every SPEC-QUESTION either resolved in docs or explicitly deferred
+
+Implementation plan: [`m5-plan.md`](m5-plan.md). Guides: [`guides/mcp-integration.md`](guides/mcp-integration.md), [`guides/hono-integration.md`](guides/hono-integration.md).
+
+- [x] @tailrace/mcp transport wrapper with JSON-RPC error synthesis on block
+- [x] @tailrace/hono incl. SSE streaming scan; 422 error shape
+- [x] Root README with the 10-line quickstart; per-package READMEs; CHANGELOG via changesets
+- [x] OPEN_QUESTIONS.md triaged: every SPEC-QUESTION either resolved in docs or explicitly deferred
 
 ## Demos (must run from fresh clone, commands documented in each example's README)
 

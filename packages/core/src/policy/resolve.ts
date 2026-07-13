@@ -45,8 +45,7 @@ interface Candidate {
   path: string;
 }
 
-// SPEC-QUESTION: block-pii membership - docs mention the pseudo-class but do not define
-// membership. Locked: all PiiEntityClass + NerEntityClass.
+// Locked: all PiiEntityClass + NerEntityClass (OPEN_QUESTIONS.md).
 function lookupEntity(
   entities: Map<string, EntityRule>,
   entity: EntityClass,

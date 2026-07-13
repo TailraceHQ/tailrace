@@ -1,4 +1,4 @@
 {
   "title": "Integrations",
-  "pages": ["nextjs", "claude-code"]
+  "pages": ["nextjs", "claude-code", "mcp", "hono"]
 }

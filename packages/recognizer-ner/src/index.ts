@@ -18,8 +18,8 @@ export interface NerRecognizerOptions {
   cacheDir?: string;
 }
 
-// SPEC-QUESTION: pick the specific GLiNER-class model (best F1-per-MB) at implementation time
-// and record candidates + benchmarks in OPEN_QUESTIONS.md (docs/detection.md §3).
+// Deferred: pick the specific GLiNER-class model (best F1-per-MB) post-v0.1 and
+// record candidates + benchmarks in OPEN_QUESTIONS.md (docs/detection.md §3).
 
 /**
  * Build the Tier 1 NER recognizer to pass into `createTailrace({ recognizers: [...] })`.

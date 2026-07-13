@@ -1,0 +1,49 @@
+---
+title: Threat model
+description: What Tailrace protects against - and what it deliberately does not.
+mode: concept
+---
+
+What does in-process data governance actually buy you - and where should you not rely on it?
+
+## What Tailrace is for
+
+Tailrace sits **inside** your process at model, tool, MCP, and egress boundaries. It:
+
+- Blocks or redacts **secrets and structured PII** before they leave trusted code
+- Keeps reversible tokens stable across a workflow so agents can keep working
+- Emits audit decisions with hashes and rule paths - never raw values
+- Fails closed on `block` policies; fails open if optional Tier 1 is missing
+
+Deployment model: no proxy, no sidecar, no required network hop on the hot path.
+
+## What it does not protect against
+
+| Out of scope (v0.1)                           | Why                                                                   |
+| --------------------------------------------- | --------------------------------------------------------------------- |
+| Prompt injection / jailbreaks                 | Different problem class; not detection of sensitive _data_            |
+| Toxicity / content safety                     | Same                                                                  |
+| Compromised host or malicious dependency      | Once an attacker runs in-process, they can read memory and vault keys |
+| Insider with vault master key + KV access     | Encrypted-at-rest helps against KV leaks, not key holders             |
+| Secrets the model already knows from training | Cannot unlearn provider weights                                       |
+| Channels you never wrap                       | Unwrapped `fetch`, raw SDK calls, and side channels bypass boundaries |
+| Perfect NER on free text                      | Tier 0 is structured; Tier 1 is optional and imperfect                |
+
+## Trust boundaries you still own
+
+- **Master vault key** - treat like any encryption key (`TAILRACE_VAULT_KEY` / config)
+- **Which sinks are `egress`** - only those may detokenize
+- **Which agents get which policies** - identity is a string you set
+- **Integrations must wrap the path** - Tailrace cannot see data that never calls `check`
+
+## Fail-closed vs fail-open
+
+- Policy says `block` and detection throws → still block (closed)
+- Optional Tier 1 model missing → Tier 0 only + warning (open for availability)
+- Claude Code hook process error (bad JSON / missing config) → exit 1, not a silent allow framed as deny
+
+## See it in practice
+
+- [Boundaries](/docs/concepts/boundaries) - wrap every path that matters
+- [Detection tiers](/docs/concepts/detection-tiers) - honest accuracy expectations
+- [Block secrets in Claude Code](/docs/guides/block-secrets-in-claude-code)

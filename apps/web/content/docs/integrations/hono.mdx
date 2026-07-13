@@ -1,0 +1,47 @@
+---
+title: Hono
+description: OpenAI-compatible Hono middleware - scan chat bodies and SSE streams, return 422 on policy block.
+mode: integration
+---
+
+Enforce data policy on OpenAI-compatible chat routes in Hono. Scan request messages before upstream, scan JSON and SSE responses on the way back.
+
+## Quickstart
+
+```ts
+import { createTailrace } from "@tailrace/core";
+import { tailraceHono } from "@tailrace/hono";
+import { Hono } from "hono";
+
+const app = new Hono();
+const tailrace = createTailrace();
+
+app.use(
+  "/v1/*",
+  tailraceHono(tailrace, {
+    agent: (c) => c.req.header("x-agent-id") ?? "default",
+    workflowId: (c) => c.req.header("x-workflow-id") ?? "default",
+  }),
+);
+```
+
+Peer: `hono` `>=4`. Only `mode: "openai-compatible"` in v0.1.
+
+## Boundaries covered
+
+| Location                | Tailrace boundary                                   | Direction            |
+| ----------------------- | --------------------------------------------------- | -------------------- |
+| Chat request messages   | `{ kind: "model", provider }` (`model` field as-is) | Outbound to upstream |
+| JSON chat completion    | same model boundary                                 | Inbound              |
+| SSE `text/event-stream` | same; carry-buffer across chunks                    | Inbound              |
+
+Block → **422** `{ error: { type: "policy_violation", entity, rule } }`. SSE: cancel upstream, emit one error `data:` event, close (abort-only; no `streamBlockBehavior` in v0.1).
+
+## Guides
+
+- [Protect PII in the AI SDK](/docs/guides/protect-pii-in-ai-sdk) - related model-boundary patterns
+- [Boundaries](/docs/concepts/boundaries)
+
+## Reference
+
+- [Hono package](/docs/reference/hono)

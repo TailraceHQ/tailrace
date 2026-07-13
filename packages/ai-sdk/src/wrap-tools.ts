@@ -17,7 +17,7 @@ function asCheckable(value: unknown): string | JsonObject {
     return value as JsonObject;
   }
   // Arrays / primitives: wrap so object-scan can walk string leaves.
-  // SPEC-QUESTION: wrapping as `{ value }` can collide with a tool that natively
+  // Deferred: wrapping as `{ value }` can collide with a tool that natively
   // returns `{ value: ... }` when unwrapping - see OPEN_QUESTIONS.md.
   return { value: value as JsonValue };
 }

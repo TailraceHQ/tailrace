@@ -4,9 +4,6 @@ Detection, policy engine, vault, and audit for [Tailrace](../../README.md). Zero
 dependencies; runs on Node 20+, Cloudflare Workers, and Vercel Edge (WebCrypto only, no `node:`
 imports).
 
-> **M0 skeleton.** The public type surface is complete and stable; runtime factories throw
-> `NotImplementedError` until their milestone lands (see [`docs/milestones.md`](../../docs/milestones.md)).
-
 ## Public API
 
 `createTailrace`, `definePolicy`, `defineRecognizer`, `memoryVault`, `kvVault`, `staticPolicy`, the
@@ -19,5 +16,13 @@ const tailrace = createTailrace(); // secrets blocked, common PII tokenized
 const { output, decisions } = await tailrace.check(input, {
   boundary: { kind: "model", provider: "openai/gpt-4o" },
   identity: { agent: "default" },
+  workflowId: "session-1",
 });
 ```
+
+Zero required config: `createTailrace()` enforces the default policy (secret classes → `block`,
+common structured PII → `tokenize`). Pass `definePolicy(...)` / `staticPolicy(...)` to customize.
+
+Integrations (`@tailrace/ai-sdk`, `@tailrace/mcp`, `@tailrace/hono`, `@tailrace/cli`) construct a
+`Boundary` / `Identity`, call `check` / `restore`, and translate `PolicyViolationError` into the
+host failure mode. They contain zero policy logic.
