@@ -2,15 +2,9 @@ import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { isMarkdownPreferred, rewritePath } from "fumadocs-core/negotiation";
 
-const { rewrite: rewriteMdExtension } = rewritePath(
-  "/docs{/*path}.md",
-  "/llms.mdx/docs{/*path}",
-);
+const { rewrite: rewriteMdExtension } = rewritePath("/docs{/*path}.md", "/llms.mdx/docs{/*path}");
 
-const { rewrite: rewriteAcceptMarkdown } = rewritePath(
-  "/docs{/*path}",
-  "/llms.mdx/docs{/*path}",
-);
+const { rewrite: rewriteAcceptMarkdown } = rewritePath("/docs{/*path}", "/llms.mdx/docs{/*path}");
 
 /**
  * Rewrite `/docs/*.md` (and Prefer: markdown Accept) to the LLM markdown route.

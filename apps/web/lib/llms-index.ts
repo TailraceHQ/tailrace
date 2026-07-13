@@ -103,9 +103,13 @@ export function buildLlmsTxt(): string {
 
   // Also emit Fumadocs tree form for clients that expect it (relative links rewritten).
   const treeIndex = llms(source).index();
-  lines.push("## Site tree", "", treeIndex.replace(/\]\((\/docs[^)]*)\)/g, (_m, path: string) => {
-    return `](${mdHref(path)})`;
-  }));
+  lines.push(
+    "## Site tree",
+    "",
+    treeIndex.replace(/\]\((\/docs[^)]*)\)/g, (_m, path: string) => {
+      return `](${mdHref(path)})`;
+    }),
+  );
 
   return `${lines.join("\n").trim()}\n`;
 }

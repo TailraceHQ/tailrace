@@ -60,11 +60,11 @@ Matching is scoped by `kind` first, so keys from different kinds never collide -
 `openai/*` (model) can't accidentally match `tool:crm:out`. Within a kind, the
 most specific matching key wins, scored by specificity:
 
-| Boundary                                       | Candidate keys, most specific first                 |
-| ---------------------------------------------- | --------------------------------------------------- |
-| `{ kind: "model", provider: "openai/gpt-4o" }` | `openai/gpt-4o` → `openai/*` → `*`                  |
-| `{ kind: "tool", name: "crm", direction: "out" }` | `tool:crm:out` → `tool:crm:*` → `tool:*`         |
-| `{ kind: "mcp", server: "sf", tool: "read" }`  | `mcp:sf/read` → `mcp:sf/*` → `mcp:*`                |
+| Boundary                                          | Candidate keys, most specific first      |
+| ------------------------------------------------- | ---------------------------------------- |
+| `{ kind: "model", provider: "openai/gpt-4o" }`    | `openai/gpt-4o` → `openai/*` → `*`       |
+| `{ kind: "tool", name: "crm", direction: "out" }` | `tool:crm:out` → `tool:crm:*` → `tool:*` |
+| `{ kind: "mcp", server: "sf", tool: "read" }`     | `mcp:sf/read` → `mcp:sf/*` → `mcp:*`     |
 
 An exact key always beats a glob; a longer glob beats a shorter one. This runs
 inside policy resolution, so it is precompiled and pure - see
