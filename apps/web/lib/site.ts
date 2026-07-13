@@ -2,9 +2,10 @@
  * Canonical public origin for absolute URLs in llms.txt, MCP install snippets, and schemas.
  * Override with NEXT_PUBLIC_SITE_URL in preview / local builds.
  */
-export const SITE_URL = (
-  process.env.NEXT_PUBLIC_SITE_URL ?? "https://tailrace.dev"
-).replace(/\/$/, "");
+export const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL ?? "https://tailrace.dev").replace(
+  /\/$/,
+  "",
+);
 
 export const MCP_URL = `${SITE_URL}/mcp`;
 export const LLMS_TXT_URL = `${SITE_URL}/llms.txt`;

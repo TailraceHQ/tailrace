@@ -18,13 +18,13 @@ Docs build depends on workspace packages (`@tailrace/core`) so twoslash snippets
 
 After `pnpm --filter @tailrace/web build && pnpm --filter @tailrace/web start`:
 
-| URL | Purpose |
-| --- | --- |
-| `/llms.txt` | Curated agent index (absolute `.md` links) |
-| `/llms-full.txt` | Full concatenated markdown corpus |
-| `/docs/....md` | Per-page plain markdown |
-| `/mcp` | HTTP MCP (`search_docs`, `get_page`, `list_sections`) |
-| `/schema/policy.v1.json` | Policy JSON Schema |
+| URL                      | Purpose                                               |
+| ------------------------ | ----------------------------------------------------- |
+| `/llms.txt`              | Curated agent index (absolute `.md` links)            |
+| `/llms-full.txt`         | Full concatenated markdown corpus                     |
+| `/docs/....md`           | Per-page plain markdown                               |
+| `/mcp`                   | HTTP MCP (`search_docs`, `get_page`, `list_sections`) |
+| `/schema/policy.v1.json` | Policy JSON Schema                                    |
 
 Connect guide: `/docs/get-started/use-with-ai-tools`.
 

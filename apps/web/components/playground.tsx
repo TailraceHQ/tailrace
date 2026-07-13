@@ -138,11 +138,15 @@ export function Playground() {
         try {
           const policy = buildPolicy(actions);
           const tailrace = createTailrace({ policy });
-          const result = await tailrace.check(text, {
-            boundary: BOUNDARY,
-            identity: IDENTITY,
-            workflowId: "playground",
-          }, { applyBlockAs: "mask" });
+          const result = await tailrace.check(
+            text,
+            {
+              boundary: BOUNDARY,
+              identity: IDENTITY,
+              workflowId: "playground",
+            },
+            { applyBlockAs: "mask" },
+          );
           if (cancelled) return;
           setScan({
             status: "ok",
@@ -224,7 +228,10 @@ export function Playground() {
 
       <div className="grid gap-0 lg:grid-cols-2">
         <div className="border-b border-fd-border p-4 lg:border-b-0 lg:border-r">
-          <label htmlFor={inputId} className="mb-2 block text-xs font-medium text-fd-muted-foreground">
+          <label
+            htmlFor={inputId}
+            className="mb-2 block text-xs font-medium text-fd-muted-foreground"
+          >
             Paste text
           </label>
           <textarea

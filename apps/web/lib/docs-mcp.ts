@@ -143,10 +143,7 @@ export function browserHintResponse(): Response {
 
 export async function handleMcpRequest(request: Request): Promise<Response> {
   // Browsers navigating here get a helpful plain-text page instead of a JSON-RPC error.
-  if (
-    request.method === "GET" &&
-    (request.headers.get("accept") ?? "").includes("text/html")
-  ) {
+  if (request.method === "GET" && (request.headers.get("accept") ?? "").includes("text/html")) {
     return browserHintResponse();
   }
 

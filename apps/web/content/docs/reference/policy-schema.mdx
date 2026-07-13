@@ -12,13 +12,13 @@ https://tailrace.dev/schema/policy.v1.json
 
 ## Top-level fields
 
-| Field | Type | Notes |
-| --- | --- | --- |
-| `defaults.action` | action | Fallback when no entity rule matches |
-| `entities` | map of entity → rule | Default actions per entity class |
-| `boundaries` | map of boundary key → `{ entities }` | Glob keys like `openai/*`, `mcp:salesforce/*` |
-| `identities` | map of agent id → scope | Per-agent overrides (same shape as top-level scope) |
-| `dangerouslyAllowSecrets` | boolean | Required to relax secret classes away from `block` |
+| Field                     | Type                                 | Notes                                               |
+| ------------------------- | ------------------------------------ | --------------------------------------------------- |
+| `defaults.action`         | action                               | Fallback when no entity rule matches                |
+| `entities`                | map of entity → rule                 | Default actions per entity class                    |
+| `boundaries`              | map of boundary key → `{ entities }` | Glob keys like `openai/*`, `mcp:salesforce/*`       |
+| `identities`              | map of agent id → scope              | Per-agent overrides (same shape as top-level scope) |
+| `dangerouslyAllowSecrets` | boolean                              | Required to relax secret classes away from `block`  |
 
 ## Actions
 
