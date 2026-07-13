@@ -1,10 +1,10 @@
 import type { BaseLayoutProps } from "fumadocs-ui/layouts/shared";
-import { LogoWithTitle } from "@/components/logo";
+import { Logo } from "@/components/logo";
 
 export function baseOptions(): BaseLayoutProps {
   return {
     nav: {
-      title: <LogoWithTitle size="sm" />,
+      title: <Logo withTitle size="sm" />,
     },
     githubUrl: "https://github.com/TailraceHQ/tailrace",
     links: [
