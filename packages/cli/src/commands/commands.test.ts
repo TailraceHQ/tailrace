@@ -30,6 +30,15 @@ function tempDir(): string {
   return d;
 }
 
+/** Workspace-local temp dir so sandbox tests can create `.cursor/` rules. */
+function workspaceTempDir(): string {
+  const base = join(process.cwd(), ".tmp-test");
+  mkdirSync(base, { recursive: true });
+  const d = mkdtempSync(join(base, "cli-"));
+  dirs.push(d);
+  return d;
+}
+
 describe("detectStack", () => {
   it("detects next, ai, hono, node", () => {
     expect(detectStack({ dependencies: { next: "15" } })).toBe("next");
@@ -69,6 +78,22 @@ describe("init", () => {
     process.env.CLAUDE_PROJECT_DIR = d;
     writeFileSync(join(d, "tailrace.config.ts"), "// existing\n");
     expect(await run(["init"])).toBe(1);
+  });
+
+  it("writes agent rules with --agent-rules", async () => {
+    const d = workspaceTempDir();
+    writeFileSync(join(d, "package.json"), JSON.stringify({ dependencies: { ai: "^5" } }));
+    writeFileSync(join(d, "CLAUDE.md"), "# Project\n");
+    process.env.CLAUDE_PROJECT_DIR = d;
+    expect(await run(["init", "--agent-rules"])).toBe(0);
+    const cursor = readFileSync(join(d, ".cursor", "rules", "tailrace.mdc"), "utf8");
+    expect(cursor).toContain("tailrace.dev/llms.txt");
+    expect(cursor).toContain("tailrace.dev/mcp");
+    const claude = readFileSync(join(d, "CLAUDE.md"), "utf8");
+    expect(claude).toContain("<!-- tailrace:start -->");
+    expect(claude).toContain("# Project");
+    const config = readFileSync(join(d, ".tailrace", "config.json"), "utf8");
+    expect(config).toContain("https://tailrace.dev/schema/policy.v1.json");
   });
 });
 

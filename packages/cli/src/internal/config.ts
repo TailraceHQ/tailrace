@@ -25,6 +25,8 @@ export interface CompiledCliConfig {
   vaultKey?: string;
   /** Serialized policy. Omit ⇒ default policy. */
   policy?: PolicyDocument;
+  /** JSON Schema URL for editors / agents (policy document shape). */
+  $schema?: string;
 }
 
 export function defaultCompiledConfig(vaultKey: string): CompiledCliConfig {

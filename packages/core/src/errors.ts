@@ -7,6 +7,7 @@
  */
 
 import type { Decision } from "./types";
+import { withDocsUrl } from "./errors-docs";
 
 /** Base class for every error thrown by Tailrace. */
 export class TailraceError extends Error {
@@ -14,7 +15,7 @@ export class TailraceError extends Error {
   readonly code: string;
 
   constructor(code: string, message: string) {
-    super(message);
+    super(withDocsUrl(code, message));
     this.name = new.target.name;
     this.code = code;
     // Restore prototype chain when targeting ES5-ish down-level output.

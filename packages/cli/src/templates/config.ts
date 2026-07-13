@@ -23,6 +23,7 @@ export function configTsTemplate(): string {
 // Zero-config: secrets → block, common PII → tokenize.
 // Customize with definePolicy({ entities: { email: "tokenize", api_key: "block" } })
 // and pass { policy } to createTailrace.
+// Policy JSON Schema: https://tailrace.dev/schema/policy.v1.json
 export const tailrace = createTailrace();
 `;
 }

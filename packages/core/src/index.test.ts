@@ -338,6 +338,7 @@ describe("error messages never contain raw values", () => {
       const msg = (err as Error).message;
       expect(msg).not.toContain(secret);
       expect(msg).not.toContain("FakeKey");
+      expect(msg).toContain("→ https://tailrace.dev/docs/reference/errors/POLICY_VIOLATION");
     }
   });
 });
