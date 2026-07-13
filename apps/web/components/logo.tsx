@@ -67,5 +67,11 @@ export function LogoWithTitle({
   className,
   size = "md",
 }: Omit<LogoProps, "withTitle">) {
-  return <Logo className={className} size={size} withTitle />;
+  return (
+    <Logo
+      {...(className !== undefined ? { className } : {})}
+      size={size}
+      withTitle
+    />
+  );
 }

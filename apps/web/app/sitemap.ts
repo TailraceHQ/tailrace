@@ -11,6 +11,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
       url: SITE_URL,
       changeFrequency: "weekly",
       priority: 1,
+      images: [`${SITE_URL}/link-preview.png`],
     },
     {
       url: `${SITE_URL}/llms.txt`,

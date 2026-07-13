@@ -57,6 +57,27 @@ export async function generateMetadata(props: PageProps<"/docs/[[...slug]]">): P
   return {
     title: page.data.title,
     description: page.data.description,
+    openGraph: {
+      type: "article",
+      url: absoluteUrl(page.url),
+      siteName: "Tailrace",
+      title: `${page.data.title} | Tailrace`,
+      description: page.data.description,
+      images: [
+        {
+          url: absoluteUrl("/link-preview.png"),
+          width: 1280,
+          height: 640,
+          alt: "Tailrace - Ship agents, not secrets",
+        },
+      ],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: `${page.data.title} | Tailrace`,
+      description: page.data.description,
+      images: [absoluteUrl("/link-preview.png")],
+    },
     alternates: {
       canonical: absoluteUrl(page.url),
       types: {
