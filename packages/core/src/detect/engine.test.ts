@@ -1,7 +1,8 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import { createDetectionEngine } from "./engine";
-import { NotImplementedError } from "../errors";
+import { definePatternRecognizer } from "./pattern-recognizer";
+import { NotImplementedError, RecognizerError } from "../errors";
 import type { Recognizer } from "../types";
 
 describe("createDetectionEngine", () => {
@@ -67,5 +68,46 @@ describe("createDetectionEngine", () => {
     };
     const engineWithAsync = createDetectionEngine({ recognizers: [asyncRecognizer] });
     expect(() => engineWithAsync.detect("anything")).toThrow(NotImplementedError);
+  });
+
+  it("rejects duplicate recognizer ids", () => {
+    const a = definePatternRecognizer({
+      id: "dup",
+      entity: "employee_id",
+      tier: 0,
+      patterns: [{ source: "EMP" }],
+    });
+    const b = definePatternRecognizer({
+      id: "dup",
+      entity: "ticket_id",
+      tier: 0,
+      patterns: [{ source: "TKT" }],
+    });
+    expect(() => createDetectionEngine({ recognizers: [a, b], useBuiltins: false })).toThrow(
+      RecognizerError,
+    );
+  });
+
+  it("skips a throwing custom recognizer and continues others", () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    const good = definePatternRecognizer({
+      id: "good",
+      entity: "employee_id",
+      tier: 0,
+      patterns: [{ source: "EMP-\\d{5}" }],
+    });
+    const bad: Recognizer = {
+      id: "bad",
+      entities: ["broken"],
+      tier: 0,
+      scan: () => {
+        throw new Error("boom");
+      },
+    };
+    const engine = createDetectionEngine({ recognizers: [bad, good], useBuiltins: false });
+    const spans = engine.detect("EMP-01234");
+    expect(spans.some((s) => s.entity === "employee_id")).toBe(true);
+    expect(warn).toHaveBeenCalled();
+    warn.mockRestore();
   });
 });

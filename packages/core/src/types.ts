@@ -230,6 +230,8 @@ export interface VaultOptions {
 export interface TailraceOptions {
   policy?: PolicyDocument | PolicySource;
   recognizers?: Recognizer[];
+  /** Max custom recognizers. Default 16. */
+  maxCustomRecognizers?: number;
   vault?: Vault | VaultOptions;
   audit?: { sinks?: AuditSink[] };
   /** Emit spans for private/reserved IP ranges (docs/detection.md §2). */

@@ -2,14 +2,17 @@
 
 import {
   createTailrace,
+  definePatternRecognizer,
   definePolicy,
   PolicyViolationError,
+  RecognizerError,
   SECRET_ENTITY_CLASSES,
   type Action,
   type Decision,
   type EntityClass,
   type EntityRuleValue,
   type PolicyDocument,
+  type Recognizer,
 } from "@tailrace/core";
 import { useEffect, useId, useMemo, useState, type ReactNode } from "react";
 
@@ -22,16 +25,38 @@ const SAMPLE = `Please charge card 4532 0151 1283 0366 and email the receipt to 
 Also call +1 415 555 0132 if needed.
 API key: ${SAMPLE_API_KEY}`;
 
-const TOGGLE_ENTITIES = ["api_key", "email", "phone", "credit_card"] as const;
+// All Tier 0 entity classes. Defaults match zero-config defaultPolicy().
+const TOGGLE_ENTITIES = [
+  "api_key",
+  "jwt",
+  "private_key",
+  "high_entropy_secret",
+  "connection_string",
+  "email",
+  "phone",
+  "credit_card",
+  "iban",
+  "ssn",
+  "ip_address",
+  "url_credentials",
+] as const;
 type ToggleEntity = (typeof TOGGLE_ENTITIES)[number];
 
 const ACTIONS: readonly Action[] = ["allow", "mask", "tokenize", "block"];
 
 const DEFAULT_ACTIONS: Record<ToggleEntity, Action> = {
   api_key: "block",
+  jwt: "block",
+  private_key: "block",
+  high_entropy_secret: "block",
+  connection_string: "block",
   email: "tokenize",
   phone: "tokenize",
   credit_card: "tokenize",
+  iban: "tokenize",
+  ssn: "tokenize",
+  ip_address: "allow",
+  url_credentials: "block",
 };
 
 const SECRET_SET = new Set<string>(SECRET_ENTITY_CLASSES);
@@ -39,6 +64,21 @@ const SECRET_SET = new Set<string>(SECRET_ENTITY_CLASSES);
 const BOUNDARY = { kind: "model" as const, provider: "openai/gpt-4o" };
 const IDENTITY = { agent: "default" };
 const DEBOUNCE_MS = 150;
+
+type CustomPattern = {
+  id: string;
+  entity: string;
+  source: string;
+  confidence: string;
+  action: Action;
+};
+
+const CUSTOM_PATTERN_DEFAULTS: Omit<CustomPattern, "id"> = {
+  entity: "employee_id",
+  source: String.raw`\bEMP-\d{5}\b`,
+  confidence: "1",
+  action: "tokenize",
+};
 
 type ScanState =
   | { status: "idle" }
@@ -61,7 +101,10 @@ function actionClass(action: Action | "restore_miss"): string {
   }
 }
 
-function buildPolicy(actions: Record<ToggleEntity, Action>): PolicyDocument {
+function buildPolicy(
+  actions: Record<ToggleEntity, Action>,
+  customPatterns: CustomPattern[],
+): PolicyDocument {
   const entities: Partial<Record<EntityClass, EntityRuleValue>> = {};
   for (const entity of TOGGLE_ENTITIES) {
     const action = actions[entity];
@@ -71,10 +114,48 @@ function buildPolicy(actions: Record<ToggleEntity, Action>): PolicyDocument {
       entities[entity] = action;
     }
   }
+  for (const pattern of customPatterns) {
+    entities[pattern.entity] = pattern.action;
+  }
   return definePolicy({
     defaults: { action: "allow" },
     entities,
   });
+}
+
+function compileCustomRecognizers(patterns: CustomPattern[]): {
+  recognizers: Recognizer[];
+  errors: Record<string, string>;
+} {
+  const recognizers: Recognizer[] = [];
+  const errors: Record<string, string> = {};
+  for (const pattern of patterns) {
+    try {
+      const confidence = pattern.confidence.trim() === "" ? undefined : Number(pattern.confidence);
+      recognizers.push(
+        definePatternRecognizer({
+          id: pattern.id,
+          entity: pattern.entity,
+          tier: 0,
+          patterns: [
+            {
+              source: pattern.source,
+              ...(confidence !== undefined && !Number.isNaN(confidence) ? { confidence } : {}),
+            },
+          ],
+        }),
+      );
+    } catch (err) {
+      const msg =
+        err instanceof RecognizerError
+          ? err.message.split(" → ")[0]!
+          : err instanceof Error
+            ? err.message
+            : "invalid pattern";
+      errors[pattern.id] = msg;
+    }
+  }
+  return { recognizers, errors };
 }
 
 function HighlightedText({ text, decisions }: { text: string; decisions: Decision[] }) {
@@ -122,7 +203,18 @@ export function Playground() {
   const inputId = useId();
   const [text, setText] = useState(SAMPLE);
   const [actions, setActions] = useState<Record<ToggleEntity, Action>>(DEFAULT_ACTIONS);
+  const [customPatterns, setCustomPatterns] = useState<CustomPattern[]>([]);
+  const [draftEntity, setDraftEntity] = useState(CUSTOM_PATTERN_DEFAULTS.entity);
+  const [draftSource, setDraftSource] = useState(CUSTOM_PATTERN_DEFAULTS.source);
+  const [draftConfidence, setDraftConfidence] = useState(CUSTOM_PATTERN_DEFAULTS.confidence);
+  const [draftAction, setDraftAction] = useState<Action>(CUSTOM_PATTERN_DEFAULTS.action);
+  const [draftError, setDraftError] = useState<string | null>(null);
   const [scan, setScan] = useState<ScanState>({ status: "idle" });
+
+  const { recognizers, errors: patternErrors } = useMemo(
+    () => compileCustomRecognizers(customPatterns),
+    [customPatterns],
+  );
 
   const secretAllowAttempt = useMemo(
     () => TOGGLE_ENTITIES.filter((e) => SECRET_SET.has(e) && actions[e] === "allow"),
@@ -136,8 +228,11 @@ export function Playground() {
         if (cancelled) return;
         setScan({ status: "running" });
         try {
-          const policy = buildPolicy(actions);
-          const tailrace = createTailrace({ policy });
+          const policy = buildPolicy(actions, customPatterns);
+          const tailrace = createTailrace({
+            policy,
+            ...(recognizers.length > 0 ? { recognizers } : {}),
+          });
           const result = await tailrace.check(
             text,
             {
@@ -174,9 +269,45 @@ export function Playground() {
       cancelled = true;
       window.clearTimeout(handle);
     };
-  }, [text, actions]);
+  }, [text, actions, customPatterns, recognizers]);
 
   const decisions = scan.status === "ok" ? scan.decisions : [];
+
+  function addCustomPattern(): void {
+    const id = `custom-${customPatterns.length + 1}`;
+    try {
+      definePatternRecognizer({
+        id,
+        entity: draftEntity,
+        tier: 0,
+        patterns: [
+          {
+            source: draftSource,
+            ...(draftConfidence.trim() === "" ? {} : { confidence: Number(draftConfidence) }),
+          },
+        ],
+      });
+      setCustomPatterns((prev) => [
+        ...prev,
+        {
+          id,
+          entity: draftEntity,
+          source: draftSource,
+          confidence: draftConfidence,
+          action: draftAction,
+        },
+      ]);
+      setDraftError(null);
+    } catch (err) {
+      setDraftError(
+        err instanceof RecognizerError
+          ? err.message.split(" → ")[0]!
+          : err instanceof Error
+            ? err.message
+            : "invalid pattern",
+      );
+    }
+  }
 
   return (
     <div className="not-prose my-6 overflow-hidden rounded-xl border border-fd-border bg-fd-card text-fd-card-foreground shadow-sm">
@@ -224,6 +355,116 @@ export function Playground() {
             casually.
           </p>
         ) : null}
+      </div>
+
+      <div className="border-b border-fd-border px-4 py-3">
+        <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+          <span className="text-xs font-medium text-fd-muted-foreground">Custom patterns</span>
+          <a
+            href="/docs/guides/write-custom-recognizers"
+            className="text-[11px] text-fd-primary hover:underline"
+          >
+            write-custom-recognizers guide
+          </a>
+        </div>
+        <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+          <label className="flex flex-col gap-1 text-xs">
+            <span className="font-mono text-fd-muted-foreground">entity</span>
+            <input
+              value={draftEntity}
+              onChange={(e) => setDraftEntity(e.target.value)}
+              className="rounded-md border border-fd-border bg-fd-background px-2 py-1.5 font-mono text-[12px]"
+            />
+          </label>
+          <label className="flex flex-col gap-1 text-xs sm:col-span-2">
+            <span className="font-mono text-fd-muted-foreground">pattern source</span>
+            <input
+              value={draftSource}
+              onChange={(e) => setDraftSource(e.target.value)}
+              spellCheck={false}
+              className="rounded-md border border-fd-border bg-fd-background px-2 py-1.5 font-mono text-[12px]"
+            />
+          </label>
+          <label className="flex flex-col gap-1 text-xs">
+            <span className="font-mono text-fd-muted-foreground">confidence</span>
+            <input
+              value={draftConfidence}
+              onChange={(e) => setDraftConfidence(e.target.value)}
+              className="rounded-md border border-fd-border bg-fd-background px-2 py-1.5 font-mono text-[12px]"
+            />
+          </label>
+          <label className="flex flex-col gap-1 text-xs">
+            <span className="font-mono text-fd-muted-foreground">policy action</span>
+            <select
+              value={draftAction}
+              onChange={(e) => setDraftAction(e.target.value as Action)}
+              className="rounded-md border border-fd-border bg-fd-background px-2 py-1.5 font-mono text-[12px]"
+            >
+              {ACTIONS.map((action) => (
+                <option key={action} value={action}>
+                  {action}
+                </option>
+              ))}
+            </select>
+          </label>
+        </div>
+        <div className="mt-2 flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            onClick={addCustomPattern}
+            className="rounded-md border border-fd-border bg-fd-background px-3 py-1.5 text-xs font-medium hover:bg-fd-accent"
+          >
+            Add pattern
+          </button>
+          <button
+            type="button"
+            onClick={() =>
+              setText((prev) =>
+                prev.includes("EMP-01234") ? prev : `${prev}\nAssign ticket EMP-01234 to Alice`,
+              )
+            }
+            className="rounded-md px-2 py-1 text-xs text-fd-muted-foreground hover:bg-fd-accent"
+          >
+            Insert employee-id sample
+          </button>
+        </div>
+        {draftError ? (
+          <p className="mt-2 text-xs text-red-600 dark:text-red-400">{draftError}</p>
+        ) : null}
+        {customPatterns.length > 0 ? (
+          <ul className="mt-3 space-y-2">
+            {customPatterns.map((pattern) => (
+              <li
+                key={pattern.id}
+                className="flex flex-wrap items-center justify-between gap-2 rounded-md border border-fd-border bg-fd-muted/20 px-3 py-2 text-xs"
+              >
+                <span className="font-mono">
+                  {pattern.entity} · {pattern.action} ·{" "}
+                  <span className="opacity-70">{pattern.id}</span>
+                </span>
+                {patternErrors[pattern.id] ? (
+                  <span className="text-red-600 dark:text-red-400">
+                    {patternErrors[pattern.id]}
+                  </span>
+                ) : null}
+                <button
+                  type="button"
+                  onClick={() =>
+                    setCustomPatterns((prev) => prev.filter((p) => p.id !== pattern.id))
+                  }
+                  className="rounded px-2 py-1 text-fd-muted-foreground hover:bg-fd-accent"
+                >
+                  Remove
+                </button>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="mt-2 text-[11px] text-fd-muted-foreground">
+            Session-only. Patterns validate via{" "}
+            <span className="font-mono">definePatternRecognizer</span>.
+          </p>
+        )}
       </div>
 
       <div className="grid gap-0 lg:grid-cols-2">

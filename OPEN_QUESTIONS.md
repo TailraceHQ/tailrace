@@ -10,6 +10,21 @@ _(none)_
 
 ## Deferred (post-v0.1)
 
+- **Custom pattern `validate()` callback.** Optional per-match `validate(match, text) => boolean` on
+  `definePatternRecognizer` deferred to keep Tier 0 sync contract simple. Track in
+  [`docs/m6-plan.md`](docs/m6-plan.md) §Unresolved. _Planned:_ post-M6e.
+
+- **Policy-plane recognizer sync.** Remote sync of recognizer definitions (beyond local
+  `.tailrace/config.json`) deferred. M6d covers CLI JSON only. _Track:_
+  [`docs/m6-plan.md`](docs/m6-plan.md) §M6d.
+
+- **Playground pattern persistence.** Session-only state in M6e; localStorage or share-URL persistence
+  deferred. _Track:_ [`docs/m6-progress.md`](docs/m6-progress.md) §Deferred beyond M6.
+
+- **Fail-closed on broken `block` recognizer.** Optional `detectionFailure: "block"` policy knob when
+  a `block`-configured entity's recognizer fails at runtime. M6 documents the gap (fail-open skip).
+  _Track:_ [`docs/m6-plan.md`](docs/m6-plan.md) §Unresolved.
+
 - **Tier 1 NER model choice.** Pick the specific GLiNER-class ONNX model with the best F1-per-MB and
   record candidates + benchmark results here (docs/detection.md §3). _Site:_
   `packages/recognizer-ner/src/index.ts`.

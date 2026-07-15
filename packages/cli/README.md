@@ -10,6 +10,8 @@ pnpm exec tailrace install-hooks   # merges PreToolUse/PostToolUse into .claude/
 
 Hook hot path loads `.tailrace/config.json` only (no TypeScript transpile). Spawn-to-exit p50 is gated under 150ms in CI.
 
+**Custom patterns (v2 config):** add a `recognizers` array to `.tailrace/config.json` with validated regex sources. `tailrace scan` and `tailrace hook` load them via `definePatternRecognizer`. See [Write custom recognizers](https://tailrace.dev/docs/guides/write-custom-recognizers).
+
 | Command                   | Purpose                                                              |
 | ------------------------- | -------------------------------------------------------------------- |
 | `tailrace init`           | Write `tailrace.config.ts` + `.tailrace/config.json`                 |

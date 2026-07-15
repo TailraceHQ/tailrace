@@ -54,6 +54,28 @@ Implementation plan: [`m5-plan.md`](m5-plan.md). Guides: [`guides/mcp-integratio
 - [x] Root README with the 10-line quickstart; per-package READMEs; CHANGELOG via changesets
 - [x] OPEN_QUESTIONS.md triaged: every SPEC-QUESTION either resolved in docs or explicitly deferred
 
+## M6: Custom scan patterns (post-v0.1)
+
+Implementation plan: [`m6-plan.md`](m6-plan.md). Progress scratchpad: [`m6-progress.md`](m6-progress.md).
+
+- [x] `definePatternRecognizer` with static regex validation and bounded `scanPatterns` execution
+- [x] Engine fail-open isolation for custom recognizers; duplicate `id` rejection; `RecognizerError` at registration
+- [x] Policy + tokenization path for user-declared custom entity classes (trim-only normalization; label tokens)
+- [x] Tests: unit, property (fast-check), e2e, perf regression (+3 custom patterns), workerd
+- [x] `docs/detection.md` §7 + `write-custom-recognizers` guide + `RECOGNIZER` error doc aligned with fail-open behavior
+
+### M6d: CLI declarative regex config (priority after M6a)
+
+- [x] `.tailrace/config.json` v2 supports compiled `recognizers` array; validated at load time
+- [x] `tailrace scan` and `tailrace hook` load custom patterns from compiled config (no TS on hot path)
+- [x] CLI tests + docs for JSON recognizer shape
+
+### M6e: Playground custom pattern editor (priority after M6a)
+
+- [x] Playground UI to add/remove custom patterns and set per-entity actions (session state)
+- [x] Inline validation via `definePatternRecognizer`; decisions list shows custom entities
+- [ ] Test coverage for add-pattern → scan → token output flow
+
 ## Demos (must run from fresh clone, commands documented in each example's README)
 
 **Demo 1: "Your agent just leaked a key."** Next.js route: user prompt contains a fake Stripe key + an email. Run A: request aborted with `PolicyViolationError` naming `api_key` - the secret never reaches the provider (mock model default in CI). Run B: key removed, email tokenized in outbound params (log transformed params), mock model echoes, route calls `tailrace.restore` at egress `ui` before responding - UI shows the real email.

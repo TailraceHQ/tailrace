@@ -91,6 +91,9 @@ function resolveVault(options: TailraceOptions): { vault: Vault; masterKey: Uint
 export function createTailrace(options: TailraceOptions = {}): Tailrace {
   const engine = createDetectionEngine({
     ...(options.recognizers !== undefined ? { recognizers: options.recognizers } : {}),
+    ...(options.maxCustomRecognizers !== undefined
+      ? { maxCustomRecognizers: options.maxCustomRecognizers }
+      : {}),
     ...(options.includePrivateIps !== undefined
       ? { includePrivateIps: options.includePrivateIps }
       : {}),
@@ -256,7 +259,8 @@ export function definePolicy(doc: PolicyDocument): PolicyDocument {
 }
 
 /**
- * Define a custom recognizer.
+ * Define a custom recognizer with arbitrary scan logic.
+ * For regex-based entities, prefer {@link definePatternRecognizer}.
  *
  * @example
  * ```ts
@@ -271,6 +275,9 @@ export function definePolicy(doc: PolicyDocument): PolicyDocument {
 export function defineRecognizer(recognizer: Recognizer): Recognizer {
   return recognizer;
 }
+
+export { definePatternRecognizer } from "./detect/pattern-recognizer";
+export type { PatternDefinition, PatternRecognizerOptions } from "./detect/pattern-recognizer";
 
 /**
  * Wrap a local policy document as a {@link PolicySource}. This is the default source and
