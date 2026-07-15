@@ -4,8 +4,10 @@
 
 import { readdir, readFile, stat } from "node:fs/promises";
 import { join, relative, resolve } from "node:path";
-import { createTailrace, PolicyViolationError, type Decision } from "@tailrace/core";
+import { createTailrace, PolicyViolationError, type Decision, type Tailrace } from "@tailrace/core";
 import { flagBool, type ParsedArgs } from "../internal/args";
+import { createTailraceFromConfig, readCompiledConfig } from "../internal/config";
+import { resolveProjectPaths } from "../internal/paths";
 
 const SKIP_DIR_NAMES = new Set([
   "node_modules",
@@ -66,11 +68,7 @@ async function collectFiles(root: string): Promise<string[]> {
   return out;
 }
 
-async function scanText(
-  pathLabel: string,
-  text: string,
-  tailrace: ReturnType<typeof createTailrace>,
-): Promise<ScanHit[]> {
+async function scanText(pathLabel: string, text: string, tailrace: Tailrace): Promise<ScanHit[]> {
   try {
     await tailrace.check(text, {
       boundary: SCAN_BOUNDARY,
@@ -99,7 +97,14 @@ export async function runScan(args: ParsedArgs): Promise<number> {
     return 1;
   }
 
-  const tailrace = createTailrace();
+  const paths = resolveProjectPaths();
+  let tailrace: Tailrace;
+  try {
+    const config = await readCompiledConfig(paths.configPath);
+    tailrace = createTailraceFromConfig(config, paths);
+  } catch {
+    tailrace = createTailrace();
+  }
   const hits: ScanHit[] = [];
 
   if (target === "-") {

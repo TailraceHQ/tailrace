@@ -17,13 +17,25 @@ export function detectStack(pkg: {
 }
 
 export function configTsTemplate(): string {
-  return `import { createTailrace } from "@tailrace/core";
-// import { definePolicy } from "@tailrace/core";
+  return `import { createTailrace, definePatternRecognizer, definePolicy } from "@tailrace/core";
 
 // Zero-config: secrets → block, common PII → tokenize.
 // Customize with definePolicy({ entities: { email: "tokenize", api_key: "block" } })
 // and pass { policy } to createTailrace.
 // Policy JSON Schema: https://tailrace.dev/schema/policy.v1.json
+
+// Optional custom pattern recognizer (app runtime; Claude Code hook uses .tailrace/config.json):
+// const employeeId = definePatternRecognizer({
+//   id: "employee-id",
+//   entity: "employee_id",
+//   tier: 0,
+//   patterns: [{ source: String.raw\`\\\\bEMP-\\\\d{5}\\\\b\`, confidence: 1 }],
+// });
+// export const tailrace = createTailrace({
+//   recognizers: [employeeId],
+//   policy: definePolicy({ entities: { employee_id: "tokenize" }, defaults: { action: "allow" } }),
+// });
+
 export const tailrace = createTailrace();
 `;
 }

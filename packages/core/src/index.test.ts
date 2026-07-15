@@ -7,8 +7,10 @@ import { describe, expect, it, vi } from "vitest";
 import {
   InvariantViolationError,
   PolicyViolationError,
+  RecognizerError,
   consoleSink,
   createTailrace,
+  definePatternRecognizer,
   definePolicy,
   jsonlSink,
   memoryVault,
@@ -75,6 +77,28 @@ describe("createTailrace zero-config", () => {
     await expect(tailrace.check(`key ${secret}`, modelCtx)).rejects.toBeInstanceOf(
       PolicyViolationError,
     );
+  });
+
+  it("tokenizes a custom pattern entity when policy declares it", async () => {
+    const employeeId = definePatternRecognizer({
+      id: "employee-id",
+      entity: "employee_id",
+      tier: 0,
+      patterns: [{ source: String.raw`\bEMP-\d{5}\b`, confidence: 1 }],
+    });
+    const tailrace = createTailrace({
+      vault: { key: "test-key" },
+      recognizers: [employeeId],
+      policy: definePolicy({
+        entities: { employee_id: "tokenize" },
+        defaults: { action: "allow" },
+      }),
+    });
+    const raw = "Assign ticket EMP-01234 to Alice";
+    const { output, decisions } = await tailrace.check(raw, modelCtx);
+    expect(output).not.toContain("EMP-01234");
+    expect(output).toMatch(/<EMPLOYEE_ID_[a-z0-9]{8}>/);
+    expect(decisions.some((d) => d.entity === "employee_id" && d.action === "tokenize")).toBe(true);
   });
 
   it("stream holdback: never bisects a straddling email; remainder stays raw", async () => {
@@ -339,6 +363,23 @@ describe("error messages never contain raw values", () => {
       expect(msg).not.toContain(secret);
       expect(msg).not.toContain("FakeKey");
       expect(msg).toContain("→ https://tailrace.dev/docs/reference/errors/POLICY_VIOLATION");
+    }
+  });
+
+  it("RecognizerError at registration omits pattern source", () => {
+    const evil = "(a+)+";
+    try {
+      definePatternRecognizer({
+        id: "evil",
+        entity: "employee_id",
+        tier: 0,
+        patterns: [{ source: evil }],
+      });
+      expect.fail("expected throw");
+    } catch (err) {
+      expect(err).toBeInstanceOf(RecognizerError);
+      expect((err as Error).message).not.toContain(evil);
+      expect((err as Error).message).toContain("nested quantifiers");
     }
   });
 });

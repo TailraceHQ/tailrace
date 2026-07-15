@@ -14,6 +14,7 @@ import {
   isCompiledCliConfig,
   readCompiledConfig,
   writeCompiledConfig,
+  type CompiledCliConfig,
 } from "./config";
 import { createFsKvStore } from "./vault-fs";
 import { parseArgs, flagBool } from "./args";
@@ -112,6 +113,32 @@ describe("config", () => {
     await writeCompiledConfig(path, config);
     const loaded = await readCompiledConfig(path);
     expect(loaded).toEqual(config);
+    expect(isCompiledCliConfig(loaded)).toBe(true);
+  });
+
+  it("accepts v2 config with recognizers", async () => {
+    const d = tempDir();
+    const path = join(d, ".tailrace", "config.json");
+    const config: CompiledCliConfig = {
+      version: 2,
+      agent: "claude-code",
+      vaultKey: "abcd",
+      recognizers: [
+        {
+          id: "employee-id",
+          entity: "employee_id",
+          tier: 0,
+          patterns: [{ source: String.raw`\bEMP-\d{5}\b` }],
+        },
+      ],
+      policy: {
+        entities: { employee_id: "tokenize" },
+        defaults: { action: "allow" },
+      },
+    };
+    await writeCompiledConfig(path, config);
+    const loaded = await readCompiledConfig(path);
+    expect(loaded.recognizers).toHaveLength(1);
     expect(isCompiledCliConfig(loaded)).toBe(true);
   });
 });

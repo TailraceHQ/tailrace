@@ -62,3 +62,29 @@ Wraps a quantized GLiNER-class ONNX model via `onnxruntime-node`. Emits `person`
 
 - Tier 0 full-suite scan of a 4KB mixed fixture: p50 < 5ms, p99 < 15ms (Node CI runner; benchmark harness in /benchmarks).
 - Corpus tests: `fixtures/positives/*.txt` and `fixtures/negatives/*.txt` per entity; recall ≥ 0.95 on positives, precision ≥ 0.95 on negatives for Tier 0 classes. All fixture values must be synthetic/fake.
+
+## 7. Custom pattern recognizers
+
+`definePatternRecognizer({ id, entity, tier: 0, patterns })` is the supported path for employee-ID-style regexes. `defineRecognizer` remains for arbitrary `scan` logic (context gates, checksums). Internal `scanPatterns` is not exported.
+
+**Registration-time validation** (throws `RecognizerError`, code `RECOGNIZER`):
+
+- Pattern source max length 512; no backreferences; no nested quantifiers on groups; brace upper bounds ≤ 64; conservative rejection of quantified lookbehind.
+- `entity` must match `^[a-z][a-z0-9_]{0,63}$` and must not reuse built-in secret/PII/NER class names.
+
+**Runtime scanning** (forced `gu` flags; user flags stripped):
+
+- Max 256 matches per pattern per string leaf; 2ms wall-clock budget per recognizer per leaf.
+- Zero-length matches advance `lastIndex` by 1.
+- Capturing groups ignored; span bounds use full match `m[0]` only.
+- UTF-16 code unit offsets; always compile with `u`.
+
+**Failure semantics:**
+
+- Invalid pattern at registration: throw immediately.
+- Budget exceeded during scan: fail open - skip remaining matches from that recognizer, emit one console warning, do not throw from `check()`.
+- Throw from custom `scan()`: skip that recognizer, continue others (fail open).
+
+**Policy:** custom entities are not in the default policy. Users must set `entities.<name>` (or boundary/identity overrides). Without a rule, `defaults.action` (`allow`) applies. Custom entities use trim-only normalization and label tokens (`<ENTITY_xxxxxxxx>`), not format-preserving shapes.
+
+**ReDoS:** best-effort static analysis plus runtime bounds. Not a proof of safety - document honestly.

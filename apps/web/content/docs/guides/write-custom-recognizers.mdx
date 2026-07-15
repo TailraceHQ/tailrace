@@ -1,0 +1,101 @@
+---
+title: Write custom recognizers
+description: Add employee-ID-style regex entities with definePatternRecognizer, or arbitrary scan logic with defineRecognizer.
+mode: guide
+---
+
+Use custom recognizers when built-in Tier 0 classes do not cover your org-specific identifiers (employee IDs, ticket numbers, project codes).
+
+## When to use the pattern helper
+
+- You have a stable regex shape (for example `EMP-01234`).
+- You want static ReDoS checks and bounded scanning without hand-rolling a `scan` loop.
+- You are fine declaring policy for the new entity class.
+
+Prefer **`definePatternRecognizer`** for regex. Use **`defineRecognizer`** when you need context gates, checksums, or non-regex logic.
+
+## Step 1: Define the recognizer
+
+```ts
+import { createTailrace, definePatternRecognizer, definePolicy } from "@tailrace/core";
+
+const employeeId = definePatternRecognizer({
+  id: "employee-id",
+  entity: "employee_id",
+  tier: 0,
+  patterns: [{ source: String.raw`\bEMP-\d{5}\b`, confidence: 1 }],
+});
+```
+
+Rules enforced at registration:
+
+- Entity name: `^[a-z][a-z0-9_]{0,63}$`
+- Cannot reuse built-in secret/PII/NER names (`email`, `api_key`, …)
+- Pattern sources are validated for common ReDoS shapes (max length 512, no backreferences, no nested group quantifiers)
+
+## Step 2: Declare policy for the entity
+
+Custom entities are **not** in the zero-config default. Without a policy entry they resolve to `allow`.
+
+```ts
+const tailrace = createTailrace({
+  recognizers: [employeeId],
+  policy: definePolicy({
+    entities: { employee_id: "tokenize" },
+    defaults: { action: "allow" },
+  }),
+});
+```
+
+## Step 3: Check at a boundary
+
+```ts
+const { output, decisions } = await tailrace.check("Assign ticket EMP-01234 to Alice", {
+  boundary: { kind: "model", provider: "openai/gpt-4o" },
+  identity: { agent: "hr-bot" },
+});
+```
+
+Tokenized output uses label tokens: `<EMPLOYEE_ID_xxxxxxxx>` (not format-preserving).
+
+## Claude Code: JSON config (hook hot path)
+
+The hook loads `.tailrace/config.json` only (no TypeScript on the hot path). Add a `recognizers` array (config `version: 2`):
+
+```json
+{
+  "version": 2,
+  "agent": "claude-code",
+  "vaultKey": "…",
+  "recognizers": [
+    {
+      "id": "employee-id",
+      "entity": "employee_id",
+      "tier": 0,
+      "patterns": [{ "source": "\\bEMP-\\d{5}\\b", "confidence": 1 }]
+    }
+  ],
+  "policy": {
+    "entities": { "employee_id": "tokenize" },
+    "defaults": { "action": "allow" }
+  }
+}
+```
+
+`tailrace scan` also loads compiled recognizers from this file when present.
+
+## Failure behavior
+
+- Invalid patterns throw at `definePatternRecognizer` call time.
+- Scan budget exceeded: recognizer skips remaining matches, one console warning, `check()` continues (fail open).
+- A throwing custom `scan()` skips that recognizer only.
+
+## Limits (honest)
+
+JavaScript `RegExp` cannot be interrupted mid-match. Tailrace uses static validation plus match/time caps. This is best-effort, not a ReDoS proof.
+
+## See also
+
+- [Detection tiers](/docs/concepts/detection-tiers) - Tier 0 vs custom
+- [Playground](/docs/playground) - add patterns in the browser (session state)
+- [RECOGNIZER error](/docs/reference/errors/RECOGNIZER)

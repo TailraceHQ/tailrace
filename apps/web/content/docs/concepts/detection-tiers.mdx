@@ -28,7 +28,9 @@ Default policy does **not** enforce NER entities - they fall through to `allow` 
 
 ## Custom recognizers
 
-`defineRecognizer({ id, entities, tier, scan })` - pattern-based or arbitrary. Register via `createTailrace({ recognizers: [...] })`.
+`defineRecognizer({ id, entities, tier, scan })` - arbitrary scan logic. Register via `createTailrace({ recognizers: [...] })`.
+
+For regex-shaped org IDs, use **`definePatternRecognizer`** (static validation, bounded scanning). See [Write custom recognizers](/docs/guides/write-custom-recognizers).
 
 ## Objects, not stringified blobs
 

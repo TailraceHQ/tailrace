@@ -7,11 +7,14 @@
  * here until async detection is wired in a later milestone.
  */
 
-import { NotImplementedError } from "../errors";
+import { getConsole } from "../console";
+import { NotImplementedError, RecognizerError, TailraceError } from "../errors";
 import type { EntityClass, JsonObject, Recognizer, Span } from "../types";
 import { mergeSpans } from "./merge";
 import { scanObject } from "./object-scan";
 import { builtinRecognizers } from "./recognizers";
+
+const DEFAULT_MAX_CUSTOM_RECOGNIZERS = 16;
 
 export interface DetectionEngineOptions {
   /** Custom recognizers, appended after the builtins. */
@@ -24,6 +27,8 @@ export interface DetectionEngineOptions {
   thresholds?: Partial<Record<EntityClass, number>>;
   /** Default minimum confidence (docs/detection.md §4). Default 0.6. */
   defaultThreshold?: number;
+  /** Max custom recognizers allowed. Default 16. */
+  maxCustomRecognizers?: number;
 }
 
 export interface DetectionEngine {
@@ -32,29 +37,67 @@ export interface DetectionEngine {
   detect(input: string | JsonObject): Span[];
 }
 
+function assertRecognizerLimits(custom: Recognizer[], maxCustom: number): void {
+  if (custom.length > maxCustom) {
+    throw new RecognizerError(`too many custom recognizers (${custom.length} > ${maxCustom})`);
+  }
+}
+
+function assertUniqueRecognizerIds(recognizers: Recognizer[]): void {
+  const ids = new Set<string>();
+  for (const recognizer of recognizers) {
+    if (ids.has(recognizer.id)) {
+      throw new RecognizerError(`duplicate recognizer id "${recognizer.id}"`);
+    }
+    ids.add(recognizer.id);
+  }
+}
+
 export function createDetectionEngine(opts: DetectionEngineOptions = {}): DetectionEngine {
+  const custom = opts.recognizers ?? [];
+  const maxCustom = opts.maxCustomRecognizers ?? DEFAULT_MAX_CUSTOM_RECOGNIZERS;
+  assertRecognizerLimits(custom, maxCustom);
+
   const recognizers: Recognizer[] = [
     ...(opts.useBuiltins === false
       ? []
       : builtinRecognizers({ includePrivateIps: opts.includePrivateIps ?? false })),
-    ...(opts.recognizers ?? []),
+    ...custom,
   ];
+
+  assertUniqueRecognizerIds(recognizers);
 
   const mergeOpts = {
     ...(opts.thresholds !== undefined ? { thresholds: opts.thresholds } : {}),
     ...(opts.defaultThreshold !== undefined ? { defaultThreshold: opts.defaultThreshold } : {}),
   };
 
+  const warnedRecognizerFailures = new Set<string>();
+
   const runRecognizers = (text: string): Span[] => {
     const spans: Span[] = [];
     for (const recognizer of recognizers) {
-      const result = recognizer.scan(text);
-      if (result instanceof Promise) {
-        throw new NotImplementedError(
-          "async (Tier 1) recognizers are wired in a later milestone; Tier 0 detection is synchronous",
-        );
+      try {
+        const result = recognizer.scan(text);
+        if (result instanceof Promise) {
+          throw new NotImplementedError(
+            "async (Tier 1) recognizers are wired in a later milestone; Tier 0 detection is synchronous",
+          );
+        }
+        for (const span of result) spans.push(span);
+      } catch (err) {
+        if (err instanceof NotImplementedError) throw err;
+        if (!warnedRecognizerFailures.has(recognizer.id)) {
+          warnedRecognizerFailures.add(recognizer.id);
+          const reason =
+            err instanceof TailraceError
+              ? err.message.split(" → ")[0]
+              : "recognizer threw during scan";
+          getConsole()?.warn(
+            `[tailrace] recognizer "${recognizer.id}" failed (skipped): ${reason}`,
+          );
+        }
       }
-      for (const span of result) spans.push(span);
     }
     return spans;
   };
