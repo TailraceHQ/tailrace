@@ -1,7 +1,7 @@
 {
-  "name": "@tailrace/ai-sdk",
+  "name": "@tailrace/cloudflare-agents",
   "version": "0.1.0",
-  "description": "Tailrace middleware for the Vercel AI SDK: model wrapper + tool wrapper.",
+  "description": "Tailrace helpers for Cloudflare Agents / AIChatAgent (Compose: uses @tailrace/ai-sdk).",
   "license": "MIT",
   "type": "module",
   "sideEffects": false,
@@ -27,22 +27,30 @@
   "scripts": {
     "build": "tsup",
     "test": "vitest run",
-    "typecheck": "tsc --noEmit && tsc --noEmit -p tsconfig.testd.json"
+    "test:workers": "vitest run --config vitest.workers.config.ts",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@tailrace/adapter": "workspace:*",
+    "@tailrace/ai-sdk": "workspace:*",
     "@tailrace/core": "workspace:*"
   },
   "peerDependencies": {
-    "ai": "^5"
+    "ai": "^5",
+    "agents": ">=0.17.0"
+  },
+  "peerDependenciesMeta": {
+    "agents": {
+      "optional": true
+    }
   },
   "publishConfig": {
     "access": "public"
   },
   "devDependencies": {
+    "@cloudflare/vitest-pool-workers": "^0.5.40",
     "@ai-sdk/provider": "2.0.3",
     "ai": "^5.0.210",
-    "expect-type": "^1.4.0",
     "vitest": "^2.1.9",
     "zod": "^4.4.3"
   }

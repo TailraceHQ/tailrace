@@ -76,6 +76,28 @@ Implementation plan: [`m6-plan.md`](m6-plan.md). Progress scratchpad: [`m6-progr
 - [x] Inline validation via `definePatternRecognizer`; decisions list shows custom entities
 - [ ] Test coverage for add-pattern → scan → token output flow
 
+## M7: Adapter + OpenAI Agents + Cloudflare Agents
+
+Implementation plan: [`m7-plan.md`](m7-plan.md). Guides: [`guides/openai-agents-integration.md`](guides/openai-agents-integration.md), [`guides/cloudflare-agents-integration.md`](guides/cloudflare-agents-integration.md).
+
+### M7a: `@tailrace/adapter`
+
+- [x] `wrapToolExecute`, `runGoverned`, `asCheckable` / `unwrapCheckable`, `formatToolBlockError`
+- [x] Zero host peers; Node + workerd; unit + expect-type tests
+- [x] `@tailrace/ai-sdk` `wrapTools` may consume adapter public API (behavior unchanged)
+
+### M7b: `@tailrace/openai-agents`
+
+- [x] `wrapTools` / `wrapTool` for `@openai/agents` function tools via adapter
+- [x] Fluent `withOpenAiAgents`; Option C public API; type preservation
+- [x] Hosted tools documented as out of scope; model wrap deferred
+
+### M7c: `@tailrace/cloudflare-agents` (Compose)
+
+- [x] `createCloudflareTailrace` + DO identity / `kvVault` helpers
+- [x] `withCloudflareAgents(tr).forChat` composing `@tailrace/ai-sdk` wraps (no streaming reimplementation)
+- [x] `wrapOnToolCall` for client tools; workerd tests green
+
 ## Demos (must run from fresh clone, commands documented in each example's README)
 
 **Demo 1: "Your agent just leaked a key."** Next.js route: user prompt contains a fake Stripe key + an email. Run A: request aborted with `PolicyViolationError` naming `api_key` - the secret never reaches the provider (mock model default in CI). Run B: key removed, email tokenized in outbound params (log transformed params), mock model echoes, route calls `tailrace.restore` at egress `ui` before responding - UI shows the real email.

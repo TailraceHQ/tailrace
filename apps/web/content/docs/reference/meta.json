@@ -1,4 +1,14 @@
 {
   "title": "Reference",
-  "pages": ["ai-sdk", "cli", "mcp", "hono", "policy-schema", "errors"]
+  "pages": [
+    "ai-sdk",
+    "adapter",
+    "openai-agents",
+    "cloudflare-agents",
+    "cli",
+    "mcp",
+    "hono",
+    "policy-schema",
+    "errors"
+  ]
 }

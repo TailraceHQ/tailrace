@@ -1,0 +1,27 @@
+---
+title: OpenAI Agents SDK
+description: Wrap @openai/agents function tools with Tailrace.
+mode: guide
+---
+
+See the repo guide: wrap function tools so args and results pass policy at the tool boundary.
+
+```ts
+import { createTailrace } from "@tailrace/core";
+import { wrapTools } from "@tailrace/openai-agents";
+import { tool } from "@openai/agents";
+import { z } from "zod";
+
+const crm = tool({
+  name: "crm",
+  description: "Lookup",
+  parameters: z.object({ email: z.string() }),
+  execute: async ({ email }) => ({ email }),
+});
+
+const tools = wrapTools(createTailrace(), [crm], { agent: "support" });
+```
+
+Full write-up: [integrations/openai-agents](/docs/integrations/openai-agents) and [reference](/docs/reference/openai-agents).
+
+Limitations: function tools only; hosted tools and model-boundary wrap are out of scope for M7.

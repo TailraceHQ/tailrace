@@ -73,17 +73,16 @@ jobs:
       - run: pnpm bench
 
   audit:
-    name: Dependency audit
+    name: Dependency review
     runs-on: ubuntu-latest
+    # dependency-review-action compares the PR's base/head, so it only runs on pull_request.
+    # Standing inventory is covered by Dependabot on the default branch.
+    if: github.event_name == 'pull_request'
     steps:
       - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/dependency-review-action@v4
         with:
-          node-version: 20
-          cache: pnpm
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm audit --prod
+          fail-on-severity: high
 
   docs:
     name: Docs site build

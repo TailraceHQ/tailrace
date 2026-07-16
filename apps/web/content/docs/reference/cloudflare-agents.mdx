@@ -1,0 +1,28 @@
+---
+title: cloudflare-agents
+description: Reference for @tailrace/cloudflare-agents - createCloudflareTailrace, forChat, wrapOnToolCall.
+mode: reference
+---
+
+`@tailrace/cloudflare-agents` Compose helpers for Cloudflare Agents. Model/tool wrapping delegates to `@tailrace/ai-sdk`.
+
+## Install
+
+```bash
+pnpm add @tailrace/core @tailrace/cloudflare-agents ai
+```
+
+Peers: `ai@^5` (required); `agents` optional.
+
+## Exports
+
+| Export                      | Description                          |
+| --------------------------- | ------------------------------------ |
+| `createCloudflareTailrace`  | Tailrace with kvVault or memoryVault |
+| `withCloudflareAgents`      | Fluent `forChat` + `wrapOnToolCall`  |
+| `CloudflareTailraceOptions` | Identity / vault options             |
+
+## Guides
+
+- [Cloudflare Agents integration](/docs/guides/cloudflare-agents-integration)
+- [AI SDK reference](/docs/reference/ai-sdk)

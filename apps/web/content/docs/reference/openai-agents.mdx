@@ -1,0 +1,36 @@
+---
+title: openai-agents
+description: Reference for @tailrace/openai-agents - wrapTool, wrapTools, withOpenAiAgents.
+mode: reference
+---
+
+`@tailrace/openai-agents` wraps OpenAI Agents SDK `FunctionTool.invoke` so args and results pass through Tailrace.
+
+## Install
+
+```bash
+pnpm add @tailrace/core @tailrace/openai-agents @openai/agents
+```
+
+Peer: `@openai/agents` `>=0.3` (bound against `0.3.9`).
+
+## Exports
+
+| Export                    | Description                    |
+| ------------------------- | ------------------------------ |
+| `wrapTool`                | Wrap one FunctionTool          |
+| `wrapTools`               | Wrap an array of FunctionTools |
+| `withOpenAiAgents`        | Fluent `.tool` / `.tools`      |
+| `OpenAiAgentsWrapOptions` | Options type                   |
+
+## Options
+
+| Option       | Required | Notes               |
+| ------------ | -------- | ------------------- |
+| `agent`      | no       | Default `"default"` |
+| `workflowId` | no       | Default `"default"` |
+| `onDecision` | no       | Audit callback      |
+
+## Guides
+
+- [OpenAI Agents integration](/docs/guides/openai-agents-integration)
