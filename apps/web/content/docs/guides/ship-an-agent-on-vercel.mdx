@@ -1,16 +1,17 @@
 ---
-title: Protect PII in the AI SDK
-description: Wrap models and tools, configure streaming block behavior, and restore tokenized values at egress.
+title: Ship an agent on Vercel
+description: Deploy a Next.js agent with Tailrace - block secrets, tokenize PII, restore at egress.
 mode: guide
 ---
 
-Use `@tailrace/ai-sdk` to enforce data policy on Vercel AI SDK model calls and tool executions - in-process, with no proxy.
+You will leave this guide with a Vercel-deployed Next.js route that governs model and tool traffic with Tailrace - secrets blocked before the provider, PII tokenized, and values restored at egress.
 
 ## When to use this
 
 - You send user or ticket data to OpenAI, Anthropic, or other providers through the AI SDK.
 - Agent tools read CRM records, databases, or files that may contain PII or secrets.
 - You need the same email to become the same token across a multi-step agent run.
+- You want to deploy that agent to Vercel with the same policy behavior as local Demo 1.
 
 ## Prerequisites
 
@@ -148,6 +149,40 @@ curl -s -X POST http://localhost:3000/api/chat \
 ```
 
 Expect `200`, `modelSaw` containing `<EMAIL_…>`, and `text` containing the real email.
+
+## Deploy to Vercel
+
+Runnable example: [`examples/nextjs-ai-sdk`](https://github.com/tailrace/tailrace/tree/main/examples/nextjs-ai-sdk) - dual-mode mock (CI) or OpenAI when `OPENAI_API_KEY` is set, plus a governed `lookupCustomer` tool.
+
+1. Copy env from `.env.example` and set:
+   - `OPENAI_API_KEY` - provider key for the live path
+   - `TAILRACE_VAULT_KEY` - stable vault secret (keep the same value across deploys)
+2. Deploy with the [Vercel CLI](https://vercel.com/docs/cli) or **Import Git** in the dashboard (project root `examples/nextjs-ai-sdk`):
+
+```bash
+cd examples/nextjs-ai-sdk
+vercel
+```
+
+3. Add the same env vars in the Vercel project settings, then redeploy if needed.
+4. Verify on the production URL:
+
+```bash
+# Expect 422 + entity api_key
+curl -s -X POST "https://YOUR_DEPLOYMENT.vercel.app/api/chat" \
+  -H 'content-type: application/json' \
+  -d '{"prompt":"Use sk_test_51FakeKeyForTailraceTests000FAKE"}' | jq .
+
+# Expect 200, modelSaw with <EMAIL_…>, text with customer@example.com
+curl -s -X POST "https://YOUR_DEPLOYMENT.vercel.app/api/chat" \
+  -H 'content-type: application/json' \
+  -H 'x-workflow-id: ship-verify' \
+  -d '{"prompt":"Email customer@example.com"}' | jq .
+```
+
+### Production vault note
+
+Within a single request, default `memoryVault` is enough for tokenize + restore. For multi-invocation token stability on serverless, use `kvVault` with a Redis/Upstash shim (5-line adapter over `{ get, put, delete }` per [`docs/vault.md`](https://github.com/tailrace/tailrace/blob/main/docs/vault.md) §2). See the example README for a concrete shim.
 
 ## Troubleshooting
 

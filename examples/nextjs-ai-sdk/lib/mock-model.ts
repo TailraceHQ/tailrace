@@ -1,6 +1,6 @@
 /**
  * Mock LanguageModelV2 that echoes the last user text part.
- * Used by Demo 1 in CI (no network). Set DEMO_LIVE=1 for a real provider later.
+ * Used by Demo 1 / CI when OPENAI_API_KEY is absent (no network).
  */
 
 import type { LanguageModelV2, LanguageModelV2StreamPart } from "@ai-sdk/provider";

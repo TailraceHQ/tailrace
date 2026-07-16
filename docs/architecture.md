@@ -17,6 +17,7 @@
 ├── apps/
 │   └── web/             # @tailrace/web - docs + marketing site (Next.js + Fumadocs); see docs/site/DOCS_AGENTS.md
 ├── examples/
+│   ├── acme-support-data/ # shared synthetic CRM fixtures for Acme Support demos
 │   ├── nextjs-ai-sdk/   # Next.js app using @tailrace/ai-sdk (demo 1 & 3)
 │   └── claude-code/     # settings.json + walkthrough for hook demo (demo 2)
 ├── benchmarks/          # perf harness, run in CI

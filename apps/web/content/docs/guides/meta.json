@@ -1,8 +1,8 @@
 {
   "title": "Guides",
   "pages": [
+    "ship-an-agent-on-vercel",
     "block-secrets-in-claude-code",
-    "protect-pii-in-ai-sdk",
     "govern-mcp-tool-calls",
     "write-custom-recognizers",
     "openai-agents-integration",

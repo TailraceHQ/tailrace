@@ -3,8 +3,8 @@ import Link from "next/link";
 const INTEGRATIONS = [
   {
     name: "AI SDK",
-    href: "/docs/guides/protect-pii-in-ai-sdk",
-    blurb: "wrapModel, wrapTools, streaming",
+    href: "/docs/guides/ship-an-agent-on-vercel",
+    blurb: "Ship a governed agent on Vercel",
   },
   {
     name: "Claude Code",

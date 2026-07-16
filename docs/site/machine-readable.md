@@ -13,7 +13,7 @@ Goal: an AI agent (a user's Cursor/Claude Code session, or a support bot) can di
 - Every docs page is additionally served at `{path}.md` returning the SOURCE MDX rendered down to plain markdown: frontmatter as a heading + description line, tabs flattened with `### <Tab label>` subheadings, twoslash annotations stripped, code fences preserved with language tags.
 - `Link` response header on HTML pages advertising the markdown alternate; `<link rel="alternate" type="text/markdown">` in head.
 - "Copy page as Markdown" button in every page footer uses the same artifact (no separate serializer to drift).
-- Acceptance: `curl /docs/guides/protect-pii-in-ai-sdk.md` returns compiling code fences (twoslash-checked upstream) and zero JSX residue.
+- Acceptance: `curl /docs/guides/ship-an-agent-on-vercel.md` returns compiling code fences (twoslash-checked upstream) and zero JSX residue.
 
 ## 3. Config JSON Schema
 

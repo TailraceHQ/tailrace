@@ -1,0 +1,23 @@
+{
+  "name": "@tailrace/acme-support-data",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "description": "Synthetic Acme Support CRM fixtures shared by host examples (tickets, customers, orders).",
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "import": "./src/index.ts",
+      "default": "./src/index.ts"
+    }
+  },
+  "files": [
+    "src"
+  ],
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.2"
+  }
+}

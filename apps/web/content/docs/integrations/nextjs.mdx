@@ -76,9 +76,13 @@ Source: [`examples/nextjs-ai-sdk`](https://github.com/tailrace/tailrace/tree/mai
 
 The example sets `export const runtime = "nodejs"`. `@tailrace/core` and `@tailrace/ai-sdk` also run on Edge when your provider and AI SDK usage are Edge-compatible. Keep vault keys in environment variables (`TAILRACE_VAULT_KEY` or `createTailrace({ vault: { key } })`).
 
+## Deploy
+
+See [Ship an agent on Vercel](/docs/guides/ship-an-agent-on-vercel#deploy-to-vercel) for env vars (`OPENAI_API_KEY`, `TAILRACE_VAULT_KEY`), `vercel` deploy, and production curl checks against `/api/chat`.
+
 ## Guides
 
-- [Protect PII in the AI SDK](/docs/guides/protect-pii-in-ai-sdk)
+- [Ship an agent on Vercel](/docs/guides/ship-an-agent-on-vercel)
 - [Quickstart](/docs/get-started/quickstart)
 
 ## Reference

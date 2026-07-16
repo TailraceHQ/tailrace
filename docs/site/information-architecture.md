@@ -10,8 +10,8 @@ Every page declares `mode: tutorial | guide | concept | reference | integration`
 │   ├── quickstart                    # THE tutorial (§2.1)
 │   └── use-with-ai-tools             # MCP / llms.txt / .md connect matrix
 ├── Guides                            # task-shaped; framework tabs where applicable
+│   ├── ship-an-agent-on-vercel
 │   ├── block-secrets-in-claude-code
-│   ├── protect-pii-in-ai-sdk
 │   ├── govern-mcp-tool-calls
 │   ├── tokenize-and-restore          # incl. workflow ids & egress sinks
 │   ├── write-custom-recognizers

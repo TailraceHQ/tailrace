@@ -47,10 +47,11 @@ export default function Page() {
 
   return (
     <main style={{ maxWidth: 720, margin: "2rem auto", padding: "0 1rem" }}>
-      <h1 style={{ fontSize: "1.5rem" }}>Tailrace Demo 1</h1>
+      <h1 style={{ fontSize: "1.5rem" }}>Your agent on Vercel</h1>
       <p style={{ color: "#444", lineHeight: 1.5 }}>
-        Run A blocks a fake Stripe key before it reaches the (mock) provider. Run B tokenizes an
-        email outbound, then restores it at egress so the UI shows the real address.
+        Ship a Next.js agent with Tailrace: block secrets before the model, tokenize PII, restore at
+        egress. Run A blocks a fake Stripe key. Run B tokenizes an email outbound, then restores it
+        so the UI shows the real address.
       </p>
 
       <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap", marginBottom: "1rem" }}>
