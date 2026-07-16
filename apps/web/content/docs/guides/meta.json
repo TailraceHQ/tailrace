@@ -4,6 +4,8 @@
     "block-secrets-in-claude-code",
     "protect-pii-in-ai-sdk",
     "govern-mcp-tool-calls",
-    "write-custom-recognizers"
+    "write-custom-recognizers",
+    "openai-agents-integration",
+    "cloudflare-agents-integration"
   ]
 }

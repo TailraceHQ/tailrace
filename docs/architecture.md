@@ -5,12 +5,15 @@
 ```
 /
 ├── packages/
-│   ├── core/            # @tailrace/core - detection, policy engine, vault, audit emitter
-│   ├── ai-sdk/          # @tailrace/ai-sdk - Vercel AI SDK middleware + tool wrapper
-│   ├── mcp/             # @tailrace/mcp - MCP client transport wrapper
-│   ├── hono/            # @tailrace/hono - Hono middleware (openai-compatible passthrough mode)
-│   ├── cli/             # @tailrace/cli - `tailrace` binary: init, install-hooks, hook, scan
-│   └── recognizer-ner/  # @tailrace/recognizer-ner - Tier 1 ONNX recognizer (optional peer)
+│   ├── core/               # @tailrace/core - detection, policy engine, vault, audit emitter
+│   ├── adapter/            # @tailrace/adapter - shared tool-wrap / runGoverned helpers (no host peers)
+│   ├── ai-sdk/             # @tailrace/ai-sdk - Vercel AI SDK middleware + tool wrapper
+│   ├── openai-agents/      # @tailrace/openai-agents - OpenAI Agents SDK function-tool wrapper
+│   ├── cloudflare-agents/  # @tailrace/cloudflare-agents - Cloudflare Agents / AIChatAgent helpers (Compose)
+│   ├── mcp/                # @tailrace/mcp - MCP client transport wrapper
+│   ├── hono/               # @tailrace/hono - Hono middleware (openai-compatible passthrough mode)
+│   ├── cli/                # @tailrace/cli - `tailrace` binary: init, install-hooks, hook, scan
+│   └── recognizer-ner/     # @tailrace/recognizer-ner - Tier 1 ONNX recognizer (optional peer)
 ├── apps/
 │   └── web/             # @tailrace/web - docs + marketing site (Next.js + Fumadocs); see docs/site/DOCS_AGENTS.md
 ├── examples/
@@ -25,7 +28,10 @@ Tooling: pnpm workspaces + Turborepo. tsup for builds (ESM + CJS, `.d.ts`). Vite
 ## 2. Package dependency rules
 
 - `core` depends on nothing at runtime (zero prod dependencies; dev deps fine). Everything it needs (HMAC, hashing) uses WebCrypto (`globalThis.crypto.subtle`).
-- `ai-sdk`, `mcp`, `hono`, `cli` depend on `core` plus their host framework as a **peer dependency** (`ai`, `@modelcontextprotocol/sdk`, `hono`).
+- `adapter` depends on `core` only (no host peers). Shared `wrapToolExecute` / `runGoverned` helpers for other integrations.
+- `ai-sdk`, `mcp`, `hono`, `cli` depend on `core` plus their host framework as a **peer dependency** (`ai`, `@modelcontextprotocol/sdk`, `hono`). `ai-sdk` may also depend on `adapter` (public entry only) for shared tool-wrap helpers.
+- `openai-agents` depends on `core` + `adapter`, peer `@openai/agents`.
+- `cloudflare-agents` depends on `core` + **`ai-sdk`** (Compose: reuses `wrapModel` / `wrapTools` / streaming), peers `ai` and the Cloudflare Agents / `@cloudflare/ai-chat` packages bound at implement time. May also use `adapter` for client `onToolCall` wrapping.
 - `recognizer-ner` depends on `onnxruntime` packages and is a peer/optional dep of nothing - users install it explicitly and pass it into config. `core` must never import it.
 - No package may import from another package's internals - public entry points only. Enforce with eslint `no-restricted-imports`.
 
@@ -34,7 +40,10 @@ Tooling: pnpm workspaces + Turborepo. tsup for builds (ESM + CJS, `.d.ts`). Vite
 | Package | Node 20+ | Cloudflare Workers (workerd) | Vercel Edge | Browser |
 |---|---|---|---|---|
 | core | ✅ | ✅ | ✅ | ✅ (best-effort) |
+| adapter | ✅ | ✅ | ✅ | ✅ (best-effort) |
 | ai-sdk | ✅ | ✅ | ✅ | - |
+| openai-agents | ✅ | ✅ | - | - |
+| cloudflare-agents | ✅ | ✅ | - | - |
 | mcp | ✅ | ✅ | - | - |
 | hono | ✅ | ✅ | ✅ | - |
 | cli | ✅ | - | - | - |

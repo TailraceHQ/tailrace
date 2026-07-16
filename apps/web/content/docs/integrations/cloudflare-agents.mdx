@@ -1,0 +1,36 @@
+---
+title: Cloudflare Agents
+description: Compose Tailrace with Cloudflare Agents via @tailrace/ai-sdk wraps, DO identity, and KV vault.
+mode: integration
+---
+
+Best UX for Cloudflare Agents / `AIChatAgent`: one package wires identity, vault, and AI SDK wraps.
+
+## Quickstart
+
+```ts
+import { createCloudflareTailrace, withCloudflareAgents } from "@tailrace/cloudflare-agents";
+import { streamText, convertToModelMessages } from "ai";
+
+const tr = createCloudflareTailrace(env, {
+  agent: this.name,
+  workflowId: this.name,
+  kv: env.TAILRACE_VAULT,
+});
+
+const { model, tools } = withCloudflareAgents(tr, {
+  agent: this.name,
+  workflowId: this.name,
+}).forChat({ model: baseModel, tools: { crm: crmTool } });
+```
+
+Compose: depends on `@tailrace/ai-sdk` (no streaming reimplementation). Peer: `ai@^5`.
+
+## Guides
+
+- [Cloudflare Agents integration](/docs/guides/cloudflare-agents-integration)
+- [Protect PII in AI SDK](/docs/guides/protect-pii-in-ai-sdk)
+
+## Reference
+
+- [cloudflare-agents package](/docs/reference/cloudflare-agents)

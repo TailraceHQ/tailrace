@@ -1,0 +1,24 @@
+---
+title: Adapter
+description: Reference for @tailrace/adapter - shared wrapToolExecute and runGoverned helpers.
+mode: reference
+---
+
+`@tailrace/adapter` provides host-agnostic tool-wrap helpers. No host peers. Consumed by `@tailrace/openai-agents` and `@tailrace/ai-sdk`.
+
+## Install
+
+```bash
+pnpm add @tailrace/core @tailrace/adapter
+```
+
+## Exports
+
+| Export                            | Description                                       |
+| --------------------------------- | ------------------------------------------------- |
+| `wrapToolExecute`                 | Wrap one execute fn (args out + result in)        |
+| `runGoverned`                     | Preflight check → handler → optional result check |
+| `asCheckable` / `unwrapCheckable` | Normalize values for `check`                      |
+| `formatToolBlockError`            | Value-free tool block string                      |
+
+Prefer host packages (`@tailrace/openai-agents`, `@tailrace/ai-sdk`) for framework APIs.

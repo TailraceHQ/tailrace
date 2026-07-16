@@ -1,4 +1,4 @@
 {
   "title": "Integrations",
-  "pages": ["nextjs", "claude-code", "mcp", "hono"]
+  "pages": ["nextjs", "claude-code", "mcp", "hono", "openai-agents", "cloudflare-agents"]
 }

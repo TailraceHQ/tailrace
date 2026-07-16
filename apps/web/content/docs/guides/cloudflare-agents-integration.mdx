@@ -1,0 +1,24 @@
+---
+title: Cloudflare Agents
+description: Compose Tailrace with Cloudflare Agents using @tailrace/ai-sdk under the hood.
+mode: guide
+---
+
+```ts
+import { createCloudflareTailrace, withCloudflareAgents } from "@tailrace/cloudflare-agents";
+
+const tr = createCloudflareTailrace(env, {
+  agent: this.name,
+  workflowId: this.name,
+  kv: env.TAILRACE_VAULT,
+});
+
+const { model, tools } = withCloudflareAgents(tr, {
+  agent: this.name,
+  workflowId: this.name,
+}).forChat({ model: baseModel, tools: { crm: crmTool } });
+```
+
+Compose reuses `@tailrace/ai-sdk` for streaming and tool wraps. Prefer a KV binding for durable tokenization.
+
+Full write-up: [integrations/cloudflare-agents](/docs/integrations/cloudflare-agents) and [reference](/docs/reference/cloudflare-agents).

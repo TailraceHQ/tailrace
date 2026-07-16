@@ -338,3 +338,101 @@ Example deny:
 - Every integration accepts an optional `onDecision(decisions: Decision[])` callback and forwards to the Tailrace instance's audit emitter regardless.
 - All wrappers must be identity-preserving in types: wrapping a model returns a `LanguageModel`, wrapping tools returns the same generic shape. If TypeScript inference degrades, that's a bug.
 - Integration READMEs each contain a copy-paste quickstart ≤ 10 lines.
+
+## 6. @tailrace/adapter: shared tool-wrap helpers
+
+Host-agnostic helpers for integrations. **No host peer dependencies.** Runtime matrix matches core (Node + workerd). Not a drop-in product by itself; consumed by `@tailrace/openai-agents`, optionally `@tailrace/ai-sdk`, and `@tailrace/cloudflare-agents`.
+
+```ts
+import {
+  wrapToolExecute,
+  runGoverned,
+  asCheckable,
+  unwrapCheckable,
+  formatToolBlockError,
+} from "@tailrace/adapter";
+
+const execute = wrapToolExecute(tailrace, "crm", originalExecute, {
+  agent: "support",
+  workflowId: "wf-1",
+});
+
+await runGoverned(
+  tailrace,
+  {
+    boundary: { kind: "tool", name: "crm", direction: "out" },
+    input: args,
+    agent: "support",
+    workflowId: "wf-1",
+  },
+  async () => handler(),
+);
+```
+
+| Export | Role |
+|---|---|
+| `asCheckable` / `unwrapCheckable` | Normalize unknown values for `check`, then restore shape |
+| `formatToolBlockError` | Value-free tool block string (same wording as ai-sdk §1.3) |
+| `wrapToolExecute` | Wrap one `execute` fn: check args `out`, result `in` |
+| `runGoverned` | Preflight check on `input` at caller-supplied `Boundary`, run handler, optional result check |
+
+Caller always supplies `Boundary` (or tool name for `wrapToolExecute`). Adapter never invents policy.
+
+## 7. @tailrace/openai-agents: OpenAI Agents SDK
+
+User guide: [`docs/guides/openai-agents-integration.md`](guides/openai-agents-integration.md).
+
+**Peer dependency:** `@openai/agents` `>=0.3`. Bound against `@openai/agents@0.3.9` / `@openai/agents-core`: `FunctionTool` exposes `invoke(runContext, input: string)` (user `execute` in `tool()` options is compiled into `invoke`). Record further drift here when upgrading.
+
+### Public API (Option C)
+
+```ts
+import { wrapTools, withOpenAiAgents } from "@tailrace/openai-agents";
+import { Agent, tool } from "@openai/agents";
+
+const tools = wrapTools(tailrace, [crmTool], { agent: "support", workflowId: "wf-1" });
+
+const t = withOpenAiAgents(createTailrace());
+const tools2 = t.tools([crmTool], { agent: "support" });
+```
+
+| Surface | Behavior |
+|---|---|
+| Function tools | Wrap `execute`: args `{ kind: "tool", name, direction: "out" }`; result `direction: "in"` |
+| Block | Throw `Error` with `formatToolBlockError` so the model can self-correct |
+| Hosted tools | Out of scope (run off-process) |
+| Model / prompt scan | Out of scope for M7; use tool wraps + SDK input guardrails |
+
+Deps: `@tailrace/core` + `@tailrace/adapter`.
+
+## 8. @tailrace/cloudflare-agents: Cloudflare Agents (Compose)
+
+User guide: [`docs/guides/cloudflare-agents-integration.md`](guides/cloudflare-agents-integration.md).
+
+**Compose:** depends on `@tailrace/ai-sdk` public API for `wrapModel` / `wrapTools` / streaming. Does **not** reimplement carry-buffer or `streamBlockBehavior`.
+
+**Peers:** `ai@^5` (required, same as `@tailrace/ai-sdk`); `agents` `>=0.17` optional for host alignment. `@cloudflare/ai-chat` commonly peers `ai@^6` — Compose targets AI SDK v5 middleware today; document upgrades in this section when `@tailrace/ai-sdk` moves. Bound at M7c against `ai@5.0.x`.
+
+```ts
+import { createCloudflareTailrace, withCloudflareAgents } from "@tailrace/cloudflare-agents";
+
+const tr = createCloudflareTailrace(env, {
+  agent: this.name,
+  workflowId: this.name,
+  kv: env.TAILRACE_VAULT,
+});
+
+const { model, tools } = withCloudflareAgents(tr).forChat({
+  model: baseModel,
+  tools: { crm: crmTool },
+  streamBlockBehavior: "abort",
+});
+```
+
+| Helper | Behavior |
+|---|---|
+| `createCloudflareTailrace` | Builds Tailrace with `kvVault(kv)` when `kv` provided, else `memoryVault()`; identity from opts |
+| `forChat` | Returns ai-sdk-wrapped `model` + `tools` |
+| `wrapOnToolCall` | Check tool args `out` before user handler; check output `in` before `addToolOutput` |
+
+Default `workflowId` / `agent` = Durable Object or agent instance name when provided.
