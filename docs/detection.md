@@ -45,7 +45,19 @@ Implement ALL of the following. Each has (a) a pattern, (b) where applicable a v
 
 ## 3. Tier 1 (@tailrace/recognizer-ner, Node/Fluid only)
 
-Wraps a quantized GLiNER-class ONNX model via `onnxruntime-node`. Emits `person`, `location`, `organization`. Requirements: lazy model load on first scan (never at import); model fetched from HF hub URL pinned by revision + local cache dir, or supplied via `modelPath`; async `scan`; batch inputs internally; document memory footprint. If the model file is unavailable at runtime: log one warning, mark recognizer disabled, continue with Tier 0 (prime directive #4). Model choice is a build-time decision - put candidates and benchmark results in `OPEN_QUESTIONS.md`, pick the best F1-per-MB, don't agonize.
+> **M8 in progress.** Interface requirements below are normative; the concrete model and emitted
+> entity set are locked via [`OPEN_QUESTIONS.md`](../OPEN_QUESTIONS.md) §Open (M8-1…M8-6) and
+> [`m8-plan.md`](m8-plan.md). Until then the package stub throws `NotImplementedError`.
+
+Wraps a quantized ONNX NER / PII token-classification model via `onnxruntime-node`. Historical
+default candidate was GLiNER-class emitting `person`, `location`, `organization`; M8 evaluates
+OpenAI Privacy Filter (BIOES + constrained Viterbi; eight privacy labels incl. `secret`) against
+GLiNER-class on F1-per-MB before locking the default. Requirements: lazy model load on first scan
+(never at import); model fetched from HF hub URL pinned by revision + local cache dir, or supplied
+via `modelPath`; async `scan`; batch inputs internally; document memory footprint. If the model
+file is unavailable at runtime: log one warning, mark recognizer disabled, continue with Tier 0
+(prime directive #4). Model choice is a build-time decision - put candidates and benchmark results
+in `OPEN_QUESTIONS.md`, pick the best F1-per-MB (or the locked M8 criterion), don't agonize.
 
 ## 4. Span merging (in core, after all recognizers run)
 

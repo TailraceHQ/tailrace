@@ -2,13 +2,89 @@
 
 Tracks `// SPEC-QUESTION:` items left in the code (docs/AGENTS.md §When uncertain). Each is either
 resolved in the docs, locked for v0.1, or explicitly deferred (post-v0.1). Milestone M5 triaged
-this list: nothing remains Open for v0.1.
+the v0.1 list. **M8** reopened Tier 1 NER items under §Open - those block `@tailrace/recognizer-ner`
+implementation until answered.
 
 ## Open
 
-_(none)_
+Blocking for **M8** ([`docs/m8-plan.md`](docs/m8-plan.md), [`docs/milestones.md`](docs/milestones.md) §M8).
+Answer these before coding the recognizer body or expanding public entity types.
 
-## Deferred (post-v0.1)
+### M8-1. Default model family
+
+detection.md §3 currently says "GLiNER-class." Leading candidate is now **OpenAI Privacy Filter**
+(Apache 2.0, BIOES + Viterbi, official ONNX already on the hub). Decide:
+
+- Default download = Privacy Filter, GLiNER-class, or no default (require `modelPath`)?
+- Support both behind one `nerRecognizer()` via options, or separate factories?
+- Selection criterion remains F1-per-MB (detection.md §3) - Privacy Filter wins F1, loses MB
+  (~1.5B weights resident despite ~50M active). Is F1-per-MB still the sole lock criterion, or is
+  "best free-text PII + secret recall under a documented memory ceiling" acceptable?
+
+_Site:_ `packages/recognizer-ner/src/index.ts`, docs/detection.md §3.
+
+### M8-2. Entity taxonomy mapping (eight labels → Tailrace)
+
+Privacy Filter emits: `secret`, `account_number`, `private_person`, `private_address`,
+`private_email`, `private_phone`, `private_url`, `private_date`. Today Tailrace NER is only
+`person` | `location` | `organization`. Lock a mapping table before implementation:
+
+| Model label       | → EntityClass                                                 | Expand core types? |
+| ----------------- | ------------------------------------------------------------- | ------------------ |
+| `secret`          | ? (`secret` new `SecretEntityClass` vs `high_entropy_secret`) | ?                  |
+| `account_number`  | ? (`credit_card` / new class)                                 | ?                  |
+| `private_person`  | `person` (proposed)                                           | no                 |
+| `private_address` | ? (`location` vs new)                                         | ?                  |
+| `private_email`   | `email` (proposed; overlaps Tier 0)                           | no                 |
+| `private_phone`   | `phone` (proposed; overlaps Tier 0)                           | no                 |
+| `private_url`     | ? (drop / new / custom-only)                                  | ?                  |
+| `private_date`    | ? (drop / new)                                                | ?                  |
+
+`secret` **must** land on a `SecretEntityClass` so the non-overridable `block` invariant applies
+without a policy special case. Prefer adding `secret` to `SecretEntityClass` over overloading
+`high_entropy_secret` unless we explicitly want Tier 0 and Tier 1 to share one class name.
+
+_Site:_ `packages/core/src/types.ts`, docs/policy-engine.md §2, docs/detection.md §3.
+
+### M8-3. Default policy when Tier 1 is installed
+
+Today NER classes are unset → `defaults.action` (`allow`). If Tier 1 emits `secret` (and possibly
+richer PII), should `createTailrace()` zero-config change when `nerRecognizer()` is registered?
+
+Options: (a) no change - users must set policy for new classes; (b) extend default policy so
+Tier 1 `secret` → `block` and chosen PII → `tokenize`; (c) `nerRecognizer()` registers a
+recommended policy fragment the host merges. Prefer (b) only if mapping in M8-2 is locked.
+
+_Site:_ `packages/core/src/policy/default.ts`, docs/policy-engine.md §2.
+
+### M8-4. ONNX artifact to pin
+
+Official hub already ships `onnx/model.onnx`, `model_fp16.onnx`, `model_quantized.onnx`,
+`model_q4.onnx`, `model_q4f16.onnx`. Decide default precision / file, HF revision pin, and
+whether we still need a Tailrace-owned int8 export. Self-convert only if official quantized
+builds fail onnxruntime-node or miss a quality bar.
+
+_Site:_ `packages/recognizer-ner`, docs/m8-plan.md Phase 2.
+
+### M8-5. Async engine + overlap semantics (design lock, then implement)
+
+`check()` is already async, but the detection engine still rejects Promise `scan` results.
+Confirm: await all recognizers; Tier 1 throw → skip that recognizer + one warning (fail open);
+Tier 0 stays sync. Overlapping Tier 0 + Tier 1 spans for the same entity → existing merge
+(union); different entities → keep both + most-restrictive-action. Any change needed for
+"Tier 1 secret vs Tier 0 `api_key`" double hits?
+
+_Site:_ `packages/core/src/detect/engine.ts`.
+
+### M8-6. Benchmark protocol (needed to close M8-1)
+
+Before locking the default model, define: fixture corpus (synthetic only), metrics (span-level
+F1 per mapped entity, disk MB, RSS, p50 ms on a fixed input size), and GLiNER-class comparison
+checkpoints. Results land in this file; then M8-1 moves to Resolved.
+
+_Track:_ docs/m8-plan.md Phase 3.
+
+## Deferred (post-v0.1 / post-M8)
 
 - **Custom pattern `validate()` callback.** Optional per-match `validate(match, text) => boolean` on
   `definePatternRecognizer` deferred to keep Tier 0 sync contract simple. Track in
@@ -25,9 +101,8 @@ _(none)_
   a `block`-configured entity's recognizer fails at runtime. M6 documents the gap (fail-open skip).
   _Track:_ [`docs/m6-plan.md`](docs/m6-plan.md) §Unresolved.
 
-- **Tier 1 NER model choice.** Pick the specific GLiNER-class ONNX model with the best F1-per-MB and
-  record candidates + benchmark results here (docs/detection.md §3). _Site:_
-  `packages/recognizer-ner/src/index.ts`.
+- **Tier 1 on edge / browser.** architecture.md keeps recognizer-ner off Workers/Edge for now;
+  transformers.js / WebGPU path deferred. _Track:_ docs/m8-plan.md non-goals.
 
 - **wrapTools array/primitive envelope.** `asCheckable` wraps non-object tool args/results as
   `{ value: … }` so object-scan can walk leaves. A tool that natively returns `{ value: … }` is

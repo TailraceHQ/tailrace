@@ -98,6 +98,20 @@ Implementation plan: [`m7-plan.md`](m7-plan.md). Guides: [`guides/openai-agents-
 - [x] `withCloudflareAgents(tr).forChat` composing `@tailrace/ai-sdk` wraps (no streaming reimplementation)
 - [x] `wrapOnToolCall` for client tools; workerd tests green
 
+## M8: Tier 1 NER (`@tailrace/recognizer-ner`)
+
+Implementation plan: [`m8-plan.md`](m8-plan.md). Normative detection surface: [`detection.md`](detection.md) §3 (updated once taxonomy + model are locked).
+
+Candidate primary model: OpenAI Privacy Filter (Apache 2.0; BIOES token classification + constrained Viterbi). Benchmark against GLiNER-class ONNX candidates; pick by F1-per-MB per detection.md §3.
+
+- [ ] Lock open questions in [`OPEN_QUESTIONS.md`](../OPEN_QUESTIONS.md) §Open (taxonomy mapping, default ONNX artifact, async engine wiring, default policy for Tier 1 entities)
+- [ ] Core detection engine accepts async (Tier 1) recognizers; fail-open if a Tier 1 scan throws or model is unavailable
+- [ ] ONNX artifact: prefer official `openai/privacy-filter` exports (incl. quantized); self-convert/quantize only if a better int8 candidate is needed
+- [ ] `nerRecognizer()`: lazy load on first scan, HF revision pin + cache / `modelPath`, Node/Fluid only
+- [ ] BIOES + constrained Viterbi decode in TypeScript; map model labels → Tailrace `EntityClass` (incl. `secret` → secret-class for non-overridable `block`)
+- [ ] Benchmark Privacy Filter vs GLiNER-class candidates; record F1-per-MB + memory in `OPEN_QUESTIONS.md`; lock default model
+- [ ] Update `docs/detection.md` §3 + package README; corpus / smoke fixtures (synthetic only); CI gate for Tier 1 opt-in path
+
 ## Demos (must run from fresh clone, commands documented in each example's README)
 
 **Demo 1: "Your agent just leaked a key."** Next.js route: user prompt contains a fake Stripe key + an email. Run A: request aborted with `PolicyViolationError` naming `api_key` - the secret never reaches the provider (mock model default in CI). Run B: key removed, email tokenized in outbound params (log transformed params), mock model echoes, route calls `tailrace.restore` at egress `ui` before responding - UI shows the real email.

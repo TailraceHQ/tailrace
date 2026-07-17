@@ -18,8 +18,8 @@ export interface NerRecognizerOptions {
   cacheDir?: string;
 }
 
-// Deferred: pick the specific GLiNER-class model (best F1-per-MB) post-v0.1 and
-// record candidates + benchmarks in OPEN_QUESTIONS.md (docs/detection.md §3).
+// M8: lock OPEN_QUESTIONS.md M8-1…M8-6 (Privacy Filter vs GLiNER, taxonomy, ONNX
+// artifact), then implement. See docs/m8-plan.md and docs/detection.md §3.
 
 /**
  * Build the Tier 1 NER recognizer to pass into `createTailrace({ recognizers: [...] })`.
