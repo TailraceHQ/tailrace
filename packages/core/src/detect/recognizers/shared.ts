@@ -42,11 +42,6 @@ export function scanPatterns(
     while ((m = re.exec(text)) !== null) {
       if (++iterations > maxIterations) break;
 
-      if (performance.now() - started > budgetMs) {
-        limits?.onBudgetExceeded?.();
-        return spans;
-      }
-
       spans.push({ entity, start: m.index, end: m.index + m[0].length, confidence, recognizer });
       matchCount++;
       if (matchCount >= maxMatches) {
@@ -54,6 +49,13 @@ export function scanPatterns(
         return spans;
       }
       if (m[0].length === 0) re.lastIndex++;
+
+      // Check the wall-clock budget only after recording a match, so a slow cold
+      // first iteration can never drop the matches actually found on tiny inputs.
+      if (performance.now() - started > budgetMs) {
+        limits?.onBudgetExceeded?.();
+        return spans;
+      }
     }
   }
   return spans;
