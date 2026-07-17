@@ -81,10 +81,10 @@ Read `app/api/chat/route.ts` in your project (same shape as the [monorepo exampl
 4. `tailrace.restore` at `{ kind: "egress", sink: "ui" }` - detokenize only at egress.
 5. `PolicyViolationError` → HTTP 422 JSON.
 
-| Option       | Purpose                                                                          |
-| ------------ | -------------------------------------------------------------------------------- |
-| `agent`      | Selects `identities` overrides in your policy. Defaults to `"default"`.          |
-| `workflowId` | Vault scope for tokens. Same ID + same value → same token every time.            |
+| Option       | Purpose                                                                 |
+| ------------ | ----------------------------------------------------------------------- |
+| `agent`      | Selects `identities` overrides in your policy. Defaults to `"default"`. |
+| `workflowId` | Vault scope for tokens. Same ID + same value → same token every time.   |
 
 Pass the same `workflowId` to `model`, `tools`, and `restore` within one conversation. The example reads it from `x-workflow-id` (or generates a per-request UUID).
 
@@ -176,10 +176,10 @@ npx @tailrace/cli create cloudflare my-agent
 npx @tailrace/cli create openai my-agent
 ```
 
-| Target       | Guide                                                              | CLI                                      |
-| ------------ | ------------------------------------------------------------------ | ---------------------------------------- |
-| `cloudflare` | [Cloudflare Agents](/docs/guides/cloudflare-agents-integration)    | [CLI `create`](/docs/reference/cli#create) |
-| `openai`     | [OpenAI Agents SDK](/docs/guides/openai-agents-integration)        | [CLI `create`](/docs/reference/cli#create) |
+| Target       | Guide                                                           | CLI                                        |
+| ------------ | --------------------------------------------------------------- | ------------------------------------------ |
+| `cloudflare` | [Cloudflare Agents](/docs/guides/cloudflare-agents-integration) | [CLI `create`](/docs/reference/cli#create) |
+| `openai`     | [OpenAI Agents SDK](/docs/guides/openai-agents-integration)     | [CLI `create`](/docs/reference/cli#create) |
 
 Full flags and template details: [CLI reference](/docs/reference/cli#create).
 

@@ -34,16 +34,16 @@ tailrace create cloudflare my-agent
 tailrace create openai my-agent
 ```
 
-| Target       | Stack                                      | Tailrace packages                                      |
-| ------------ | ------------------------------------------ | ------------------------------------------------------ |
-| `next`       | Next.js App Router + AI SDK                | `@tailrace/core`, `@tailrace/ai-sdk`                   |
-| `cloudflare` | Cloudflare Worker + AI SDK Compose         | `@tailrace/core`, `@tailrace/cloudflare-agents`        |
-| `openai`     | `@openai/agents` Node entrypoint           | `@tailrace/core`, `@tailrace/openai-agents`            |
+| Target       | Stack                              | Tailrace packages                               |
+| ------------ | ---------------------------------- | ----------------------------------------------- |
+| `next`       | Next.js App Router + AI SDK        | `@tailrace/core`, `@tailrace/ai-sdk`            |
+| `cloudflare` | Cloudflare Worker + AI SDK Compose | `@tailrace/core`, `@tailrace/cloudflare-agents` |
+| `openai`     | `@openai/agents` Node entrypoint   | `@tailrace/core`, `@tailrace/openai-agents`     |
 
-| Flag         | Effect                                                                 |
-| ------------ | ---------------------------------------------------------------------- |
-| `--force`    | Allow a non-empty destination directory                                |
-| `--install`  | Run the detected package manager install after writing files           |
+| Flag        | Effect                                                       |
+| ----------- | ------------------------------------------------------------ |
+| `--force`   | Allow a non-empty destination directory                      |
+| `--install` | Run the detected package manager install after writing files |
 
 Defaults: destination `my-agent` when `[dir]` is omitted. Pins `@tailrace/*` dependencies to the CLI package version. Writes `.env.example` and a README with install / verify / deploy steps. Prints host-specific curl (or `npm run verify`) hints on success.
 
