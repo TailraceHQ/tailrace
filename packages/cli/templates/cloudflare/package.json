@@ -1,0 +1,28 @@
+{
+  "name": "__PACKAGE_NAME__",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "typecheck": "tsc --noEmit",
+    "verify": "tsx scripts/verify.ts"
+  },
+  "dependencies": {
+    "@ai-sdk/openai": "^2",
+    "@ai-sdk/provider": "2.0.3",
+    "@tailrace/ai-sdk": "__TAILRACE_VERSION__",
+    "@tailrace/cloudflare-agents": "__TAILRACE_VERSION__",
+    "@tailrace/core": "__TAILRACE_VERSION__",
+    "ai": "^5",
+    "zod": "^4.0.0"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20241218.0",
+    "@types/node": "^22.10.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.7.2",
+    "wrangler": "^4.0.0"
+  }
+}

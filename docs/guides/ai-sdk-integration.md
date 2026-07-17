@@ -1,6 +1,6 @@
-# Guide: Ship an agent on Vercel (AI SDK)
+# Guide: Ship an agent (AI SDK / Vercel)
 
-User-facing companion to [`integrations.md`](../integrations.md) §1. Site guide: [`ship-an-agent-on-vercel.mdx`](../../apps/web/content/docs/guides/ship-an-agent-on-vercel.mdx). For acceptance criteria see [`milestones.md`](../milestones.md) §M3.
+User-facing companion to [`integrations.md`](../integrations.md) §1. Site tutorial: [`ship-an-agent-on-vercel.mdx`](../../apps/web/content/docs/guides/ship-an-agent-on-vercel.mdx). For acceptance criteria see [`milestones.md`](../milestones.md) §M3.
 
 ## Overview
 

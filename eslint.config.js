@@ -9,6 +9,7 @@ export default tseslint.config(
       "**/.turbo/**",
       "**/.next/**",
       "**/.source/**",
+      "packages/cli/templates/**",
       "**/*.config.ts",
       "**/*.config.js",
       "**/*.config.mjs",

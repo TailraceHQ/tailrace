@@ -10,3 +10,7 @@ CHANGELOG.md
 # Normative, hand-authored specs - kept verbatim, not reflowed by the formatter.
 docs/**
 AGENTS.md
+
+# CLI scaffold templates - byte-exact fixtures with `__PLACEHOLDER__` tokens the
+# formatter would otherwise mangle (e.g. `__PACKAGE_NAME__` -> bold in markdown).
+packages/cli/templates/**

@@ -198,4 +198,4 @@ scripts/
 ## Related docs
 
 - [`@tailrace/ai-sdk` README](../../packages/ai-sdk/README.md)
-- [Ship an agent on Vercel guide](../../apps/web/content/docs/guides/ship-an-agent-on-vercel.mdx)
+- [Ship an agent](../../apps/web/content/docs/guides/ship-an-agent-on-vercel.mdx) - full clone → verify → deploy tutorial

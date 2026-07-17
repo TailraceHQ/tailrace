@@ -1,6 +1,6 @@
 ---
 title: CLI
-description: Reference for the tailrace binary - init, scan, install-hooks, and the Claude Code hook handler.
+description: Reference for the tailrace binary - create, init, scan, install-hooks, and the Claude Code hook handler.
 mode: reference
 ---
 
@@ -10,16 +10,46 @@ mode: reference
 
 ```bash
 pnpm add -D @tailrace/cli
+# or one-shot:
+npx @tailrace/cli create next my-agent
 ```
 
 ## Commands
 
 | Command                                          | Description                                                        |
 | ------------------------------------------------ | ------------------------------------------------------------------ |
+| `tailrace create <target> [dir]`                 | Scaffold a governed agent app (`next` \| `cloudflare` \| `openai`) |
 | `tailrace init [--force]`                        | Detect stack; write `tailrace.config.ts` + `.tailrace/config.json` |
 | `tailrace scan <path\|-> [--json]`               | Tier 0 scan; exit 1 on any `block`-class hit                       |
 | `tailrace install-hooks [--scope project\|user]` | Merge hooks into Claude Code settings (backup first)               |
 | `tailrace hook`                                  | Claude Code PreToolUse / PostToolUse handler (stdin → stdout)      |
+
+## `create`
+
+Scaffold a new project from a bundled template (no git clone of Tailrace). Distinct from `init`, which adds config to an existing repo.
+
+```bash
+tailrace create next my-agent
+tailrace create cloudflare my-agent
+tailrace create openai my-agent
+```
+
+| Target       | Stack                                      | Tailrace packages                                      |
+| ------------ | ------------------------------------------ | ------------------------------------------------------ |
+| `next`       | Next.js App Router + AI SDK                | `@tailrace/core`, `@tailrace/ai-sdk`                   |
+| `cloudflare` | Cloudflare Worker + AI SDK Compose         | `@tailrace/core`, `@tailrace/cloudflare-agents`        |
+| `openai`     | `@openai/agents` Node entrypoint           | `@tailrace/core`, `@tailrace/openai-agents`            |
+
+| Flag         | Effect                                                                 |
+| ------------ | ---------------------------------------------------------------------- |
+| `--force`    | Allow a non-empty destination directory                                |
+| `--install`  | Run the detected package manager install after writing files           |
+
+Defaults: destination `my-agent` when `[dir]` is omitted. Pins `@tailrace/*` dependencies to the CLI package version. Writes `.env.example` and a README with install / verify / deploy steps. Prints host-specific curl (or `npm run verify`) hints on success.
+
+Refuses a non-empty directory unless `--force`.
+
+For adding Tailrace to an existing app, use [`init`](#init) instead.
 
 ## `init`
 
@@ -68,5 +98,6 @@ Omit `policy` for the default (secrets → block, common PII → tokenize). Pref
 
 ## Guides
 
+- [Ship an agent](/docs/guides/ship-an-agent-on-vercel)
 - [Block secrets in Claude Code](/docs/guides/block-secrets-in-claude-code)
 - [Claude Code integration](/docs/integrations/claude-code)
