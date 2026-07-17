@@ -1,135 +1,54 @@
 ---
-title: Ship an agent on Vercel
-description: Deploy a Next.js agent with Tailrace - block secrets, tokenize PII, restore at egress.
-mode: guide
+title: Ship an agent
+description: Scaffold a Next.js agent with Tailrace, verify block and tokenize locally, then deploy to Vercel for semi-prod use.
+mode: tutorial
 ---
 
-You will leave this guide with a Vercel-deployed Next.js route that governs model and tool traffic with Tailrace - secrets blocked before the provider, PII tokenized, and values restored at egress.
+You will leave this tutorial with a Vercel-hosted Next.js agent that governs model and tool traffic with Tailrace: secrets blocked before the provider, PII tokenized, and values restored at egress.
 
-## When to use this
-
-- You send user or ticket data to OpenAI, Anthropic, or other providers through the AI SDK.
-- Agent tools read CRM records, databases, or files that may contain PII or secrets.
-- You need the same email to become the same token across a multi-step agent run.
-- You want to deploy that agent to Vercel with the same policy behavior as local Demo 1.
+Stack: **Next.js App Router + AI SDK + Vercel**. Scaffold with `tailrace create next`, then follow the steps below. For Cloudflare Workers or OpenAI Agents SDK, see [Other stacks](#other-stacks).
 
 ## Prerequisites
 
-- [Quickstart](/docs/get-started/quickstart) completed, or equivalent `createTailrace` + `wrapModel` setup
-- `ai@^5` and a provider package (`@ai-sdk/openai`, etc.)
+- Node 20+
+- A package manager (`npm`, `pnpm`, or `yarn`)
+- Optional for live / deploy: an OpenAI API key and the [Vercel CLI](https://vercel.com/docs/cli)
 
-## Step 1: Choose an API shape
+Snippet-only setup (no scaffold): [Quickstart](/docs/get-started/quickstart).
 
-Two equivalent forms ship in v0.1:
+## Step 1: Scaffold and run
 
-**Fluent** (recommended for app code):
-
-```ts
-import { createTailrace } from "@tailrace/core";
-import { withAiSdk } from "@tailrace/ai-sdk";
-
-const tailrace = withAiSdk(createTailrace());
-const model = tailrace.model(openai("gpt-4o"));
-const tools = tailrace.tools({ search: searchTool });
+```bash
+npx @tailrace/cli create next my-agent
+cd my-agent
+npm install   # or pnpm / yarn
+npm run dev
 ```
 
-**Standalone** (explicit imports):
+If you already have `@tailrace/cli` installed: `tailrace create next my-agent`.
 
-```ts
-import { wrapModel, wrapTools } from "@tailrace/ai-sdk";
+Open [http://localhost:3000](http://localhost:3000). The route uses an in-process mock when `OPENAI_API_KEY` is unset - no provider key required for local verify.
 
-const model = wrapModel(tailrace, openai("gpt-4o"));
-const tools = wrapTools(tailrace, { search: searchTool });
+### From source / contributing
+
+To run the published monorepo example instead of a scaffolded app:
+
+```bash
+git clone https://github.com/tailrace/tailrace.git
+cd tailrace
+pnpm install
+pnpm --filter @tailrace/core build
+pnpm --filter @tailrace/ai-sdk build
+pnpm --filter example-nextjs-ai-sdk dev
 ```
 
-## Step 2: Set agent and workflow ID
+That path is for contributors and anyone comparing against [`examples/nextjs-ai-sdk`](https://github.com/tailrace/tailrace/tree/main/examples/nextjs-ai-sdk). The rest of this tutorial assumes a scaffolded `my-agent` directory; adjust paths if you cloned the monorepo.
 
-```ts
-const model = tailrace.model(openai("gpt-4o"), {
-  agent: "support-bot",
-  workflowId: sessionId,
-});
-```
+## Step 2: Verify block and tokenize locally
 
-| Option       | Purpose                                                                          |
-| ------------ | -------------------------------------------------------------------------------- |
-| `agent`      | Selects `identities` overrides in your policy document. Defaults to `"default"`. |
-| `workflowId` | Vault scope for tokens. Same ID + same value → same token every time.            |
+### Run A: block a secret
 
-Pass the same `workflowId` to `model`, `tools`, and `restore` within one conversation.
-
-## Step 3: Wrap tools
-
-```ts
-import { tool } from "ai";
-import { z } from "zod";
-
-const tools = tailrace.tools(
-  {
-    fetchOrder: tool({
-      description: "Fetch order by id",
-      inputSchema: z.object({ orderId: z.string() }),
-      execute: async ({ orderId }) => db.orders.get(orderId),
-    }),
-  },
-  { agent: "support-bot", workflowId: sessionId },
-);
-```
-
-Tailrace checks:
-
-- Tool **arguments** at `{ kind: "tool", name, direction: "out" }`
-- Tool **results** at `{ kind: "tool", name, direction: "in" }`
-
-On block, the model receives a readable error (not a stack trace):
-
-```text
-Blocked by data policy: api_key may not be sent to tool:fetchOrder:out (rule: entities.api_key)
-```
-
-Tools without `execute` are not wrapped.
-
-## Step 4: Restore at egress
-
-The model wrapper tokenizes PII in prompts and completions. Your HTTP handler (or trusted UI sink) restores tokens:
-
-```ts
-const result = await generateText({ model, prompt });
-
-const { output } = await tailrace.restore(result.text, {
-  boundary: { kind: "egress", sink: "ui" },
-  identity: { agent: "support-bot" },
-  workflowId: sessionId,
-});
-
-return Response.json({ text: output });
-```
-
-Pick a sink name that matches your policy (`egress:ui`, `egress:*`, etc.).
-
-## Step 5: Configure streaming (optional)
-
-For `streamText`, choose how policy **`block`** on model **output** is handled:
-
-```ts
-const model = tailrace.model(openai("gpt-4o"), {
-  streamBlockBehavior: "abort", // default - recommended
-});
-```
-
-| Mode     | Behavior                                                                      |
-| -------- | ----------------------------------------------------------------------------- |
-| `abort`  | Hold-back scan; throw `PolicyViolationError`; fail-closed                     |
-| `buffer` | Buffer full response; check at end; throw on block                            |
-| `redact` | Replace blocked spans with `[ENTITY]`; stream continues - **not fail-closed** |
-
-Input blocking always aborts before the provider runs. `redact` applies only to streaming output.
-
-Non-streaming `generateText` always throws on output `block`.
-
-## Verify it works
-
-### Block
+Click **Run A - block secret**, or:
 
 ```bash
 curl -s -X POST http://localhost:3000/api/chat \
@@ -137,9 +56,11 @@ curl -s -X POST http://localhost:3000/api/chat \
   -d '{"prompt":"Use sk_test_51FakeKeyForTailraceTests000FAKE"}' | jq .
 ```
 
-Expect `422` and `"entity": "api_key"`.
+Expect **422** and `"entity": "api_key"`. The fake key never reaches the model. Server logs show `entity` and hashes only - never the raw value.
 
-### Tokenize + restore
+### Run B: tokenize + restore
+
+Click **Run B - tokenize + restore**, or:
 
 ```bash
 curl -s -X POST http://localhost:3000/api/chat \
@@ -148,24 +69,64 @@ curl -s -X POST http://localhost:3000/api/chat \
   -d '{"prompt":"Email customer@example.com"}' | jq .
 ```
 
-Expect `200`, `modelSaw` containing `<EMAIL_…>`, and `text` containing the real email.
+Expect **200**, `modelSaw` containing `<EMAIL_…>`, and `text` containing `customer@example.com`.
 
-## Deploy to Vercel
+## Step 3: Understand the Tailrace wiring
 
-Runnable example: [`examples/nextjs-ai-sdk`](https://github.com/tailrace/tailrace/tree/main/examples/nextjs-ai-sdk) - dual-mode mock (CI) or OpenAI when `OPENAI_API_KEY` is set, plus a governed `lookupCustomer` tool.
+Read `app/api/chat/route.ts` in your project (same shape as the [monorepo example](https://github.com/tailrace/tailrace/blob/main/examples/nextjs-ai-sdk/app/api/chat/route.ts)). The flow is:
 
-1. Copy env from `.env.example` and set:
-   - `OPENAI_API_KEY` - provider key for the live path
-   - `TAILRACE_VAULT_KEY` - stable vault secret (keep the same value across deploys)
-2. Deploy with the [Vercel CLI](https://vercel.com/docs/cli) or **Import Git** in the dashboard (project root `examples/nextjs-ai-sdk`):
+1. `createTailrace` + `withAiSdk` - default policy (secrets → block, common PII → tokenize).
+2. `tailrace.model(...)` / `tailrace.tools(...)` - same `workflowId` and `agent` on both.
+3. `generateText` - Tailrace scans prompts and tool traffic before work proceeds.
+4. `tailrace.restore` at `{ kind: "egress", sink: "ui" }` - detokenize only at egress.
+5. `PolicyViolationError` → HTTP 422 JSON.
+
+| Option       | Purpose                                                                          |
+| ------------ | -------------------------------------------------------------------------------- |
+| `agent`      | Selects `identities` overrides in your policy. Defaults to `"default"`.          |
+| `workflowId` | Vault scope for tokens. Same ID + same value → same token every time.            |
+
+Pass the same `workflowId` to `model`, `tools`, and `restore` within one conversation. The example reads it from `x-workflow-id` (or generates a per-request UUID).
+
+Fluent vs standalone wrappers, streaming `streamBlockBehavior`, and full options: [AI SDK reference](/docs/reference/ai-sdk).
+
+## Step 4: Switch to a live provider
 
 ```bash
-cd examples/nextjs-ai-sdk
+cp .env.example .env.local
+```
+
+| Variable             | Purpose                                                          |
+| -------------------- | ---------------------------------------------------------------- |
+| `OPENAI_API_KEY`     | When set, the route uses `openai("gpt-4o-mini")` instead of mock |
+| `TAILRACE_VAULT_KEY` | Stable vault secret (required for live / deploy)                 |
+
+Restart the dev server, then ask the model to use the governed tool:
+
+```text
+Look up customer cust_42 and draft a short reply to their email.
+```
+
+`lookupCustomer` returns synthetic `customer@example.com`. Tailrace tokenizes that result on the tool `in` boundary; egress restore puts the real address back in the UI response.
+
+## Step 5: Deploy to Vercel
+
+1. Deploy from your scaffolded app directory (Import Git in the dashboard, or CLI from that directory). Monorepo contributors: set the Vercel project root to `examples/nextjs-ai-sdk`.
+2. Add env vars in the Vercel project:
+   - `OPENAI_API_KEY` - provider key
+   - `TAILRACE_VAULT_KEY` - stable secret (for example `openssl rand -base64 32`). Keep the same value across deploys so tokens remain decryptable.
+3. Deploy:
+
+```bash
+cd my-agent
 vercel
 ```
 
-3. Add the same env vars in the Vercel project settings, then redeploy if needed.
-4. Verify on the production URL:
+## Step 6: Semi-prod verify
+
+### Production curls
+
+Replace `YOUR_DEPLOYMENT` with your Vercel hostname:
 
 ```bash
 # Expect 422 + entity api_key
@@ -180,9 +141,17 @@ curl -s -X POST "https://YOUR_DEPLOYMENT.vercel.app/api/chat" \
   -d '{"prompt":"Email customer@example.com"}' | jq .
 ```
 
-### Production vault note
+Use a stable `x-workflow-id` across related requests in a conversation so tokens stay consistent.
 
-Within a single request, default `memoryVault` is enough for tokenize + restore. For multi-invocation token stability on serverless, use `kvVault` with a Redis/Upstash shim (5-line adapter over `{ get, put, delete }` per [`docs/vault.md`](https://github.com/tailrace/tailrace/blob/main/docs/vault.md) §2). See the example README for a concrete shim.
+### memoryVault vs kvVault
+
+Within a **single** request, default `memoryVault` is enough for tokenize + restore (the vault lives for the request lifetime).
+
+For **multi-invocation** token stability on serverless (same token across separate function invocations), use `kvVault` with a Redis/Upstash shim - a short adapter over `{ get, put, delete }` per [`docs/vault.md`](https://github.com/tailrace/tailrace/blob/main/docs/vault.md) §2. See the [example README](https://github.com/tailrace/tailrace/blob/main/examples/nextjs-ai-sdk/README.md#production-vault-note) for a concrete Upstash-shaped shim. Tailrace does not bundle a Redis package.
+
+### Audit hygiene
+
+Pass `onDecision` (as the example does) if you want structured logs. Decisions carry `entity`, `rule`, and hashes - never raw sensitive values. Do not log prompts or vault plaintext in production.
 
 ## Troubleshooting
 
@@ -198,8 +167,26 @@ You called `restore` at a model or tool boundary. Use `{ kind: "egress", sink: "
 
 A secret-class pattern matched in model output. Default policy blocks echoed secrets. Adjust policy only with care - secrets cannot be overridden to `allow` without `dangerouslyAllowSecrets: true`.
 
+## Other stacks
+
+`tailrace create` also scaffolds Cloudflare Workers and OpenAI Agents SDK apps:
+
+```bash
+npx @tailrace/cli create cloudflare my-agent
+npx @tailrace/cli create openai my-agent
+```
+
+| Target       | Guide                                                              | CLI                                      |
+| ------------ | ------------------------------------------------------------------ | ---------------------------------------- |
+| `cloudflare` | [Cloudflare Agents](/docs/guides/cloudflare-agents-integration)    | [CLI `create`](/docs/reference/cli#create) |
+| `openai`     | [OpenAI Agents SDK](/docs/guides/openai-agents-integration)        | [CLI `create`](/docs/reference/cli#create) |
+
+Full flags and template details: [CLI reference](/docs/reference/cli#create).
+
 ## Related
 
-- [Next.js integration](/docs/integrations/nextjs) - runnable Demo 1 app
+- [CLI `create`](/docs/reference/cli#create) - scaffold next / cloudflare / openai
+- [Quickstart](/docs/get-started/quickstart) - snippet-only install
+- [Next.js integration](/docs/integrations/nextjs) - boundaries and Edge notes
 - [wrapModel reference](/docs/reference/ai-sdk/wrap-model)
 - [streamBlockBehavior reference](/docs/reference/ai-sdk/options#streamblockbehavior)

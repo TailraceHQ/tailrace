@@ -1,0 +1,13 @@
+name = "__PACKAGE_NAME__"
+main = "src/index.ts"
+compatibility_date = "2024-12-18"
+compatibility_flags = ["nodejs_compat"]
+
+[[kv_namespaces]]
+binding = "TAILRACE_VAULT"
+id = "00000000000000000000000000000000"
+preview_id = "00000000000000000000000000000000"
+
+# After `wrangler kv namespace create TAILRACE_VAULT`, replace the ids above.
+# Set secrets: wrangler secret put OPENAI_API_KEY
+#              wrangler secret put TAILRACE_VAULT_KEY

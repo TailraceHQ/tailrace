@@ -4,7 +4,7 @@ const INTEGRATIONS = [
   {
     name: "AI SDK",
     href: "/docs/guides/ship-an-agent-on-vercel",
-    blurb: "Ship a governed agent on Vercel",
+    blurb: "Ship a governed agent",
   },
   {
     name: "Claude Code",

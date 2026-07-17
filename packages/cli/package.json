@@ -1,7 +1,7 @@
 {
   "name": "@tailrace/cli",
   "version": "0.1.0",
-  "description": "The `tailrace` CLI: init, scan, install-hooks, and the Claude Code hook handler.",
+  "description": "The `tailrace` CLI: create, init, scan, install-hooks, and the Claude Code hook handler.",
   "license": "MIT",
   "type": "module",
   "bin": {
@@ -24,6 +24,7 @@
   },
   "files": [
     "dist",
+    "templates",
     "README.md"
   ],
   "scripts": {

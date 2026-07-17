@@ -1,9 +1,10 @@
 /**
  * @tailrace/cli - programmatic entry for the `tailrace` binary.
  *
- * Commands (docs/integrations.md §4): `init`, `scan`, `install-hooks`, `hook`.
+ * Commands (docs/integrations.md §4): `create`, `init`, `scan`, `install-hooks`, `hook`.
  */
 
+import { runCreate } from "./commands/create";
 import { runHook } from "./commands/hook";
 import { runInit } from "./commands/init";
 import { runInstallHooks } from "./commands/install-hooks";
@@ -11,16 +12,17 @@ import { runScan } from "./commands/scan";
 import { parseArgs } from "./internal/args";
 import { formatCliError } from "./internal/errors";
 
-export const COMMANDS = ["init", "scan", "install-hooks", "hook"] as const;
+export const COMMANDS = ["create", "init", "scan", "install-hooks", "hook"] as const;
 export type Command = (typeof COMMANDS)[number];
 
 const HELP = `Usage: tailrace <command> [options]
 
 Commands:
-  init              Scaffold tailrace.config.ts + .tailrace/config.json [--force] [--agent-rules]
-  scan <path|->     Tier 0 scan; exit 1 on block-class entities [--json]
-  install-hooks     Merge Claude Code PreToolUse/PostToolUse hooks [--scope project|user]
-  hook              Claude Code hook handler (stdin JSON → stdout JSON)
+  create <target> [dir]  Scaffold a governed agent app (next|cloudflare|openai) [--force] [--install]
+  init                   Scaffold tailrace.config.ts + .tailrace/config.json [--force] [--agent-rules]
+  scan <path|->          Tier 0 scan; exit 1 on block-class entities [--json]
+  install-hooks          Merge Claude Code PreToolUse/PostToolUse hooks [--scope project|user]
+  hook                   Claude Code hook handler (stdin JSON → stdout JSON)
 
 Docs: https://tailrace.dev/docs
 MCP:  https://tailrace.dev/mcp
@@ -45,6 +47,8 @@ export async function run(argv: string[]): Promise<number> {
 
   try {
     switch (command) {
+      case "create":
+        return await runCreate(args);
       case "init":
         return await runInit(args);
       case "scan":

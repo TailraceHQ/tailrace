@@ -1,0 +1,29 @@
+{
+  "name": "__PACKAGE_NAME__",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@ai-sdk/openai": "^2",
+    "@ai-sdk/provider": "2.0.3",
+    "@tailrace/ai-sdk": "__TAILRACE_VERSION__",
+    "@tailrace/core": "__TAILRACE_VERSION__",
+    "ai": "^5",
+    "next": "^15.1.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "zod": "^4.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "typescript": "^5.7.2"
+  }
+}

@@ -214,5 +214,65 @@ describe("hook PostToolUse", () => {
 describe("help", () => {
   it("lists commands", async () => {
     expect(await run(["--help"])).toBe(0);
+    const calls = vi
+      .mocked(process.stdout.write)
+      .mock.calls.map((c) => String(c[0]))
+      .join("");
+    expect(calls).toContain("create");
+    expect(calls).toContain("init");
+  });
+});
+
+describe("create", () => {
+  it("scaffolds next with pinned versions and refuses non-empty without --force", async () => {
+    const parent = workspaceTempDir();
+    const dest = join(parent, "my-next-agent");
+    expect(await run(["create", "next", dest])).toBe(0);
+
+    const pkg = JSON.parse(readFileSync(join(dest, "package.json"), "utf8")) as {
+      name: string;
+      dependencies: Record<string, string>;
+    };
+    expect(pkg.name).toBe("my-next-agent");
+    expect(pkg.dependencies["@tailrace/core"]).toBe("0.1.0");
+    expect(pkg.dependencies["@tailrace/ai-sdk"]).toBe("0.1.0");
+    expect(pkg.dependencies["@tailrace/core"]).not.toContain("workspace:");
+    expect(readFileSync(join(dest, "app/api/chat/route.ts"), "utf8")).toContain("withAiSdk");
+    expect(readFileSync(join(dest, ".env.example"), "utf8")).toContain("TAILRACE_VAULT_KEY");
+    expect(readFileSync(join(dest, "README.md"), "utf8")).toContain("my-next-agent");
+    // Templates ship `gitignore`; scaffold must restore the dotted name (npm strips
+    // a literal `.gitignore` from the published tarball).
+    expect(readFileSync(join(dest, ".gitignore"), "utf8")).toContain("node_modules/");
+
+    writeFileSync(join(dest, "extra.txt"), "keep\n");
+    expect(await run(["create", "next", dest])).toBe(1);
+    expect(await run(["create", "next", dest, "--force"])).toBe(0);
+  });
+
+  it("scaffolds cloudflare and openai targets", async () => {
+    const parent = workspaceTempDir();
+    const cf = join(parent, "cf-agent");
+    const oai = join(parent, "oai-agent");
+
+    expect(await run(["create", "cloudflare", cf])).toBe(0);
+    const cfPkg = JSON.parse(readFileSync(join(cf, "package.json"), "utf8")) as {
+      dependencies: Record<string, string>;
+    };
+    expect(cfPkg.dependencies["@tailrace/cloudflare-agents"]).toBe("0.1.0");
+    expect(readFileSync(join(cf, "wrangler.toml"), "utf8")).toContain("TAILRACE_VAULT");
+    expect(readFileSync(join(cf, "src/index.ts"), "utf8")).toContain("createCloudflareTailrace");
+
+    expect(await run(["create", "openai", oai])).toBe(0);
+    const oaiPkg = JSON.parse(readFileSync(join(oai, "package.json"), "utf8")) as {
+      dependencies: Record<string, string>;
+    };
+    expect(oaiPkg.dependencies["@tailrace/openai-agents"]).toBe("0.1.0");
+    expect(readFileSync(join(oai, "src/verify.ts"), "utf8")).toContain("wrapTool");
+    expect(readFileSync(join(oai, "src/verify.ts"), "utf8")).not.toContain("sk_live");
+  });
+
+  it("rejects unknown target", async () => {
+    const d = workspaceTempDir();
+    expect(await run(["create", "rails", join(d, "x")])).toBe(1);
   });
 });
