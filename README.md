@@ -21,14 +21,17 @@ workflow, and restore it only at trusted egress.
 
 ## Packages
 
-| Package                                               | What it is                                                                                                    |
-| ----------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
-| [`@tailrace/core`](packages/core)                     | Detection, policy engine, vault, audit. Zero runtime deps; runs on Node, Cloudflare Workers, and Vercel Edge. |
-| [`@tailrace/ai-sdk`](packages/ai-sdk)                 | Vercel AI SDK middleware + tool wrapper.                                                                      |
-| [`@tailrace/mcp`](packages/mcp)                       | MCP client transport wrapper.                                                                                 |
-| [`@tailrace/hono`](packages/hono)                     | Hono middleware (OpenAI-compatible passthrough).                                                              |
-| [`@tailrace/cli`](packages/cli)                       | `tailrace` binary: `init`, `scan`, `install-hooks`, `hook`.                                                   |
-| [`@tailrace/recognizer-ner`](packages/recognizer-ner) | Optional Tier 1 ONNX NER recognizer (Node only).                                                              |
+| Package                                                     | What it is                                                                                                    |
+| ----------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| [`@tailrace/core`](packages/core)                           | Detection, policy engine, vault, audit. Zero runtime deps; runs on Node, Cloudflare Workers, and Vercel Edge. |
+| [`@tailrace/adapter`](packages/adapter)                     | Shared integration helpers: `wrapToolExecute`, `runGoverned`. No host peers.                                  |
+| [`@tailrace/ai-sdk`](packages/ai-sdk)                       | Vercel AI SDK middleware + tool wrapper.                                                                      |
+| [`@tailrace/cloudflare-agents`](packages/cloudflare-agents) | Cloudflare Agents / `AIChatAgent` compose entry (identity, vault, AI SDK wraps).                              |
+| [`@tailrace/openai-agents`](packages/openai-agents)         | OpenAI Agents SDK function tool wrappers.                                                                     |
+| [`@tailrace/mcp`](packages/mcp)                             | MCP client transport wrapper.                                                                                 |
+| [`@tailrace/hono`](packages/hono)                           | Hono middleware (OpenAI-compatible passthrough).                                                              |
+| [`@tailrace/cli`](packages/cli)                             | `tailrace` binary: `init`, `scan`, `install-hooks`, `hook`.                                                   |
+| [`@tailrace/recognizer-ner`](packages/recognizer-ner)       | Optional Tier 1 ONNX NER recognizer (Node only).                                                              |
 
 ## Quickstart
 
@@ -79,6 +82,40 @@ pnpm bench        # perf gates; compared against benchmarks/baseline.json
 
 Contributor guide and build order: [`AGENTS.md`](AGENTS.md). Specs: [`docs/`](docs). The specs are
 normative - when in doubt, docs win.
+
+### Releasing
+
+Publishing is driven by [Changesets](https://github.com/changesets/changesets). Packages version
+**independently** (no `fixed`/`linked` group). The publishable set is every non-private workspace under
+`packages/*`; private workspaces (`apps/web`, `examples/*`, `benchmarks`) are never published and are
+excluded automatically.
+
+Runbook:
+
+1. **Record intent.** For every package you changed, add a changeset: `pnpm changeset`. Pick the bump
+   (patch/minor/major) per package. Don't hand-edit versions - Changesets owns them.
+2. **Version.** `pnpm changeset version` applies the bumps and writes changelogs. Commit the result.
+3. **Build.** `pnpm build` from the root - turbo builds every package in dependency order (ESM + CJS +
+   `.d.ts`). Each package also has a `prepublishOnly` that rebuilds it at publish time, but building up
+   front surfaces failures before you start publishing.
+4. **Publish.** `pnpm release` (`changeset publish`). It publishes in topological order and **skips any
+   version already on npm** - so re-running is safe and you can never clobber a published version. All
+   nine packages are currently `0.1.0` on npm; the next release of any package must go through a
+   changeset bump or `publish` will no-op on it.
+
+Release-time invariants to preserve:
+
+- **Align template-referenced packages when releasing the CLI.** `tailrace create` pins the
+  `@tailrace/*` deps in every scaffold to the CLI's own version (`__TAILRACE_VERSION__` →
+  `@tailrace/cli` version). The templates reference `@tailrace/core`, `@tailrace/ai-sdk`,
+  `@tailrace/cloudflare-agents`, and `@tailrace/openai-agents`. Because versioning is independent, those
+  four **must be published at the same version as the CLI** or a scaffolded project won't install. When
+  cutting a CLI release, bump and publish them together at a matching version - don't add a Changesets
+  `fixed` group to force it, align intentionally.
+- **`@tailrace/cli` ships `templates/`.** Its `files` list is `["dist", "templates", "README.md"]`;
+  without `templates`, `create` breaks for npm consumers.
+- **Don't rename the template `gitignore` files.** They ship as `gitignore` (not `.gitignore`) because
+  npm strips a literal `.gitignore` from published tarballs; `create` restores the leading dot on write.
 
 ## License
 

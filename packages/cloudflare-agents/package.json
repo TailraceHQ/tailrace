@@ -26,6 +26,7 @@
   ],
   "scripts": {
     "build": "tsup",
+    "prepublishOnly": "pnpm run build",
     "test": "vitest run",
     "test:workers": "vitest run --config vitest.workers.config.ts",
     "typecheck": "tsc --noEmit"
