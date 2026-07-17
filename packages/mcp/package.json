@@ -1,6 +1,6 @@
 {
   "name": "@tailrace/mcp",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Tailrace wrapper for MCP client transports: policy at the tools/call and resources/read boundary.",
   "license": "MIT",
   "type": "module",

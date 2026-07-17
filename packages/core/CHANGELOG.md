@@ -1,5 +1,11 @@
 # @tailrace/core
 
+## 0.2.0
+
+### Minor Changes
+
+- Release `tailrace create` scaffolding and the M7 adapter/openai-agents/cloudflare-agents integrations together, keeping the CLI's template-pinned dependency versions aligned.
+
 ## 0.1.0
 
 ### Minor Changes

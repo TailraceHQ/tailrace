@@ -1,6 +1,6 @@
 {
   "name": "@tailrace/cli",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "The `tailrace` CLI: create, init, scan, install-hooks, and the Claude Code hook handler.",
   "license": "MIT",
   "type": "module",
