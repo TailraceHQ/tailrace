@@ -1,5 +1,13 @@
 # @tailrace/mcp
 
+## 0.1.3
+
+### Patch Changes
+
+- Add a cross-package navigation banner (docs + npm links) to every package README, expand the core README with a package table and quickstart, and point each package.json `homepage` at tailrace.dev.
+- Updated dependencies
+  - @tailrace/core@0.2.2
+
 ## 0.1.2
 
 ### Patch Changes

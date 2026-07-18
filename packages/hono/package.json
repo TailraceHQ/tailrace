@@ -1,6 +1,6 @@
 {
   "name": "@tailrace/hono",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "Tailrace Hono middleware: OpenAI-compatible passthrough with policy at the model boundary.",
   "repository": {
     "type": "git",

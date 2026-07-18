@@ -1,6 +1,6 @@
 {
   "name": "@tailrace/adapter",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "Shared Tailrace integration helpers: wrapToolExecute, runGoverned. No host peers.",
   "repository": {
     "type": "git",
