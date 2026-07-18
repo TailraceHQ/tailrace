@@ -1,0 +1,19 @@
+---
+title: NestJS integration
+description: Add TailraceModule to a NestJS app (Express adapter).
+mode: guide
+---
+
+```ts
+import { createTailrace } from "@tailrace/core";
+import { TailraceModule } from "@tailrace/nestjs";
+import { Module } from "@nestjs/common";
+
+@Module({
+  imports: [TailraceModule.forRoot({ tailrace: createTailrace(), forRoutes: ["v1/*path"] })],
+})
+export class AppModule {}
+```
+
+For Nest + Fastify, prefer `@tailrace/fastify` on the Fastify instance.
+Full write-up: `docs/guides/nestjs-integration.md`.

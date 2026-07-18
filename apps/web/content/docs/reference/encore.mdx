@@ -1,0 +1,15 @@
+---
+title: Encore
+description: Reference for @tailrace/encore - tailraceEncore middleware.
+mode: reference
+---
+
+`@tailrace/encore` returns Encore `middleware(...)` for raw OpenAI-compatible proxy endpoints.
+
+```ts
+export default new Service("api", {
+  middlewares: [tailraceEncore(tailrace, { agent: "api" })],
+});
+```
+
+Use `api.raw` so bodies and SSE are available. Guide: [Encore integration](/docs/guides/encore-integration).

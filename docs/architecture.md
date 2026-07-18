@@ -7,11 +7,17 @@
 ├── packages/
 │   ├── core/               # @tailrace/core - detection, policy engine, vault, audit emitter
 │   ├── adapter/            # @tailrace/adapter - shared tool-wrap / runGoverned helpers (no host peers)
+│   ├── http/               # @tailrace/http - shared OpenAI-compat + SSE + 422 helpers (no host peers)
 │   ├── ai-sdk/             # @tailrace/ai-sdk - Vercel AI SDK middleware + tool wrapper
 │   ├── openai-agents/      # @tailrace/openai-agents - OpenAI Agents SDK function-tool wrapper
 │   ├── cloudflare-agents/  # @tailrace/cloudflare-agents - Cloudflare Agents / AIChatAgent helpers (Compose)
 │   ├── mcp/                # @tailrace/mcp - MCP client transport wrapper
-│   ├── hono/               # @tailrace/hono - Hono middleware (openai-compatible passthrough mode)
+│   ├── hono/               # @tailrace/hono - Hono middleware (thin wrapper over @tailrace/http)
+│   ├── express/            # @tailrace/express - Express openai-compat middleware
+│   ├── fastify/            # @tailrace/fastify - Fastify openai-compat plugin
+│   ├── nestjs/             # @tailrace/nestjs - NestJS middleware module
+│   ├── encore/             # @tailrace/encore - Encore.ts middleware (raw openai-compat)
+│   ├── trpc/               # @tailrace/trpc - tRPC procedure middleware (tool boundary)
 │   ├── cli/                # @tailrace/cli - `tailrace` binary: init, install-hooks, hook, scan
 │   └── recognizer-ner/     # @tailrace/recognizer-ner - Tier 1 ONNX recognizer (optional peer)
 ├── apps/
@@ -30,11 +36,14 @@ Tooling: pnpm workspaces + Turborepo. tsup for builds (ESM + CJS, `.d.ts`). Vite
 
 - `core` depends on nothing at runtime (zero prod dependencies; dev deps fine). Everything it needs (HMAC, hashing) uses WebCrypto (`globalThis.crypto.subtle`).
 - `adapter` depends on `core` only (no host peers). Shared `wrapToolExecute` / `runGoverned` helpers for other integrations.
-- `ai-sdk`, `mcp`, `hono`, `cli` depend on `core` plus their host framework as a **peer dependency** (`ai`, `@modelcontextprotocol/sdk`, `hono`). `ai-sdk` may also depend on `adapter` (public entry only) for shared tool-wrap helpers.
+- `http` depends on `core` only (no host peers). Shared OpenAI-compat body/SSE/422 pipeline for HTTP gateway packages.
+- `ai-sdk`, `mcp`, `cli` depend on `core` plus their host framework as a **peer dependency** (`ai`, `@modelcontextprotocol/sdk`). `ai-sdk` may also depend on `adapter` (public entry only) for shared tool-wrap helpers.
+- `hono`, `express`, `fastify`, `nestjs`, `encore` depend on `core` + **`http`**, plus their host as a peer (`hono`, `express`, `fastify`, `@nestjs/common`, `encore.dev`). They contain zero policy logic.
+- `trpc` depends on `core` + **`adapter`** (not `http`), peer `@trpc/server`. Procedure middleware at the tool boundary.
 - `openai-agents` depends on `core` + `adapter`, peer `@openai/agents`.
 - `cloudflare-agents` depends on `core` + **`ai-sdk`** (Compose: reuses `wrapModel` / `wrapTools` / streaming), peers `ai` and the Cloudflare Agents / `@cloudflare/ai-chat` packages bound at implement time. May also use `adapter` for client `onToolCall` wrapping.
 - `recognizer-ner` depends on `onnxruntime` packages and is a peer/optional dep of nothing - users install it explicitly and pass it into config. `core` must never import it.
-- No package may import from another package's internals - public entry points only. Enforce with eslint `no-restricted-imports`.
+- No package may import from another package's internals - public entry points only. Enforce with eslint `no-restricted-imports`. Gateway packages must not import each other.
 
 ## 3. Runtime matrix (CI must test all)
 
@@ -42,11 +51,17 @@ Tooling: pnpm workspaces + Turborepo. tsup for builds (ESM + CJS, `.d.ts`). Vite
 |---|---|---|---|---|
 | core | ✅ | ✅ | ✅ | ✅ (best-effort) |
 | adapter | ✅ | ✅ | ✅ | ✅ (best-effort) |
+| http | ✅ | ✅ | ✅ | - |
 | ai-sdk | ✅ | ✅ | ✅ | - |
 | openai-agents | ✅ | ✅ | - | - |
 | cloudflare-agents | ✅ | ✅ | - | - |
 | mcp | ✅ | ✅ | - | - |
 | hono | ✅ | ✅ | ✅ | - |
+| express | ✅ | - | - | - |
+| fastify | ✅ | - | - | - |
+| nestjs | ✅ | - | - | - |
+| encore | ✅ | - | - | - |
+| trpc | ✅ | - | - | - |
 | cli | ✅ | - | - | - |
 | recognizer-ner | ✅ | ❌ v0.1 | ❌ v0.1 | - |
 

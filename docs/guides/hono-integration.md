@@ -46,6 +46,6 @@ app.use(
 
 ## SSE
 
-Carry-buffer is implemented locally in `@tailrace/hono` (does not import `@tailrace/ai-sdk`). v0.1 has no `streamBlockBehavior` - SSE block cancels upstream and emits one error `data:` event.
+Carry-buffer is implemented in `@tailrace/http` (Hono is a thin wrapper; does not import `@tailrace/ai-sdk`). v0.1 has no `streamBlockBehavior` - SSE block cancels upstream and emits one error `data:` event.
 
 See [`integrations.md`](../integrations.md) §3 for the full 422 / SSE contract.

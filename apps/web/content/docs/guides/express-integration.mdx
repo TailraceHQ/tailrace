@@ -1,0 +1,22 @@
+---
+title: Express integration
+description: Add Tailrace OpenAI-compatible middleware to Express.
+mode: guide
+---
+
+```ts
+import { createTailrace } from "@tailrace/core";
+import { tailraceExpress } from "@tailrace/express";
+import express from "express";
+
+const app = express();
+app.use(
+  "/v1",
+  express.json(),
+  tailraceExpress(createTailrace(), {
+    agent: (req) => String(req.headers["x-agent-id"] ?? "default"),
+  }),
+);
+```
+
+Full write-up in the repo: `docs/guides/express-integration.md`. Reference: [/docs/reference/express](/docs/reference/express).

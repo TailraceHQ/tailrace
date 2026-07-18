@@ -3,11 +3,17 @@
   "pages": [
     "ai-sdk",
     "adapter",
+    "http",
     "openai-agents",
     "cloudflare-agents",
     "cli",
     "mcp",
     "hono",
+    "express",
+    "fastify",
+    "nestjs",
+    "encore",
+    "trpc",
     "policy-schema",
     "errors"
   ]

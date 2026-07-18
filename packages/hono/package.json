@@ -40,7 +40,8 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@tailrace/core": "workspace:*"
+    "@tailrace/core": "workspace:*",
+    "@tailrace/http": "workspace:*"
   },
   "peerDependencies": {
     "hono": ">=4"

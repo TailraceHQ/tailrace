@@ -1,0 +1,25 @@
+---
+title: HTTP
+description: Reference for @tailrace/http - shared OpenAI-compat body, SSE, and 422 helpers.
+mode: reference
+---
+
+`@tailrace/http` provides the shared OpenAI-compatible pipeline used by Hono, Express, Fastify,
+NestJS, and Encore adapters. No host peers.
+
+## Install
+
+```bash
+pnpm add @tailrace/core @tailrace/http
+```
+
+## Key exports
+
+| Export                                            | Description                     |
+| ------------------------------------------------- | ------------------------------- |
+| `runOpenAiCompatRequestCheck`                     | Check/rewrite chat request body |
+| `runOpenAiCompatJsonResponseCheck`                | Check/rewrite completion JSON   |
+| `createOpenAiCompatSseTransform`                  | SSE carry-buffer transform      |
+| `policyViolationBody` / `POLICY_VIOLATION_STATUS` | 422 body builder                |
+
+Prefer a host package unless you are building a custom adapter. Spec: repo `docs/integrations.md` §9.

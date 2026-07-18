@@ -112,6 +112,18 @@ Candidate primary model: OpenAI Privacy Filter (Apache 2.0; BIOES token classifi
 - [ ] Benchmark Privacy Filter vs GLiNER-class candidates; record F1-per-MB + memory in `OPEN_QUESTIONS.md`
 - [x] Update `docs/detection.md` §3 + package README; unit/integration tests with injected logits (no weights in CI)
 
+## M9: HTTP frameworks + tRPC
+
+Implementation plan: [`m9-plan.md`](m9-plan.md). Normative: [`integrations.md`](integrations.md) §3 / §9–§14.
+
+- [x] `@tailrace/http`: OpenAI-compat body/SSE/422 helpers; no host peers; Node + workerd-friendly Web APIs
+- [x] `@tailrace/hono` refactored onto `@tailrace/http`; public API unchanged; existing tests green
+- [x] `@tailrace/express` + `@tailrace/fastify`: openai-compat middleware; request block / tokenize / SSE / 422
+- [x] `@tailrace/nestjs`: `TailraceModule.forRoot` + middleware; Nest + Express CI; Fastify adapter documented
+- [x] `@tailrace/encore`: `tailraceEncore` Encore middleware for raw openai-compat endpoints
+- [x] `@tailrace/trpc`: procedure middleware via adapter; Option C fluent API; block / tokenize tests
+- [x] Package READMEs + guides; eslint package boundaries; changeset
+
 ## Demos (must run from fresh clone, commands documented in each example's README)
 
 **Demo 1: "Your agent just leaked a key."** Next.js route: user prompt contains a fake Stripe key + an email. Run A: request aborted with `PolicyViolationError` naming `api_key` - the secret never reaches the provider (mock model default in CI). Run B: key removed, email tokenized in outbound params (log transformed params), mock model echoes, route calls `tailrace.restore` at egress `ui` before responding - UI shows the real email.

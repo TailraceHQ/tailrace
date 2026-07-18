@@ -1,0 +1,13 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "lib": ["ES2022", "DOM"],
+    "types": ["node"],
+    "outDir": "dist",
+    "rootDir": "src",
+    "paths": {
+      "encore.dev/api": ["./src/shims/encore-dev-api.d.ts"]
+    }
+  },
+  "include": ["src"]
+}

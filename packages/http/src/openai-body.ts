@@ -145,3 +145,14 @@ export function parseOpenAiBody(raw: unknown): OpenAiChatBody | null {
   if (typeof raw !== "object" || raw === null) return null;
   return raw as OpenAiChatBody;
 }
+
+/** `{ kind: "model", provider }` where provider is the body's `model` string as-is. */
+export function modelBoundaryFromBody(body: OpenAiChatBody) {
+  const provider = typeof body.model === "string" && body.model.length > 0 ? body.model : "unknown";
+  return { kind: "model" as const, provider };
+}
+
+export function isEventStream(contentType: string | undefined): boolean {
+  if (contentType === undefined) return false;
+  return contentType.toLowerCase().includes("text/event-stream");
+}

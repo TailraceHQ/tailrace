@@ -1,31 +1,36 @@
 /**
  * tailraceHono — OpenAI-compatible Hono middleware (docs/integrations.md §3).
+ * Thin wrapper over @tailrace/http.
  */
 
-import type { Tailrace } from "@tailrace/core";
+import type { Boundary, Tailrace } from "@tailrace/core";
 import { PolicyViolationError } from "@tailrace/core";
+import {
+  createOpenAiCompatSseTransform,
+  isEventStream,
+  parseOpenAiBody,
+  POLICY_VIOLATION_STATUS,
+  policyViolationBody,
+  runOpenAiCompatJsonResponseCheck,
+  runOpenAiCompatRequestCheck,
+  type OpenAiCompatIdentityOpts,
+} from "@tailrace/http";
 import type { Context, MiddlewareHandler, Next } from "hono";
 
-import { checkWithOpts } from "./internal/context";
-import { POLICY_VIOLATION_STATUS, policyViolationBody } from "./internal/errors";
-import {
-  applyCompletionText,
-  extractCompletionText,
-  extractMessageTextTree,
-  parseOpenAiBody,
-  type OpenAiChatBody,
-} from "./internal/openai-body";
-import { createSseTransform } from "./internal/sse";
 import type { TailraceHonoOptions } from "./types";
 
-function modelBoundary(body: OpenAiChatBody) {
-  const provider = typeof body.model === "string" && body.model.length > 0 ? body.model : "unknown";
-  return { kind: "model" as const, provider };
-}
-
-function isEventStream(contentType: string | undefined): boolean {
-  if (contentType === undefined) return false;
-  return contentType.toLowerCase().includes("text/event-stream");
+function resolveIdentity(c: Context, opts?: TailraceHonoOptions): OpenAiCompatIdentityOpts {
+  const identity: OpenAiCompatIdentityOpts = {
+    agent: opts?.agent?.(c) ?? "default",
+  };
+  if (opts?.workflowId !== undefined) {
+    identity.workflowId =
+      typeof opts.workflowId === "function" ? opts.workflowId(c) : opts.workflowId;
+  }
+  if (opts?.onDecision !== undefined) {
+    identity.onDecision = opts.onDecision;
+  }
+  return identity;
 }
 
 /**
@@ -61,12 +66,11 @@ export function tailraceHono(tailrace: Tailrace, opts?: TailraceHonoOptions): Mi
       return;
     }
 
-    const boundary = modelBoundary(body);
-    const { tree, apply } = extractMessageTextTree(body);
-
+    const requestIdentity = resolveIdentity(c, opts);
+    let boundary: Boundary;
     try {
-      const { output } = await checkWithOpts(tailrace, c, tree, boundary, opts);
-      apply(output);
+      const result = await runOpenAiCompatRequestCheck(tailrace, body, requestIdentity);
+      boundary = result.boundary;
     } catch (err) {
       if (err instanceof PolicyViolationError) {
         return c.json(policyViolationBody(err), POLICY_VIOLATION_STATUS);
@@ -100,10 +104,20 @@ export function tailraceHono(tailrace: Tailrace, opts?: TailraceHonoOptions): Mi
     const res = c.res;
     if (res === undefined) return;
 
+    // Re-resolve after next() so agent/workflowId callbacks that read context
+    // state set by downstream handlers (e.g. auth middleware) see it, matching
+    // the request-time resolution used for runOpenAiCompatRequestCheck.
+    const responseIdentity = resolveIdentity(c, opts);
+
     const contentType = res.headers.get("content-type") ?? undefined;
 
     if (isEventStream(contentType) && res.body !== null) {
-      const scanned = createSseTransform(tailrace, c, boundary, opts, res.body);
+      const scanned = createOpenAiCompatSseTransform(
+        tailrace,
+        boundary,
+        responseIdentity,
+        res.body,
+      );
       c.res = new Response(scanned, {
         status: res.status,
         statusText: res.statusText,
@@ -113,32 +127,40 @@ export function tailraceHono(tailrace: Tailrace, opts?: TailraceHonoOptions): Mi
     }
 
     // Non-SSE JSON completion
+    let json: unknown;
     try {
-      const json: unknown = await res.clone().json();
-      const text = extractCompletionText(json);
-      if (text.length === 0) return;
-      try {
-        const { output } = await checkWithOpts(tailrace, c, text, boundary, opts);
-        const nextBody = applyCompletionText(json, output);
-        c.res = new Response(JSON.stringify(nextBody), {
-          status: res.status,
-          statusText: res.statusText,
-          headers: (() => {
-            const h = new Headers(res.headers);
-            h.set("content-type", "application/json");
-            h.delete("content-length");
-            return h;
-          })(),
-        });
-      } catch (err) {
-        if (err instanceof PolicyViolationError) {
-          c.res = c.json(policyViolationBody(err), POLICY_VIOLATION_STATUS);
-          return;
-        }
-        throw err;
-      }
+      json = await res.clone().json();
     } catch {
-      // Not JSON - leave response as-is.
+      // Not JSON - nothing this pipeline understands to scan, leave as-is.
+      return;
+    }
+
+    try {
+      const nextBody = await runOpenAiCompatJsonResponseCheck(
+        tailrace,
+        json,
+        boundary,
+        responseIdentity,
+      );
+      if (nextBody === json) return;
+      c.res = new Response(JSON.stringify(nextBody), {
+        status: res.status,
+        statusText: res.statusText,
+        headers: (() => {
+          const h = new Headers(res.headers);
+          h.set("content-type", "application/json");
+          h.delete("content-length");
+          return h;
+        })(),
+      });
+    } catch (err) {
+      if (err instanceof PolicyViolationError) {
+        c.res = c.json(policyViolationBody(err), POLICY_VIOLATION_STATUS);
+        return;
+      }
+      // Fail closed: an unexpected check failure must never ship the
+      // unscanned response body (docs/architecture.md - fail closed for block).
+      c.res = c.json({ error: { type: "internal_error" } }, 500);
     }
   };
 }
