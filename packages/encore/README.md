@@ -24,4 +24,6 @@ export default new Service("api", {
 ```
 
 Use `api.raw` for openai-compat proxies so bodies and SSE are available.
+Docs: [Encore](https://tailrace.dev/docs/integrations/encore) ·
+[Guide](https://tailrace.dev/docs/guides/block-secrets-in-encore).
 Spec: [`docs/integrations.md`](../../docs/integrations.md) §13.

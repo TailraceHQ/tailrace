@@ -27,4 +27,6 @@ await app.register(
 );
 ```
 
+Docs: [Fastify](https://tailrace.dev/docs/integrations/fastify) ·
+[Guide](https://tailrace.dev/docs/guides/block-secrets-in-fastify).
 Spec: [`docs/integrations.md`](../../docs/integrations.md) §11.

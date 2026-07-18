@@ -23,4 +23,7 @@ const governed = createTailraceMiddleware(createTailrace(), { agent: "api" });
 export const procedure = t.procedure.use(governed);
 ```
 
-Non-streaming queries/mutations only in v0.1. Spec: [`docs/integrations.md`](../../docs/integrations.md) §14.
+Non-streaming queries/mutations only in v0.1.
+Docs: [tRPC](https://tailrace.dev/docs/integrations/trpc) ·
+[Guide](https://tailrace.dev/docs/guides/govern-trpc-procedures).
+Spec: [`docs/integrations.md`](../../docs/integrations.md) §14.

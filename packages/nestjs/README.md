@@ -25,4 +25,6 @@ export class AppModule {}
 ```
 
 For Nest + Fastify, register `@tailrace/fastify` on the Fastify instance instead.
+Docs: [NestJS](https://tailrace.dev/docs/integrations/nestjs) ·
+[Guide](https://tailrace.dev/docs/guides/block-secrets-in-nestjs).
 Spec: [`docs/integrations.md`](../../docs/integrations.md) §12.

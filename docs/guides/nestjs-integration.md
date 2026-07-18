@@ -1,6 +1,8 @@
-# Guide: NestJS middleware module
+# Block secrets in a NestJS app
 
-User-facing companion to [`integrations.md`](../integrations.md) §12. Plan: [`m9-plan.md`](../m9-plan.md).
+User-facing companion to [`integrations.md`](../integrations.md) §12. DevSite:
+[Block secrets in a NestJS app](https://tailrace.dev/docs/guides/block-secrets-in-nestjs) ·
+[NestJS integration](https://tailrace.dev/docs/integrations/nestjs).
 
 ## Overview
 
@@ -31,6 +33,8 @@ import { Module } from "@nestjs/common";
 })
 export class AppModule {}
 ```
+
+Nest 11 route globs use named splats (`v1/*path`, not `v1*`).
 
 ## Nest + Fastify
 

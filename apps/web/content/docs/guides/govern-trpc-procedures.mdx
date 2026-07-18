@@ -1,0 +1,101 @@
+---
+title: Govern tRPC procedures
+description: Wrap tRPC procedures so input and output respect Tailrace policy at the tool boundary.
+mode: guide
+---
+
+Use `@tailrace/trpc` to enforce data policy on procedure input and result data - in-process, with
+no proxy. This is procedure middleware at the **tool** boundary, not an OpenAI REST gateway.
+
+## Prerequisites
+
+- [Quickstart](/docs/get-started/quickstart) or equivalent [`createTailrace`](/docs/get-started/quickstart) setup
+- `@trpc/server` `>=10`
+
+## Step 1: Install
+
+```bash
+pnpm add @tailrace/core @tailrace/trpc @trpc/server
+```
+
+## Step 2: Attach middleware to procedures
+
+**Standalone** (recommended when you already have a `Tailrace` instance):
+
+```ts
+import { createTailrace } from "@tailrace/core";
+import { createTailraceMiddleware } from "@tailrace/trpc";
+import { initTRPC } from "@trpc/server";
+
+const t = initTRPC.create();
+const governed = createTailraceMiddleware(createTailrace(), {
+  agent: "api",
+  name: ({ path }) => path,
+});
+
+export const procedure = t.procedure.use(governed);
+```
+
+**Fluent:**
+
+```ts
+import { withTrpc } from "@tailrace/trpc";
+
+const tr = withTrpc(createTailrace());
+export const procedure = t.procedure.use(tr.middleware({ agent: "api" }));
+```
+
+v0.1 supports non-streaming queries and mutations only.
+
+## How it works
+
+| Surface | Boundary                                   | When                            |
+| ------- | ------------------------------------------ | ------------------------------- |
+| Input   | `{ kind: "tool", name, direction: "out" }` | Before `next`                   |
+| Output  | `{ kind: "tool", name, direction: "in" }`  | After `next`, on ok result data |
+
+`name` defaults to the procedure `path` (for example `"chat.completions"`). Match that string in
+[`definePolicy`](/docs/reference/policy-schema) when you write tool-specific rules.
+
+When policy resolves to `block`, the middleware throws a host-native `TRPCError` with code
+`BAD_REQUEST` and a value-free message derived from
+[`PolicyViolationError`](/docs/reference/errors/POLICY_VIOLATION). Tokenize and mask rewrite the
+input or result data in place and continue.
+
+## Common variations
+
+### Scope agent, name, and workflow ID
+
+```ts
+createTailraceMiddleware(tailrace, {
+  agent: ({ ctx }) => (ctx as { agentId?: string }).agentId ?? "api",
+  name: ({ path }) => path,
+  workflowId: ({ ctx }) => (ctx as { workflowId?: string }).workflowId ?? "default",
+});
+```
+
+By default, `workflowId` scopes tokens per call. For multi-turn agents that need tokens to resolve
+consistently across turns, see [Tokenization and the vault](/docs/concepts/tokenization-and-the-vault).
+
+### Verify with a synthetic key
+
+Call a governed procedure whose input includes `sk_test_…FAKE`. Expect a `BAD_REQUEST`
+`TRPCError` whose message names `api_key` and the rule - never the raw key. An `example.com` email
+should tokenize under the default policy before the procedure handler runs.
+
+### Audit decisions
+
+```ts
+createTailraceMiddleware(tailrace, {
+  onDecision: (decisions) => {
+    // hashes + entity classes only - never log raw values
+  },
+});
+```
+
+## See also
+
+- [tRPC integration](/docs/integrations/trpc)
+- [tRPC reference](/docs/reference/trpc)
+- [Boundaries](/docs/concepts/boundaries)
+- Spec: [`docs/integrations.md`](https://github.com/TailraceHQ/tailrace/blob/main/docs/integrations.md) §14

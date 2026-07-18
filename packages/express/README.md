@@ -29,4 +29,6 @@ app.use(
 );
 ```
 
+Docs: [Express](https://tailrace.dev/docs/integrations/express) ·
+[Guide](https://tailrace.dev/docs/guides/block-secrets-in-express).
 Spec: [`docs/integrations.md`](../../docs/integrations.md) §10.

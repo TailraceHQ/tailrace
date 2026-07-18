@@ -1,6 +1,8 @@
-# Guide: Encore.ts middleware
+# Block secrets in an Encore service
 
-User-facing companion to [`integrations.md`](../integrations.md) §13. Plan: [`m9-plan.md`](../m9-plan.md).
+User-facing companion to [`integrations.md`](../integrations.md) §13. DevSite:
+[Block secrets in an Encore service](https://tailrace.dev/docs/guides/block-secrets-in-encore) ·
+[Encore integration](https://tailrace.dev/docs/integrations/encore).
 
 ## Overview
 
