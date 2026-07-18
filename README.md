@@ -4,6 +4,14 @@
   </a>
 </p>
 
+<p align="center">
+  <a href="https://github.com/TailraceHQ/tailrace/actions/workflows/ci.yml"><img src="https://github.com/TailraceHQ/tailrace/actions/workflows/ci.yml/badge.svg" alt="CI" /></a>
+  <a href="https://www.npmjs.com/package/@tailrace/core"><img src="https://img.shields.io/npm/v/@tailrace/core.svg" alt="npm version" /></a>
+  <a href="https://github.com/TailraceHQ/tailrace/blob/main/LICENSE"><img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="License: MIT" /></a>
+  <a href="https://nodejs.org/"><img src="https://img.shields.io/badge/node-%3E%3D20-brightgreen.svg" alt="Node >= 20" /></a>
+  <a href="https://tailrace.dev"><img src="https://img.shields.io/badge/docs-tailrace.dev-0ea5e9.svg" alt="Documentation" /></a>
+</p>
+
 # Tailrace
 
 **Agent data governance for TypeScript.** In-process detection of secrets and PII, reversible
@@ -81,8 +89,9 @@ pnpm typecheck
 pnpm bench        # perf gates; compared against benchmarks/baseline.json
 ```
 
-Contributor guide and build order: [`AGENTS.md`](AGENTS.md). Specs: [`docs/`](docs). The specs are
-normative - when in doubt, docs win.
+**Contributing:** [`CONTRIBUTING.md`](CONTRIBUTING.md) (setup, PRs, testing, changesets). Build order and
+agent instructions: [`AGENTS.md`](AGENTS.md). Specs: [`docs/`](docs). The specs are normative - when in
+doubt, docs win.
 
 ### Releasing
 
