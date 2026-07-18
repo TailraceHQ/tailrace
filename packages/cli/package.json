@@ -7,7 +7,7 @@
     "url": "git+https://github.com/TailraceHQ/tailrace.git",
     "directory": "packages/cli"
   },
-  "homepage": "https://github.com/TailraceHQ/tailrace/tree/main/packages/cli#readme",
+  "homepage": "https://tailrace.dev",
   "bugs": {
     "url": "https://github.com/TailraceHQ/tailrace/issues"
   },
