@@ -15,17 +15,40 @@ depends on it.
 
 ## Packages
 
-| Package                       | npm                                                              | What it is                                                                                                    |
-| ----------------------------- | ---------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
-| `@tailrace/core`              | [npm](https://www.npmjs.com/package/@tailrace/core)              | Detection, policy engine, vault, audit. Zero runtime deps; runs on Node, Cloudflare Workers, and Vercel Edge. |
-| `@tailrace/adapter`           | [npm](https://www.npmjs.com/package/@tailrace/adapter)           | Shared integration helpers: `wrapToolExecute`, `runGoverned`. No host peers.                                  |
-| `@tailrace/ai-sdk`            | [npm](https://www.npmjs.com/package/@tailrace/ai-sdk)            | Vercel AI SDK middleware + tool wrapper.                                                                      |
-| `@tailrace/cloudflare-agents` | [npm](https://www.npmjs.com/package/@tailrace/cloudflare-agents) | Cloudflare Agents / `AIChatAgent` compose entry (identity, vault, AI SDK wraps).                              |
-| `@tailrace/openai-agents`     | [npm](https://www.npmjs.com/package/@tailrace/openai-agents)     | OpenAI Agents SDK function tool wrappers.                                                                     |
-| `@tailrace/mcp`               | [npm](https://www.npmjs.com/package/@tailrace/mcp)               | MCP client transport wrapper.                                                                                 |
-| `@tailrace/hono`              | [npm](https://www.npmjs.com/package/@tailrace/hono)              | Hono middleware (OpenAI-compatible passthrough).                                                              |
-| `@tailrace/cli`               | [npm](https://www.npmjs.com/package/@tailrace/cli)               | `tailrace` binary: `init`, `scan`, `install-hooks`, `hook`.                                                   |
-| `@tailrace/recognizer-ner`    | [npm](https://www.npmjs.com/package/@tailrace/recognizer-ner)    | Optional Tier 1 ONNX NER (Privacy Filter; bring your own weights). Node only.                                 |
+**Core**
+
+| Package          | npm                                                 | What it is                                                                                                    |
+| ---------------- | --------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| `@tailrace/core` | [npm](https://www.npmjs.com/package/@tailrace/core) | Detection, policy engine, vault, audit. Zero runtime deps; runs on Node, Cloudflare Workers, and Vercel Edge. |
+
+**Agent SDKs**
+
+| Package                       | npm                                                              | What it is                                                                              |
+| ----------------------------- | ---------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
+| `@tailrace/adapter`           | [npm](https://www.npmjs.com/package/@tailrace/adapter)           | Shared integration helpers: `wrapToolExecute`, `runGoverned`. No host peers.            |
+| `@tailrace/ai-sdk`            | [npm](https://www.npmjs.com/package/@tailrace/ai-sdk)            | Vercel AI SDK middleware + tool wrapper.                                                |
+| `@tailrace/cloudflare-agents` | [npm](https://www.npmjs.com/package/@tailrace/cloudflare-agents) | Cloudflare Agents / `AIChatAgent` compose entry (identity, vault, AI SDK wraps).        |
+| `@tailrace/openai-agents`     | [npm](https://www.npmjs.com/package/@tailrace/openai-agents)     | OpenAI Agents SDK function tool wrappers.                                               |
+| `@tailrace/mcp`               | [npm](https://www.npmjs.com/package/@tailrace/mcp)               | MCP client transport wrapper: policy at the `tools/call` and `resources/read` boundary. |
+
+**HTTP / gateway integrations** - OpenAI-compatible passthrough (scan chat requests and JSON/SSE responses at the model boundary, 422 on block) unless noted:
+
+| Package             | npm                                                    | What it is                                                                                                                  |
+| ------------------- | ------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------- |
+| `@tailrace/hono`    | [npm](https://www.npmjs.com/package/@tailrace/hono)    | Hono middleware.                                                                                                            |
+| `@tailrace/express` | [npm](https://www.npmjs.com/package/@tailrace/express) | Express middleware.                                                                                                         |
+| `@tailrace/fastify` | [npm](https://www.npmjs.com/package/@tailrace/fastify) | Fastify plugin.                                                                                                             |
+| `@tailrace/nestjs`  | [npm](https://www.npmjs.com/package/@tailrace/nestjs)  | NestJS middleware module (Nest + Express adapter).                                                                          |
+| `@tailrace/encore`  | [npm](https://www.npmjs.com/package/@tailrace/encore)  | Encore.ts middleware for raw proxy endpoints.                                                                               |
+| `@tailrace/trpc`    | [npm](https://www.npmjs.com/package/@tailrace/trpc)    | tRPC procedure middleware - scans procedure input/output at the **tool** boundary, not an OpenAI gateway.                   |
+| `@tailrace/http`    | [npm](https://www.npmjs.com/package/@tailrace/http)    | Shared pipeline (body/SSE/422 helpers) behind the six packages above. Install directly only when building a custom adapter. |
+
+**Tooling**
+
+| Package                    | npm                                                           | What it is                                                                    |
+| -------------------------- | ------------------------------------------------------------- | ----------------------------------------------------------------------------- |
+| `@tailrace/cli`            | [npm](https://www.npmjs.com/package/@tailrace/cli)            | `tailrace` binary: `create`, `init`, `scan`, `install-hooks`, `hook`.         |
+| `@tailrace/recognizer-ner` | [npm](https://www.npmjs.com/package/@tailrace/recognizer-ner) | Optional Tier 1 ONNX NER (Privacy Filter; bring your own weights). Node only. |
 
 [All `@tailrace` packages on npm](https://www.npmjs.com/org/tailrace)
 
@@ -45,9 +68,12 @@ const model = tailrace.model(openai("gpt-4o"));
 // Use `model` anywhere you'd use the AI SDK model - sensitive values never leave the process.
 ```
 
-Also see [`@tailrace/mcp`](https://www.npmjs.com/package/@tailrace/mcp) (`withMcp` / `wrapTransport`) and
-[`@tailrace/hono`](https://www.npmjs.com/package/@tailrace/hono) (`tailraceHono`) for MCP transports and
-OpenAI-compatible gateways.
+Also see [`@tailrace/mcp`](https://www.npmjs.com/package/@tailrace/mcp) (`withMcp` / `wrapTransport`) for
+MCP transports, and a middleware/plugin per HTTP framework -
+[Hono](https://www.npmjs.com/package/@tailrace/hono), [Express](https://www.npmjs.com/package/@tailrace/express),
+[Fastify](https://www.npmjs.com/package/@tailrace/fastify), [NestJS](https://www.npmjs.com/package/@tailrace/nestjs),
+[Encore](https://www.npmjs.com/package/@tailrace/encore), [tRPC](https://www.npmjs.com/package/@tailrace/trpc) -
+for OpenAI-compatible gateways and tool-boundary procedures.
 
 ## Documentation
 
@@ -58,6 +84,7 @@ OpenAI-compatible gateways.
 | [Ship an agent](https://tailrace.dev/docs/guides/ship-an-agent-on-vercel)                                                                                                                                                                                                                                                                                                                                                                                                                                                                | Clone, verify, deploy: model, tools, egress restore |
 | [Govern MCP tool calls](https://tailrace.dev/docs/guides/govern-mcp-tool-calls)                                                                                                                                                                                                                                                                                                                                                                                                                                                          | Transport wrap + JSON-RPC block                     |
 | [Block secrets in Claude Code](https://tailrace.dev/docs/guides/block-secrets-in-claude-code)                                                                                                                                                                                                                                                                                                                                                                                                                                            | Hooks, scan, install-hooks                          |
+| [CLI reference](https://tailrace.dev/docs/reference/cli)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 | `create`, `init`, `scan`, `install-hooks`, `hook`   |
 | [Next.js](https://tailrace.dev/docs/integrations/nextjs) · [MCP](https://tailrace.dev/docs/integrations/mcp) · [Hono](https://tailrace.dev/docs/integrations/hono) · [Express](https://tailrace.dev/docs/integrations/express) · [Fastify](https://tailrace.dev/docs/integrations/fastify) · [NestJS](https://tailrace.dev/docs/integrations/nestjs) · [Encore](https://tailrace.dev/docs/integrations/encore) · [tRPC](https://tailrace.dev/docs/integrations/trpc) · [Claude Code](https://tailrace.dev/docs/integrations/claude-code) | Integration pages                                   |
 
 Full docs: [tailrace.dev](https://tailrace.dev)
