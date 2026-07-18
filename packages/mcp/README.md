@@ -1,3 +1,5 @@
+> **Tailrace** - Agent data governance for TypeScript. [Docs](https://tailrace.dev) · [All packages](https://www.npmjs.com/org/tailrace) · [@tailrace/core](https://www.npmjs.com/package/@tailrace/core)
+
 # @tailrace/mcp
 
 Policy enforcement for [MCP](https://modelcontextprotocol.io) client transports

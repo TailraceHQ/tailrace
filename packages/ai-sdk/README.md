@@ -1,3 +1,5 @@
+> **Tailrace** - Agent data governance for TypeScript. [Docs](https://tailrace.dev) · [All packages](https://www.npmjs.com/org/tailrace) · [@tailrace/core](https://www.npmjs.com/package/@tailrace/core)
+
 # @tailrace/ai-sdk
 
 Policy enforcement for the [Vercel AI SDK](https://sdk.vercel.ai) (`ai@^5`). Wrap a language model so prompts and completions pass through Tailrace before they reach a provider or your application. Wrap tools so arguments and return values are governed at the tool boundary.

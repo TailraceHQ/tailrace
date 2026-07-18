@@ -1,3 +1,5 @@
+> **Tailrace** - Agent data governance for TypeScript. [Docs](https://tailrace.dev) · [All packages](https://www.npmjs.com/org/tailrace) · [@tailrace/core](https://www.npmjs.com/package/@tailrace/core)
+
 # @tailrace/openai-agents
 
 Govern OpenAI Agents SDK function tools with Tailrace. Args and results pass through `check` at the tool boundary.

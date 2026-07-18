@@ -1,3 +1,5 @@
+> **Tailrace** - Agent data governance for TypeScript. [Docs](https://tailrace.dev) · [All packages](https://www.npmjs.com/org/tailrace) · [@tailrace/core](https://www.npmjs.com/package/@tailrace/core)
+
 # @tailrace/cli
 
 The `tailrace` binary: scaffold governed agent apps, add config to existing projects, scan for secrets, and enforce policy in Claude Code hooks.

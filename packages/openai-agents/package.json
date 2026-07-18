@@ -7,7 +7,7 @@
     "url": "git+https://github.com/TailraceHQ/tailrace.git",
     "directory": "packages/openai-agents"
   },
-  "homepage": "https://github.com/TailraceHQ/tailrace/tree/main/packages/openai-agents#readme",
+  "homepage": "https://tailrace.dev",
   "bugs": {
     "url": "https://github.com/TailraceHQ/tailrace/issues"
   },

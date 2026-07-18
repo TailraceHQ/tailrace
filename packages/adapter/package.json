@@ -7,7 +7,7 @@
     "url": "git+https://github.com/TailraceHQ/tailrace.git",
     "directory": "packages/adapter"
   },
-  "homepage": "https://github.com/TailraceHQ/tailrace/tree/main/packages/adapter#readme",
+  "homepage": "https://tailrace.dev",
   "bugs": {
     "url": "https://github.com/TailraceHQ/tailrace/issues"
   },

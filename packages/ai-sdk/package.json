@@ -7,7 +7,7 @@
     "url": "git+https://github.com/TailraceHQ/tailrace.git",
     "directory": "packages/ai-sdk"
   },
-  "homepage": "https://github.com/TailraceHQ/tailrace/tree/main/packages/ai-sdk#readme",
+  "homepage": "https://tailrace.dev",
   "bugs": {
     "url": "https://github.com/TailraceHQ/tailrace/issues"
   },
