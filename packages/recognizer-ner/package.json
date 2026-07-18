@@ -1,7 +1,16 @@
 {
   "name": "@tailrace/recognizer-ner",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Optional Tier 1 NER recognizer for Tailrace (GLiNER-class ONNX model). Node only.",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/TailraceHQ/tailrace.git",
+    "directory": "packages/recognizer-ner"
+  },
+  "homepage": "https://github.com/TailraceHQ/tailrace/tree/main/packages/recognizer-ner#readme",
+  "bugs": {
+    "url": "https://github.com/TailraceHQ/tailrace/issues"
+  },
   "license": "MIT",
   "type": "module",
   "sideEffects": false,

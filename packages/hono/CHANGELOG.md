@@ -1,5 +1,13 @@
 # @tailrace/hono
 
+## 0.1.2
+
+### Patch Changes
+
+- Add `repository`, `homepage`, and `bugs` package.json fields so npm shows GitHub links on each package page.
+- Updated dependencies
+  - @tailrace/core@0.2.1
+
 ## 0.1.1
 
 ### Patch Changes

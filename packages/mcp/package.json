@@ -1,7 +1,16 @@
 {
   "name": "@tailrace/mcp",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Tailrace wrapper for MCP client transports: policy at the tools/call and resources/read boundary.",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/TailraceHQ/tailrace.git",
+    "directory": "packages/mcp"
+  },
+  "homepage": "https://github.com/TailraceHQ/tailrace/tree/main/packages/mcp#readme",
+  "bugs": {
+    "url": "https://github.com/TailraceHQ/tailrace/issues"
+  },
   "license": "MIT",
   "type": "module",
   "sideEffects": false,

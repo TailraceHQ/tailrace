@@ -1,7 +1,16 @@
 {
   "name": "@tailrace/adapter",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Shared Tailrace integration helpers: wrapToolExecute, runGoverned. No host peers.",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/TailraceHQ/tailrace.git",
+    "directory": "packages/adapter"
+  },
+  "homepage": "https://github.com/TailraceHQ/tailrace/tree/main/packages/adapter#readme",
+  "bugs": {
+    "url": "https://github.com/TailraceHQ/tailrace/issues"
+  },
   "license": "MIT",
   "type": "module",
   "sideEffects": false,

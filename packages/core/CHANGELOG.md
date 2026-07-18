@@ -1,5 +1,11 @@
 # @tailrace/core
 
+## 0.2.1
+
+### Patch Changes
+
+- Add `repository`, `homepage`, and `bugs` package.json fields so npm shows GitHub links on each package page.
+
 ## 0.2.0
 
 ### Minor Changes

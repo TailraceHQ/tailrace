@@ -6,6 +6,7 @@ import { run } from "../index";
 import { handleHookEvent } from "../commands/hook";
 import { defaultCompiledConfig, writeCompiledConfig } from "../internal/config";
 import { detectStack } from "../templates/config";
+import { resolveCliPackageVersion } from "../internal/templates-root";
 
 const dirs: string[] = [];
 const FAKE_KEY = "sk_test_" + "51FakeKeyForTailraceTests000FAKE";
@@ -234,8 +235,9 @@ describe("create", () => {
       dependencies: Record<string, string>;
     };
     expect(pkg.name).toBe("my-next-agent");
-    expect(pkg.dependencies["@tailrace/core"]).toBe("0.1.0");
-    expect(pkg.dependencies["@tailrace/ai-sdk"]).toBe("0.1.0");
+    const cliVersion = resolveCliPackageVersion();
+    expect(pkg.dependencies["@tailrace/core"]).toBe(cliVersion);
+    expect(pkg.dependencies["@tailrace/ai-sdk"]).toBe(cliVersion);
     expect(pkg.dependencies["@tailrace/core"]).not.toContain("workspace:");
     expect(readFileSync(join(dest, "app/api/chat/route.ts"), "utf8")).toContain("withAiSdk");
     expect(readFileSync(join(dest, ".env.example"), "utf8")).toContain("TAILRACE_VAULT_KEY");
@@ -258,7 +260,7 @@ describe("create", () => {
     const cfPkg = JSON.parse(readFileSync(join(cf, "package.json"), "utf8")) as {
       dependencies: Record<string, string>;
     };
-    expect(cfPkg.dependencies["@tailrace/cloudflare-agents"]).toBe("0.1.0");
+    expect(cfPkg.dependencies["@tailrace/cloudflare-agents"]).toBe(resolveCliPackageVersion());
     expect(readFileSync(join(cf, "wrangler.toml"), "utf8")).toContain("TAILRACE_VAULT");
     expect(readFileSync(join(cf, "src/index.ts"), "utf8")).toContain("createCloudflareTailrace");
 
@@ -266,7 +268,7 @@ describe("create", () => {
     const oaiPkg = JSON.parse(readFileSync(join(oai, "package.json"), "utf8")) as {
       dependencies: Record<string, string>;
     };
-    expect(oaiPkg.dependencies["@tailrace/openai-agents"]).toBe("0.1.0");
+    expect(oaiPkg.dependencies["@tailrace/openai-agents"]).toBe(resolveCliPackageVersion());
     expect(readFileSync(join(oai, "src/verify.ts"), "utf8")).toContain("wrapTool");
     expect(readFileSync(join(oai, "src/verify.ts"), "utf8")).not.toContain("sk_live");
   });

@@ -1,7 +1,16 @@
 {
   "name": "@tailrace/ai-sdk",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Tailrace middleware for the Vercel AI SDK: model wrapper + tool wrapper.",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/TailraceHQ/tailrace.git",
+    "directory": "packages/ai-sdk"
+  },
+  "homepage": "https://github.com/TailraceHQ/tailrace/tree/main/packages/ai-sdk#readme",
+  "bugs": {
+    "url": "https://github.com/TailraceHQ/tailrace/issues"
+  },
   "license": "MIT",
   "type": "module",
   "sideEffects": false,
