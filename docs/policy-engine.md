@@ -10,12 +10,13 @@ type Action = "allow" | "mask" | "tokenize" | "block" | "review" | "detokenize";
 // detokenize: egress-only; rejected by definePolicy outside egress boundary keys
 
 type EntityClass =
-  // secrets (Tier 0, deterministic)
-  | "api_key" | "jwt" | "private_key" | "high_entropy_secret" | "connection_string"
+  // secrets (Tier 0 deterministic + Tier 1 `secret`)
+  | "api_key" | "jwt" | "private_key" | "high_entropy_secret" | "connection_string" | "secret"
   // structured PII (Tier 0)
   | "email" | "phone" | "credit_card" | "iban" | "ssn" | "ip_address" | "url_credentials"
-  // free-text PII (Tier 1, NER)
+  // free-text / model-mapped PII (Tier 1, NER)
   | "person" | "location" | "organization"
+  | "account_number" | "private_address" | "private_url" | "private_date"
   // user-defined
   | (string & {});
 
@@ -52,11 +53,11 @@ Explicit per-entity choices, not a blanket "all PII tokenize":
 
 | Entity class | Default action | Rationale |
 |---|---|---|
-| All `SecretEntityClass` | `block` | Prime directive |
+| All `SecretEntityClass` (incl. Tier 1 `secret`) | `block` | Prime directive |
 | `email`, `phone`, `credit_card`, `iban`, `ssn` | `tokenize` | Common structured PII |
 | `ip_address` | `allow` | IPs appear in legitimate flows; blanket tokenization is aggressive |
 | `url_credentials` | `block` | Credential-in-URL shape is secret-class in practice |
-| NER (`person`, `location`, `organization`) | unset → `defaults.action` (`allow`) | Tier 1 optional; no default enforcement |
+| NER (`person`, `location`, `organization`, `account_number`, `private_*`) | unset → `defaults.action` (`allow`) | Tier 1 optional; use `nerRecommendedPolicy()` to opt in |
 | `boundaries["egress:*"].entities["*"]` | `detokenize` | Trusted egress restore |
 
 ## 3. Resolution algorithm (normative)

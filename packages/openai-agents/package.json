@@ -1,6 +1,6 @@
 {
   "name": "@tailrace/openai-agents",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "description": "Tailrace wrappers for OpenAI Agents SDK function tools.",
   "repository": {
     "type": "git",

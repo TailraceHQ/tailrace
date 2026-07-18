@@ -1,6 +1,7 @@
 # M8 Implementation Plan: Tier 1 NER (`@tailrace/recognizer-ner`)
 
-> **Status: not started.** Acceptance: [`milestones.md`](milestones.md) §M8.
+> **Status: in progress.** Core async + package decode/ONNX path landed; M8-6 benchmarks open.
+> Acceptance: [`milestones.md`](milestones.md) §M8.
 > Normative detection: [`detection.md`](detection.md) §3 (revise when taxonomy + model lock).
 > Package stub: `packages/recognizer-ner` (throws `NotImplementedError` today).
 
@@ -54,24 +55,28 @@ Compare Privacy Filter (chosen ONNX precision) vs at least one GLiNER-class ONNX
 
 Package README; detection.md §3; optional CI job that skips when model cache absent (or uses a tiny fixture ONNX for smoke). No raw secrets/PII in fixtures.
 
-## Suggested entity mapping (proposal - not locked)
+## Locked decisions (user 2026-07-17)
 
-| Privacy Filter label | Proposed Tailrace class | Notes |
+See [`OPEN_QUESTIONS.md`](../OPEN_QUESTIONS.md) §Locked for M8.
+
+| Privacy Filter label | Tailrace class | Default action |
 |---|---|---|
-| `secret` | new `SecretEntityClass` member `secret` (or map to `high_entropy_secret`) | Must inherit secrets-cannot-allow invariant |
-| `account_number` | `credit_card` and/or new NER class | Overlaps Tier 0 Luhn cards; most-restrictive-action already handles overlap |
-| `private_person` | `person` | Existing `NerEntityClass` |
-| `private_address` | new `location` subtype or keep `location` | Spec only has `location` today |
-| `private_email` | `email` | Overlaps Tier 0 |
-| `private_phone` | `phone` | Overlaps Tier 0 |
-| `private_url` | new class or `allow`/custom | No built-in today |
-| `private_date` | new class or drop | No built-in today |
+| `secret` | `SecretEntityClass` `secret` | `block` (via `defaultPolicy()` like other secrets) |
+| `account_number` | `account_number` (new) | `allow` (unset) |
+| `private_person` | `person` | `allow` (unset NER) |
+| `private_address` | `private_address` (new) | `allow` (unset) |
+| `private_email` | `email` | `tokenize` (existing Tier 0 default - document lookup caveat) |
+| `private_phone` | `phone` | `tokenize` (existing Tier 0 default) |
+| `private_url` | `private_url` (new) | `allow` (unset) |
+| `private_date` | `private_date` (new) | `allow` (unset) |
 
-Lock the table in OPEN_QUESTIONS before coding the mapper.
+**Policy API (option C):** `nerRecognizer()` does not auto-merge policy. Export
+`nerRecommendedPolicy()` (name TBD) as an opt-in fragment users merge. Tier 1 remains opt-in;
+F1-per-MB recorded but not sole model-pick criterion.
 
 ## Docs checklist (end of M8)
 
-- [ ] `docs/detection.md` §3 reflects chosen model + entity mapping
-- [ ] `OPEN_QUESTIONS.md`: Tier 1 model choice moved to Resolved with benchmark table
-- [ ] `packages/recognizer-ner/README.md` quickstart + memory footprint
-- [ ] Apache NOTICE / attribution for Privacy Filter weights if redistributed or pinned by default
+- [x] `docs/detection.md` §3 reflects chosen model + entity mapping
+- [ ] `OPEN_QUESTIONS.md`: Tier 1 model choice moved to Resolved with benchmark table (M8-6)
+- [x] `packages/recognizer-ner/README.md` quickstart + memory footprint
+- [x] Apache NOTICE for Privacy Filter weights (user-supplied; not redistributed)

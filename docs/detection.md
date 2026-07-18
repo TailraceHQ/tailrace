@@ -45,19 +45,24 @@ Implement ALL of the following. Each has (a) a pattern, (b) where applicable a v
 
 ## 3. Tier 1 (@tailrace/recognizer-ner, Node/Fluid only)
 
-> **M8 in progress.** Interface requirements below are normative; the concrete model and emitted
-> entity set are locked via [`OPEN_QUESTIONS.md`](../OPEN_QUESTIONS.md) §Open (M8-1…M8-6) and
-> [`m8-plan.md`](m8-plan.md). Until then the package stub throws `NotImplementedError`.
+Optional ONNX recognizer. Leading implementation: **OpenAI Privacy Filter** (Apache 2.0 weights;
+BIOES token classification + constrained Viterbi in TypeScript). GLiNER-class remains a benchmark
+comparator (see `OPEN_QUESTIONS.md` M8-6).
 
-Wraps a quantized ONNX NER / PII token-classification model via `onnxruntime-node`. Historical
-default candidate was GLiNER-class emitting `person`, `location`, `organization`; M8 evaluates
-OpenAI Privacy Filter (BIOES + constrained Viterbi; eight privacy labels incl. `secret`) against
-GLiNER-class on F1-per-MB before locking the default. Requirements: lazy model load on first scan
-(never at import); model fetched from HF hub URL pinned by revision + local cache dir, or supplied
-via `modelPath`; async `scan`; batch inputs internally; document memory footprint. If the model
-file is unavailable at runtime: log one warning, mark recognizer disabled, continue with Tier 0
-(prime directive #4). Model choice is a build-time decision - put candidates and benchmark results
-in `OPEN_QUESTIONS.md`, pick the best F1-per-MB (or the locked M8 criterion), don't agonize.
+**Requirements:**
+
+- Lazy model load on first `scan` (never at import); `onnxruntime-node` optional peer.
+- User supplies `modelPath` (ONNX file or hub checkout dir). Prefer `model_q4.onnx`. Hub
+  auto-download may land later; not required for M8.
+- Async `scan`; UTF-16 `Span` offsets; map model labels per locked table in
+  [`OPEN_QUESTIONS.md`](../OPEN_QUESTIONS.md) §Locked for M8.
+- If the model is unavailable or inference throws: log **one** warning, disable the recognizer,
+  continue with Tier 0 (prime directive #4).
+- Registering the recognizer does **not** mutate policy. Export `nerRecommendedPolicy()` for
+  opt-in NER PII rules. `secret` is a `SecretEntityClass` and blocks via core `defaultPolicy`.
+- Document memory footprint in the package README (hundreds of MB–GB quantized).
+
+Core detection engine awaits Promise-returning `scan` and fail-opens per recognizer.
 
 ## 4. Span merging (in core, after all recognizers run)
 

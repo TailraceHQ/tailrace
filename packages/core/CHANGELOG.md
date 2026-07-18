@@ -1,5 +1,14 @@
 # @tailrace/core
 
+## 0.2.3
+
+### Patch Changes
+
+- M8: ship the Tier 1 `nerRecognizer()` (Privacy Filter ONNX, BIOES Viterbi decode) in
+  `@tailrace/recognizer-ner`, replacing the `NotImplementedError` stub. `@tailrace/core`'s
+  detection engine now awaits async (Tier 1) recognizers while keeping Tier 0 recognizers
+  fully synchronous on the hot path.
+
 ## 0.2.2
 
 ### Patch Changes

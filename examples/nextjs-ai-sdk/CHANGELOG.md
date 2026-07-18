@@ -1,5 +1,13 @@
 # example-nextjs-ai-sdk
 
+## 0.0.5
+
+### Patch Changes
+
+- Updated dependencies
+  - @tailrace/core@0.2.3
+  - @tailrace/ai-sdk@0.2.3
+
 ## 0.0.4
 
 ### Patch Changes

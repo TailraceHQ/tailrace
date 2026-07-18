@@ -42,6 +42,21 @@ function measure(name, fn, iterations = 2000, warmup = 200) {
   return { name, p50, p99 };
 }
 
+/** Async variant for `detect()` (returns Promise after M8 async engine wiring). */
+async function measureAsync(name, fn, iterations = 2000, warmup = 200) {
+  for (let i = 0; i < warmup; i++) await fn();
+  const samples = new Array(iterations);
+  for (let i = 0; i < iterations; i++) {
+    const t0 = performance.now();
+    await fn();
+    samples[i] = performance.now() - t0;
+  }
+  samples.sort((a, b) => a - b);
+  const p50 = samples[Math.floor(samples.length * 0.5)];
+  const p99 = samples[Math.floor(samples.length * 0.99)];
+  return { name, p50, p99 };
+}
+
 // ~4KB mixed input aligned with packages/core/tests/perf.test.ts
 const leakedKey = "sk_live_" + "C6Qc2MmKqcgowaGAyOQKG420";
 const block = [
@@ -58,11 +73,7 @@ input = input.slice(0, 4096);
 
 const engine = createDetectionEngine();
 
-const results = [
-  measure("tier0-4kb-scan", () => {
-    engine.detect(input);
-  }),
-];
+const results = [await measureAsync("tier0-4kb-scan", () => engine.detect(input))];
 
 // --- M4: hook spawn-to-exit ---
 const cliPath = join(root, "packages/cli/dist/cli.cjs");

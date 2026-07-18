@@ -1,0 +1,4 @@
+This package can load OpenAI Privacy Filter model weights (Apache License 2.0)
+from https://huggingface.co/openai/privacy-filter when the user supplies a local
+modelPath. Those weights are not redistributed by Tailrace. See the upstream
+LICENSE and NOTICE with the checkpoint you download.

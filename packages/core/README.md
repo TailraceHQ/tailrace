@@ -25,7 +25,7 @@ depends on it.
 | `@tailrace/mcp`               | [npm](https://www.npmjs.com/package/@tailrace/mcp)               | MCP client transport wrapper.                                                                                 |
 | `@tailrace/hono`              | [npm](https://www.npmjs.com/package/@tailrace/hono)              | Hono middleware (OpenAI-compatible passthrough).                                                              |
 | `@tailrace/cli`               | [npm](https://www.npmjs.com/package/@tailrace/cli)               | `tailrace` binary: `init`, `scan`, `install-hooks`, `hook`.                                                   |
-| `@tailrace/recognizer-ner`    | [npm](https://www.npmjs.com/package/@tailrace/recognizer-ner)    | Optional Tier 1 ONNX NER recognizer (Node only).                                                              |
+| `@tailrace/recognizer-ner`    | [npm](https://www.npmjs.com/package/@tailrace/recognizer-ner)    | Optional Tier 1 ONNX NER (Privacy Filter; bring your own weights). Node only.                                 |
 
 [All `@tailrace` packages on npm](https://www.npmjs.com/org/tailrace)
 
