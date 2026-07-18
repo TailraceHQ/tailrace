@@ -18,9 +18,6 @@
 workflow-scoped tokenization, and per-agent data-flow policy enforced at the model, tool, and MCP
 boundaries. No proxy, no sidecar, no network call in the request hot path.
 
-> Status: **v0.1 (milestone M5).** Detection, policy, vault, audit, AI SDK, MCP, Hono, and Claude
-> Code CLI ship across `@tailrace/*`. See [`docs/milestones.md`](docs/milestones.md).
-
 ## Why
 
 Agents move data across trust boundaries constantly - into model providers, out through tools, over
