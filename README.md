@@ -27,17 +27,40 @@ workflow, and restore it only at trusted egress.
 
 ## Packages
 
-| Package                                                     | What it is                                                                                                    |
-| ----------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
-| [`@tailrace/core`](packages/core)                           | Detection, policy engine, vault, audit. Zero runtime deps; runs on Node, Cloudflare Workers, and Vercel Edge. |
-| [`@tailrace/adapter`](packages/adapter)                     | Shared integration helpers: `wrapToolExecute`, `runGoverned`. No host peers.                                  |
-| [`@tailrace/ai-sdk`](packages/ai-sdk)                       | Vercel AI SDK middleware + tool wrapper.                                                                      |
-| [`@tailrace/cloudflare-agents`](packages/cloudflare-agents) | Cloudflare Agents / `AIChatAgent` compose entry (identity, vault, AI SDK wraps).                              |
-| [`@tailrace/openai-agents`](packages/openai-agents)         | OpenAI Agents SDK function tool wrappers.                                                                     |
-| [`@tailrace/mcp`](packages/mcp)                             | MCP client transport wrapper.                                                                                 |
-| [`@tailrace/hono`](packages/hono)                           | Hono middleware (OpenAI-compatible passthrough).                                                              |
-| [`@tailrace/cli`](packages/cli)                             | `tailrace` binary: `init`, `scan`, `install-hooks`, `hook`.                                                   |
-| [`@tailrace/recognizer-ner`](packages/recognizer-ner)       | Optional Tier 1 ONNX NER (Privacy Filter; bring your own weights). Node only.                                 |
+**Core**
+
+| Package                           | What it is                                                                                                    |
+| --------------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| [`@tailrace/core`](packages/core) | Detection, policy engine, vault, audit. Zero runtime deps; runs on Node, Cloudflare Workers, and Vercel Edge. |
+
+**Agent SDKs**
+
+| Package                                                     | What it is                                                                              |
+| ----------------------------------------------------------- | --------------------------------------------------------------------------------------- |
+| [`@tailrace/adapter`](packages/adapter)                     | Shared integration helpers: `wrapToolExecute`, `runGoverned`. No host peers.            |
+| [`@tailrace/ai-sdk`](packages/ai-sdk)                       | Vercel AI SDK middleware + tool wrapper.                                                |
+| [`@tailrace/cloudflare-agents`](packages/cloudflare-agents) | Cloudflare Agents / `AIChatAgent` compose entry (identity, vault, AI SDK wraps).        |
+| [`@tailrace/openai-agents`](packages/openai-agents)         | OpenAI Agents SDK function tool wrappers.                                               |
+| [`@tailrace/mcp`](packages/mcp)                             | MCP client transport wrapper: policy at the `tools/call` and `resources/read` boundary. |
+
+**HTTP / gateway integrations** - OpenAI-compatible passthrough (scan chat requests and JSON/SSE responses at the model boundary, 422 on block) unless noted:
+
+| Package                                 | What it is                                                                                                                  |
+| --------------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| [`@tailrace/hono`](packages/hono)       | Hono middleware.                                                                                                            |
+| [`@tailrace/express`](packages/express) | Express middleware.                                                                                                         |
+| [`@tailrace/fastify`](packages/fastify) | Fastify plugin.                                                                                                             |
+| [`@tailrace/nestjs`](packages/nestjs)   | NestJS middleware module (Nest + Express adapter).                                                                          |
+| [`@tailrace/encore`](packages/encore)   | Encore.ts middleware for raw proxy endpoints.                                                                               |
+| [`@tailrace/trpc`](packages/trpc)       | tRPC procedure middleware - scans procedure input/output at the **tool** boundary, not an OpenAI gateway.                   |
+| [`@tailrace/http`](packages/http)       | Shared pipeline (body/SSE/422 helpers) behind the six packages above. Install directly only when building a custom adapter. |
+
+**Tooling**
+
+| Package                                               | What it is                                                                    |
+| ----------------------------------------------------- | ----------------------------------------------------------------------------- |
+| [`@tailrace/cli`](packages/cli)                       | `tailrace` binary: `create`, `init`, `scan`, `install-hooks`, `hook`.         |
+| [`@tailrace/recognizer-ner`](packages/recognizer-ner) | Optional Tier 1 ONNX NER (Privacy Filter; bring your own weights). Node only. |
 
 ## Quickstart
 
@@ -51,9 +74,13 @@ const model = tailrace.model(openai("gpt-4o"));
 // Use `model` anywhere you'd use the AI SDK model - sensitive values never leave the process.
 ```
 
-Also: [`@tailrace/mcp`](packages/mcp/README.md) (`withMcp` / `wrapTransport`) and
-[`@tailrace/hono`](packages/hono/README.md) (`tailraceHono`) for MCP transports and OpenAI-compatible
-gateways.
+Also: [`@tailrace/mcp`](packages/mcp/README.md) (`withMcp` / `wrapTransport`) for MCP transports, and
+a middleware/plugin per HTTP framework - [Hono](packages/hono/README.md), [Express](packages/express/README.md),
+[Fastify](packages/fastify/README.md), [NestJS](packages/nestjs/README.md), [Encore](packages/encore/README.md),
+[tRPC](packages/trpc/README.md) - for OpenAI-compatible gateways and tool-boundary procedures.
+
+Prefer scaffolding a new project instead? `npx @tailrace/cli create next my-agent` wires up
+`@tailrace/core` + `@tailrace/ai-sdk` for you - see the [CLI reference](apps/web/content/docs/reference/cli.mdx).
 
 Runnable demos: [`examples/nextjs-ai-sdk`](examples/nextjs-ai-sdk),
 [`examples/claude-code`](examples/claude-code).
@@ -67,6 +94,7 @@ Runnable demos: [`examples/nextjs-ai-sdk`](examples/nextjs-ai-sdk),
 | [Ship an agent](apps/web/content/docs/guides/ship-an-agent-on-vercel.mdx)                                                                                                                                                                                                                                                                                                                                                                                                                                                                | Clone → verify → deploy: model, tools, egress restore |
 | [Govern MCP tool calls](apps/web/content/docs/guides/govern-mcp-tool-calls.mdx)                                                                                                                                                                                                                                                                                                                                                                                                                                                          | Transport wrap + JSON-RPC block                       |
 | [Block secrets in Claude Code](apps/web/content/docs/guides/block-secrets-in-claude-code.mdx)                                                                                                                                                                                                                                                                                                                                                                                                                                            | Hooks, scan, install-hooks                            |
+| [CLI reference](apps/web/content/docs/reference/cli.mdx)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 | `create`, `init`, `scan`, `install-hooks`, `hook`     |
 | [@tailrace/ai-sdk reference](apps/web/content/docs/reference/ai-sdk/index.mdx)                                                                                                                                                                                                                                                                                                                                                                                                                                                           | `wrapModel`, `wrapTools`, options                     |
 | [Next.js](apps/web/content/docs/integrations/nextjs.mdx) · [MCP](apps/web/content/docs/integrations/mcp.mdx) · [Hono](apps/web/content/docs/integrations/hono.mdx) · [Express](apps/web/content/docs/integrations/express.mdx) · [Fastify](apps/web/content/docs/integrations/fastify.mdx) · [NestJS](apps/web/content/docs/integrations/nestjs.mdx) · [Encore](apps/web/content/docs/integrations/encore.mdx) · [tRPC](apps/web/content/docs/integrations/trpc.mdx) · [Claude Code](apps/web/content/docs/integrations/claude-code.mdx) | Integration pages                                     |
 | [Integrations spec](docs/integrations.md)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                | Normative behavior                                    |
@@ -106,9 +134,8 @@ Runbook:
    `.d.ts`). Each package also has a `prepublishOnly` that rebuilds it at publish time, but building up
    front surfaces failures before you start publishing.
 4. **Publish.** `pnpm release` (`changeset publish`). It publishes in topological order and **skips any
-   version already on npm** - so re-running is safe and you can never clobber a published version. All
-   nine packages are currently `0.1.0` on npm; the next release of any package must go through a
-   changeset bump or `publish` will no-op on it.
+   version already on npm** - so re-running is safe and you can never clobber a published version. A
+   package's first release still has to go through a changeset bump; without one, `publish` no-ops on it.
 
 Release-time invariants to preserve:
 
