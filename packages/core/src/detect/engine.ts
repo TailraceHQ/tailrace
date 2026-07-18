@@ -1,17 +1,17 @@
 /**
  * Detection engine: runs recognizers over a string or JSON object and returns merged spans.
- * Internal to core (not part of the public export surface) - consumed by `check` in M2 and by
- * the CLI `scan` command in M4.
+ * Internal to core (not part of the public export surface) - consumed by `check` and by
+ * the CLI `scan` command.
  *
- * Tier 0 is synchronous end to end. A recognizer that returns a Promise (Tier 1) is rejected
- * here until async detection is wired in a later milestone.
+ * Tier 0 recognizers are synchronous. Tier 1 may return a Promise; the engine awaits them.
+ * A throwing / rejected recognizer is skipped after one warning (fail open).
  */
 
 import { getConsole } from "../console";
-import { NotImplementedError, RecognizerError, TailraceError } from "../errors";
+import { RecognizerError, TailraceError } from "../errors";
 import type { EntityClass, JsonObject, Recognizer, Span } from "../types";
 import { mergeSpans } from "./merge";
-import { scanObject } from "./object-scan";
+import { scanObjectAsync } from "./object-scan";
 import { builtinRecognizers } from "./recognizers";
 
 const DEFAULT_MAX_CUSTOM_RECOGNIZERS = 16;
@@ -34,7 +34,7 @@ export interface DetectionEngineOptions {
 export interface DetectionEngine {
   readonly recognizers: readonly Recognizer[];
   /** Detect over a plain string or a JSON object; returns merged spans. */
-  detect(input: string | JsonObject): Span[];
+  detect(input: string | JsonObject): Promise<Span[]>;
 }
 
 function assertRecognizerLimits(custom: Recognizer[], maxCustom: number): void {
@@ -74,38 +74,35 @@ export function createDetectionEngine(opts: DetectionEngineOptions = {}): Detect
 
   const warnedRecognizerFailures = new Set<string>();
 
-  const runRecognizers = (text: string): Span[] => {
+  const warnRecognizerFailure = (recognizerId: string, err: unknown): void => {
+    if (warnedRecognizerFailures.has(recognizerId)) return;
+    warnedRecognizerFailures.add(recognizerId);
+    const reason =
+      err instanceof TailraceError ? err.message.split(" → ")[0] : "recognizer threw during scan";
+    getConsole()?.warn(`[tailrace] recognizer "${recognizerId}" failed (skipped): ${reason}`);
+  };
+
+  const runRecognizers = async (text: string): Promise<Span[]> => {
     const spans: Span[] = [];
     for (const recognizer of recognizers) {
       try {
         const result = recognizer.scan(text);
-        if (result instanceof Promise) {
-          throw new NotImplementedError(
-            "async (Tier 1) recognizers are wired in a later milestone; Tier 0 detection is synchronous",
-          );
-        }
-        for (const span of result) spans.push(span);
+        // Tier 0 recognizers return an array synchronously; only await Tier 1's Promise
+        // so sync-only configurations pay no microtask overhead on the hot path.
+        const resolved = result instanceof Promise ? await result : result;
+        for (const span of resolved) spans.push(span);
       } catch (err) {
-        if (err instanceof NotImplementedError) throw err;
-        if (!warnedRecognizerFailures.has(recognizer.id)) {
-          warnedRecognizerFailures.add(recognizer.id);
-          const reason =
-            err instanceof TailraceError
-              ? err.message.split(" → ")[0]
-              : "recognizer threw during scan";
-          getConsole()?.warn(
-            `[tailrace] recognizer "${recognizer.id}" failed (skipped): ${reason}`,
-          );
-        }
+        warnRecognizerFailure(recognizer.id, err);
       }
     }
     return spans;
   };
 
-  const scanLeaf = (text: string): Span[] => mergeSpans(runRecognizers(text), mergeOpts);
+  const scanLeaf = async (text: string): Promise<Span[]> =>
+    mergeSpans(await runRecognizers(text), mergeOpts);
 
-  const detect = (input: string | JsonObject): Span[] =>
-    typeof input === "string" ? scanLeaf(input) : scanObject(input, scanLeaf);
+  const detect = async (input: string | JsonObject): Promise<Span[]> =>
+    typeof input === "string" ? scanLeaf(input) : scanObjectAsync(input, scanLeaf);
 
   return { recognizers, detect };
 }

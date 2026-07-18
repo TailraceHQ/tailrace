@@ -1,6 +1,6 @@
 {
   "name": "@tailrace/core",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "description": "Agent data governance core: detection, policy engine, vault, audit. Zero runtime deps; runs on Node, Cloudflare Workers, and Vercel Edge.",
   "repository": {
     "type": "git",

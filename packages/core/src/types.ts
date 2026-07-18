@@ -9,17 +9,25 @@
 /** What the policy engine decides to do with a detected span. */
 export type Action = "allow" | "mask" | "tokenize" | "block" | "review" | "detokenize";
 
-/** Deterministic, Tier 0 secret classes. `block` on these cannot be relaxed to `allow`
- * without `dangerouslyAllowSecrets` (docs/policy-engine.md §3.3). */
+/** Deterministic / Tier 1 secret classes. `block` on these cannot be relaxed to `allow`
+ * without `dangerouslyAllowSecrets` (docs/policy-engine.md §3.3).
+ * `secret` is emitted by optional Tier 1 NER (Privacy Filter); Tier 0 uses the specific classes. */
 export type SecretEntityClass =
-  "api_key" | "jwt" | "private_key" | "high_entropy_secret" | "connection_string";
+  "api_key" | "jwt" | "private_key" | "high_entropy_secret" | "connection_string" | "secret";
 
 /** Structured PII, detected deterministically in Tier 0. */
 export type PiiEntityClass =
   "email" | "phone" | "credit_card" | "iban" | "ssn" | "ip_address" | "url_credentials";
 
-/** Free-text PII, detected by the optional Tier 1 NER recognizer. */
-export type NerEntityClass = "person" | "location" | "organization";
+/** Free-text / model-mapped PII from the optional Tier 1 NER recognizer. */
+export type NerEntityClass =
+  | "person"
+  | "location"
+  | "organization"
+  | "account_number"
+  | "private_address"
+  | "private_url"
+  | "private_date";
 
 /**
  * Any entity class. The `string & {}` member keeps literal autocomplete for the known
@@ -40,6 +48,7 @@ export const SECRET_ENTITY_CLASSES: readonly SecretEntityClass[] = [
   "private_key",
   "high_entropy_secret",
   "connection_string",
+  "secret",
 ];
 
 /** Structured PII classes (Tier 0). */
@@ -53,8 +62,16 @@ export const PII_ENTITY_CLASSES: readonly PiiEntityClass[] = [
   "url_credentials",
 ];
 
-/** Free-text PII classes (Tier 1 NER). */
-export const NER_ENTITY_CLASSES: readonly NerEntityClass[] = ["person", "location", "organization"];
+/** Free-text / model-mapped PII classes (Tier 1 NER). */
+export const NER_ENTITY_CLASSES: readonly NerEntityClass[] = [
+  "person",
+  "location",
+  "organization",
+  "account_number",
+  "private_address",
+  "private_url",
+  "private_date",
+];
 
 /** A trust boundary a value is about to cross. */
 export type Boundary =

@@ -52,3 +52,42 @@ export function scanObject(
   walk(input, "", 0);
   return out;
 }
+
+/**
+ * Async variant of {@link scanObject} for engines that await Tier 1 recognizers.
+ * Walk order matches the sync scanner (keys before children; arrays in index order).
+ */
+export async function scanObjectAsync(
+  input: JsonObject,
+  scanLeaf: (text: string) => Promise<Span[]>,
+  maxDepth: number = DEFAULT_MAX_DEPTH,
+): Promise<Span[]> {
+  const out: Span[] = [];
+  const seen = new WeakSet<object>();
+
+  const walk = async (value: JsonValue, path: string, depth: number): Promise<void> => {
+    if (typeof value === "string") {
+      for (const span of await scanLeaf(value)) out.push({ ...span, path });
+      return;
+    }
+    if (value === null || typeof value !== "object") return;
+    if (seen.has(value)) return;
+    if (depth >= maxDepth) return;
+    seen.add(value);
+
+    if (Array.isArray(value)) {
+      for (let i = 0; i < value.length; i++) {
+        await walk(value[i]!, `${path}/${i}`, depth + 1);
+      }
+    } else {
+      for (const [key, child] of Object.entries(value)) {
+        const childPath = `${path}/${escapePointer(key)}`;
+        for (const span of await scanLeaf(key)) out.push({ ...span, path: childPath });
+        await walk(child, childPath, depth + 1);
+      }
+    }
+  };
+
+  await walk(input, "", 0);
+  return out;
+}

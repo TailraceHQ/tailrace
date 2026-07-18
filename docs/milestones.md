@@ -100,17 +100,17 @@ Implementation plan: [`m7-plan.md`](m7-plan.md). Guides: [`guides/openai-agents-
 
 ## M8: Tier 1 NER (`@tailrace/recognizer-ner`)
 
-Implementation plan: [`m8-plan.md`](m8-plan.md). Normative detection surface: [`detection.md`](detection.md) §3 (updated once taxonomy + model are locked).
+Implementation plan: [`m8-plan.md`](m8-plan.md). Normative detection surface: [`detection.md`](detection.md) §3.
 
-Candidate primary model: OpenAI Privacy Filter (Apache 2.0; BIOES token classification + constrained Viterbi). Benchmark against GLiNER-class ONNX candidates; pick by F1-per-MB per detection.md §3.
+Candidate primary model: OpenAI Privacy Filter (Apache 2.0; BIOES token classification + constrained Viterbi). Benchmark vs GLiNER-class tracked in OPEN_QUESTIONS M8-6.
 
-- [ ] Lock open questions in [`OPEN_QUESTIONS.md`](../OPEN_QUESTIONS.md) §Open (taxonomy mapping, default ONNX artifact, async engine wiring, default policy for Tier 1 entities)
-- [ ] Core detection engine accepts async (Tier 1) recognizers; fail-open if a Tier 1 scan throws or model is unavailable
-- [ ] ONNX artifact: prefer official `openai/privacy-filter` exports (incl. quantized); self-convert/quantize only if a better int8 candidate is needed
-- [ ] `nerRecognizer()`: lazy load on first scan, HF revision pin + cache / `modelPath`, Node/Fluid only
-- [ ] BIOES + constrained Viterbi decode in TypeScript; map model labels → Tailrace `EntityClass` (incl. `secret` → secret-class for non-overridable `block`)
-- [ ] Benchmark Privacy Filter vs GLiNER-class candidates; record F1-per-MB + memory in `OPEN_QUESTIONS.md`; lock default model
-- [ ] Update `docs/detection.md` §3 + package README; corpus / smoke fixtures (synthetic only); CI gate for Tier 1 opt-in path
+- [x] Lock open questions M8-1…M8-5 (taxonomy, opt-in Tier 1, option C, ONNX artifact, async engine) in [`OPEN_QUESTIONS.md`](../OPEN_QUESTIONS.md); M8-6 benchmarks remaining
+- [x] Core detection engine accepts async (Tier 1) recognizers; fail-open if a Tier 1 scan throws or model is unavailable
+- [x] ONNX via `modelPath` (prefer official `model_q4.onnx`); no Tailrace-owned export; hub auto-download deferred
+- [x] `nerRecognizer()`: lazy load on first scan, `modelPath` / `onnxFile`, Node only; `nerRecommendedPolicy()` opt-in fragment
+- [x] BIOES + constrained Viterbi decode in TypeScript; map model labels → Tailrace `EntityClass` (`secret` → secret-class `block`)
+- [ ] Benchmark Privacy Filter vs GLiNER-class candidates; record F1-per-MB + memory in `OPEN_QUESTIONS.md`
+- [x] Update `docs/detection.md` §3 + package README; unit/integration tests with injected logits (no weights in CI)
 
 ## Demos (must run from fresh clone, commands documented in each example's README)
 

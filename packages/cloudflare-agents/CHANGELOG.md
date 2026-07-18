@@ -1,5 +1,14 @@
 # @tailrace/cloudflare-agents
 
+## 0.2.3
+
+### Patch Changes
+
+- Updated dependencies
+  - @tailrace/core@0.2.3
+  - @tailrace/adapter@0.2.3
+  - @tailrace/ai-sdk@0.2.3
+
 ## 0.2.2
 
 ### Patch Changes

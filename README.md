@@ -32,7 +32,7 @@ workflow, and restore it only at trusted egress.
 | [`@tailrace/mcp`](packages/mcp)                             | MCP client transport wrapper.                                                                                 |
 | [`@tailrace/hono`](packages/hono)                           | Hono middleware (OpenAI-compatible passthrough).                                                              |
 | [`@tailrace/cli`](packages/cli)                             | `tailrace` binary: `init`, `scan`, `install-hooks`, `hook`.                                                   |
-| [`@tailrace/recognizer-ner`](packages/recognizer-ner)       | Optional Tier 1 ONNX NER recognizer (Node only).                                                              |
+| [`@tailrace/recognizer-ner`](packages/recognizer-ner)       | Optional Tier 1 ONNX NER (Privacy Filter; bring your own weights). Node only.                                 |
 
 ## Quickstart
 

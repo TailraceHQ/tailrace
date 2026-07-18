@@ -19,8 +19,10 @@ describe("defaultPolicy", () => {
   it("blocks secrets and tokenizes email", () => {
     const compiled = compilePolicy(defaultPolicy());
     expect(resolve(compiled, "api_key", modelBoundary, identity).action).toBe("block");
+    expect(resolve(compiled, "secret", modelBoundary, identity).action).toBe("block");
     expect(resolve(compiled, "email", modelBoundary, identity).action).toBe("tokenize");
     expect(resolve(compiled, "person", modelBoundary, identity).action).toBe("allow");
+    expect(resolve(compiled, "account_number", modelBoundary, identity).action).toBe("allow");
   });
 
   it("allows ip_address and blocks url_credentials explicitly", () => {

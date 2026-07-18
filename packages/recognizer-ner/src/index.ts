@@ -1,36 +1,22 @@
 /**
  * @tailrace/recognizer-ner - optional Tier 1 NER recognizer (Node/Fluid only).
  *
- * Wraps a quantized GLiNER-class ONNX model to emit `person`, `location`, and `organization`
- * spans. Lazy model load on first scan; if the model is unavailable at runtime it logs one
- * warning and disables itself, never crashing the host (docs/detection.md §3, prime directive
- * #4). `core` must never import this package. M0 skeleton: body lands with Tier 1.
+ * Privacy Filter ONNX path (BIOES + constrained Viterbi). Lazy model load; fail-open to
+ * Tier 0 if unavailable (docs/detection.md §3, prime directive #4). `core` must never
+ * import this package.
  */
 
-import { NotImplementedError, type Recognizer } from "@tailrace/core";
-
-export interface NerRecognizerOptions {
-  /** Local path to the ONNX model; overrides the pinned HF-hub download. */
-  modelPath?: string;
-  /** HF-hub revision to pin when downloading. */
-  revision?: string;
-  /** Local cache directory for the downloaded model. */
-  cacheDir?: string;
-}
-
-// M8: lock OPEN_QUESTIONS.md M8-1…M8-6 (Privacy Filter vs GLiNER, taxonomy, ONNX
-// artifact), then implement. See docs/m8-plan.md and docs/detection.md §3.
-
-/**
- * Build the Tier 1 NER recognizer to pass into `createTailrace({ recognizers: [...] })`.
- *
- * @example
- * ```ts
- * const gate = createTailrace({ recognizers: [nerRecognizer()] });
- * ```
- */
-export function nerRecognizer(opts?: NerRecognizerOptions): Recognizer {
-  throw new NotImplementedError(
-    "@tailrace/recognizer-ner lands after core Tier 0 detection (docs/detection.md §3)",
-  );
-}
+export type { NerRecognizerOptions } from "./recognizer";
+export { nerRecognizer } from "./recognizer";
+export type { NerRecommendedPolicyOptions } from "./policy";
+export { nerRecommendedPolicy } from "./policy";
+export {
+  MODEL_LABEL_TO_ENTITY,
+  NER_RECOGNIZER_ENTITIES,
+  NER_RECOGNIZER_ID,
+  PRIVACY_FILTER_ID2LABEL,
+  mapModelLabelToEntity,
+} from "./labels";
+export { decodePrivacyFilterLogits } from "./decode";
+export type { TokenizedText, TokenizerFn } from "./tokenize";
+export { DEFAULT_HUB_REPO, DEFAULT_ONNX_FILE } from "./session";

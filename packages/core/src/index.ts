@@ -135,7 +135,7 @@ export function createTailrace(options: TailraceOptions = {}): Tailrace {
       ...(ctx.identity.claims !== undefined ? { claims: ctx.identity.claims } : {}),
     };
     const policy = await loadAndCompile();
-    const spans = engine.detect(input);
+    const spans = await engine.detect(input);
     const items: ApplyItem[] = [];
 
     for (const span of spans) {

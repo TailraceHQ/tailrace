@@ -41,23 +41,25 @@ const ENTITIES: EntityClass[] = [
 
 describe("Tier 0 corpus", () => {
   for (const entity of ENTITIES) {
-    it(`${entity}: recall >= 0.95`, () => {
+    it(`${entity}: recall >= 0.95`, async () => {
       const positives = fixtureLines("positives", entity);
       expect(positives.length).toBeGreaterThanOrEqual(10);
       const misses: string[] = [];
       for (const line of positives) {
-        if (!engine.detect(line).some((s) => s.entity === entity)) misses.push(line);
+        const spans = await engine.detect(line);
+        if (!spans.some((s) => s.entity === entity)) misses.push(line);
       }
       const recall = (positives.length - misses.length) / positives.length;
       expect(recall, `${entity} missed: ${JSON.stringify(misses)}`).toBeGreaterThanOrEqual(0.95);
     });
 
-    it(`${entity}: precision >= 0.95`, () => {
+    it(`${entity}: precision >= 0.95`, async () => {
       const negatives = fixtureLines("negatives", entity);
       expect(negatives.length).toBeGreaterThanOrEqual(10);
       const falsePositives: string[] = [];
       for (const line of negatives) {
-        if (engine.detect(line).some((s) => s.entity === entity)) falsePositives.push(line);
+        const spans = await engine.detect(line);
+        if (spans.some((s) => s.entity === entity)) falsePositives.push(line);
       }
       const precision = (negatives.length - falsePositives.length) / negatives.length;
       expect(

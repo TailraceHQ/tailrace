@@ -35,21 +35,21 @@ function build4kbInput(): string {
 }
 
 describe("Tier 0 perf gate", () => {
-  it("scans a 4KB mixed input at p50 < 5ms", () => {
+  it("scans a 4KB mixed input at p50 < 5ms", async () => {
     const engine = createDetectionEngine();
     const input = build4kbInput();
 
     // Sanity: the fixture actually contains detectable entities.
-    expect(engine.detect(input).length).toBeGreaterThan(0);
+    expect((await engine.detect(input)).length).toBeGreaterThan(0);
 
-    for (let i = 0; i < 100; i++) engine.detect(input); // warmup
+    for (let i = 0; i < 100; i++) await engine.detect(input); // warmup
 
     // measured p50 is ~0.5ms, far under budget, so this is stable under the parallel pool.
     const iterations = 2000;
     const samples: number[] = [];
     for (let i = 0; i < iterations; i++) {
       const t0 = performance.now();
-      engine.detect(input);
+      await engine.detect(input);
       samples.push(performance.now() - t0);
     }
     samples.sort((a, b) => a - b);
@@ -58,7 +58,7 @@ describe("Tier 0 perf gate", () => {
     expect(p50, `p50=${p50.toFixed(3)}ms`).toBeLessThan(5);
   });
 
-  it("with three typical custom patterns still meets p50 < 5ms on 4KB", () => {
+  it("with three typical custom patterns still meets p50 < 5ms on 4KB", async () => {
     const custom = [
       definePatternRecognizer({
         id: "employee-id",
@@ -82,13 +82,13 @@ describe("Tier 0 perf gate", () => {
     const engine = createDetectionEngine({ recognizers: custom });
     const input = build4kbInput() + " EMP-01234 TKT-123456 PRJ-ABC";
 
-    for (let i = 0; i < 100; i++) engine.detect(input);
+    for (let i = 0; i < 100; i++) await engine.detect(input);
 
     const iterations = 2000;
     const samples: number[] = [];
     for (let i = 0; i < iterations; i++) {
       const t0 = performance.now();
-      engine.detect(input);
+      await engine.detect(input);
       samples.push(performance.now() - t0);
     }
     samples.sort((a, b) => a - b);

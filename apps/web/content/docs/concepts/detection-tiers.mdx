@@ -22,9 +22,13 @@ Honest expectation: Tier 0 is strong on structured shapes and known key prefixes
 
 ## Tier 1 (optional `@tailrace/recognizer-ner`)
 
-Quantized GLiNER-class ONNX model for `person`, `location`, `organization`. Node/Fluid only in v0.1 - not edge. Lazy-loaded; if the model file is missing, Tailrace logs a warning and continues with Tier 0 (fail open for availability).
+Opt-in ONNX recognizer (Node/Fluid only). Bring your own Privacy Filter weights via `modelPath` -
+Tailrace does not bundle or auto-download the model. Lazy-loaded; if the file is missing or
+inference fails, one warning and Tier 0 continues (fail open).
 
-Default policy does **not** enforce NER entities - they fall through to `allow` unless you set them.
+`secret` from the model maps to a secret entity class and **blocks** under zero-config.
+Other NER classes allow unless you merge `nerRecommendedPolicy()`. `email` / `phone` still follow
+Tier 0 tokenize defaults when detected.
 
 ## Custom recognizers
 
