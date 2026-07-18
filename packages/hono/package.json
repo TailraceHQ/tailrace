@@ -1,7 +1,16 @@
 {
   "name": "@tailrace/hono",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Tailrace Hono middleware: OpenAI-compatible passthrough with policy at the model boundary.",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/TailraceHQ/tailrace.git",
+    "directory": "packages/hono"
+  },
+  "homepage": "https://github.com/TailraceHQ/tailrace/tree/main/packages/hono#readme",
+  "bugs": {
+    "url": "https://github.com/TailraceHQ/tailrace/issues"
+  },
   "license": "MIT",
   "type": "module",
   "sideEffects": false,

@@ -1,7 +1,16 @@
 {
   "name": "@tailrace/cli",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "The `tailrace` CLI: create, init, scan, install-hooks, and the Claude Code hook handler.",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/TailraceHQ/tailrace.git",
+    "directory": "packages/cli"
+  },
+  "homepage": "https://github.com/TailraceHQ/tailrace/tree/main/packages/cli#readme",
+  "bugs": {
+    "url": "https://github.com/TailraceHQ/tailrace/issues"
+  },
   "license": "MIT",
   "type": "module",
   "bin": {
