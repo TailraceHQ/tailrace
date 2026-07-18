@@ -188,10 +188,13 @@ Identity defaults: `agent` / `workflowId` → `"default"` when unset.
 
 User guide: [`docs/guides/hono-integration.md`](guides/hono-integration.md).
 Docs site: `/docs/reference/hono`, `/docs/integrations/hono`.
-Implementation plan: [`m5-plan.md`](m5-plan.md).
+Implementation plan: [`m5-plan.md`](m5-plan.md) (M9 refactor: [`m9-plan.md`](m9-plan.md)).
 
 **Peer dependency:** `hono` `>=4`. Types bind against installed `MiddlewareHandler` / `Context`
 from `hono` (`MiddlewareHandler = (c, next) => Promise<R | void>`). As of `hono@4.12.x`.
+
+**Depends on:** `@tailrace/core` + `@tailrace/http` (public API only). Thin host wrapper; shared
+OpenAI-compat / SSE / 422 logic lives in `@tailrace/http`.
 
 ```ts
 import { tailraceHono } from "@tailrace/hono";
@@ -219,9 +222,9 @@ Parses OpenAI-format chat request bodies, `check`s message text contents at boun
 `{ kind: "model", provider }` where `provider` is the request body's `model` string **as-is**,
 forwards; scans response bodies including SSE streaming.
 
-**Carry-buffer:** local reimplementation inside `@tailrace/hono` (same hold-back algorithm as
-`@tailrace/ai-sdk`). Must not import `@tailrace/ai-sdk`. No `streamBlockBehavior` option in v0.1
-(abort-equivalent only for SSE).
+**Carry-buffer:** implemented in `@tailrace/http` (same hold-back algorithm as `@tailrace/ai-sdk`).
+Must not import `@tailrace/ai-sdk`. No `streamBlockBehavior` option in v0.1 (abort-equivalent only
+for SSE).
 
 ### Block translation
 
@@ -233,8 +236,8 @@ forwards; scans response bodies including SSE streaming.
 
 Tokenize/mask rewrites the request/response body (or SSE text deltas) in place and continues.
 
-This package is thin by design - it exists to serve Workers users and as the shape of a future
-gateway plugin.
+This package is thin by design - it exists to serve Workers users and as the shape of other HTTP
+gateway plugins (see §9–§13).
 
 ## 4. @tailrace/cli: `tailrace` binary
 
@@ -436,3 +439,146 @@ const { model, tools } = withCloudflareAgents(tr).forChat({
 | `wrapOnToolCall` | Check tool args `out` before user handler; check output `in` before `addToolOutput` |
 
 Default `workflowId` / `agent` = Durable Object or agent instance name when provided.
+
+## 9. @tailrace/http: shared OpenAI-compat pipeline
+
+Implementation plan: [`m9-plan.md`](m9-plan.md).
+
+**No host peers.** Depends on `@tailrace/core` only. Runtime: Node + workerd (Web APIs only - no
+`node:` imports). Consumed by `@tailrace/hono`, `@tailrace/express`, `@tailrace/fastify`,
+`@tailrace/nestjs`, `@tailrace/encore`.
+
+| Export | Role |
+|---|---|
+| `parseOpenAiBody` / `extractMessageTextTree` / `extractCompletionText` / `applyCompletionText` | OpenAI chat body helpers |
+| `policyViolationBody` / `POLICY_VIOLATION_STATUS` | 422 body builder (`422`) |
+| `CARRY_BUFFER_SIZE` / `createOpenAiCompatSseTransform` | SSE hold-back transform over `ReadableStream<Uint8Array>` |
+| `runOpenAiCompatRequestCheck` / `runOpenAiCompatJsonResponseCheck` | Pure pipeline helpers taking `Tailrace` + identity opts (not a host `Context`) |
+| `modelBoundaryFromBody` / `isEventStream` | Boundary + content-type helpers |
+
+Must not import any framework package. Gateways resolve agent/workflowId from their host request,
+then call these helpers.
+
+## 10. @tailrace/express: middleware
+
+User guide: [`docs/guides/express-integration.md`](guides/express-integration.md).
+
+**Peer dependency:** `express` `>=4`. Depends on `@tailrace/core` + `@tailrace/http`.
+
+```ts
+import { tailraceExpress } from "@tailrace/express";
+
+app.use("/v1", tailraceExpress(tailrace, {
+  mode: "openai-compatible",
+  agent: (req) => String(req.headers["x-agent-id"] ?? "default"),
+  workflowId: (req) => String(req.headers["x-workflow-id"] ?? "default"),
+}));
+```
+
+Same openai-compat contract as §3 (422 / SSE abort). Expects a JSON body (`express.json()` or
+equivalent) for chat requests; buffers/intercepts response for JSON + SSE rewrite.
+
+## 11. @tailrace/fastify: plugin
+
+User guide: [`docs/guides/fastify-integration.md`](guides/fastify-integration.md).
+
+**Peer dependency:** `fastify` `>=4`. Depends on `@tailrace/core` + `@tailrace/http`.
+
+```ts
+import { tailraceFastify } from "@tailrace/fastify";
+
+await app.register(tailraceFastify(tailrace, {
+  mode: "openai-compatible",
+  agent: (req) => String(req.headers["x-agent-id"] ?? "default"),
+}));
+```
+
+Uses `preHandler` for request check and `onSend` / raw stream wrapping for JSON + SSE responses.
+Same §3 contract.
+
+## 12. @tailrace/nestjs: middleware module
+
+User guide: [`docs/guides/nestjs-integration.md`](guides/nestjs-integration.md).
+
+**Peer dependency:** `@nestjs/common` `>=10`. Depends on `@tailrace/core` + `@tailrace/http`.
+Primary CI target: Nest + **Express** adapter. Nest + Fastify adapter is supported via Nest's
+HTTP abstractions where possible; document Fastify as secondary.
+
+```ts
+import { TailraceModule } from "@tailrace/nestjs";
+
+@Module({
+  imports: [
+    TailraceModule.forRoot({
+      tailrace,
+      forRoutes: ["v1/*path"],
+      agent: (req) => String(req.headers["x-agent-id"] ?? "default"),
+    }),
+  ],
+})
+export class AppModule {}
+```
+
+Exports `TailraceModule.forRoot` and `TailraceMiddleware`. Applies the same openai-compat §3
+contract on configured routes. Nest 11 route globs use named splats (`v1/*path`, not `v1*`).
+
+## 13. @tailrace/encore: middleware
+
+User guide: [`docs/guides/encore-integration.md`](guides/encore-integration.md).
+
+**Peer dependency:** `encore.dev` `>=1.46` (bound against `encore.dev@1.57.x`
+`middleware` / `HandlerResponse` / `MiddlewareRequest`). Depends on `@tailrace/core` +
+`@tailrace/http`.
+
+```ts
+import { tailraceEncore } from "@tailrace/encore";
+import { Service } from "encore.dev/service";
+
+export default new Service("api", {
+  middlewares: [
+    tailraceEncore(tailrace, {
+      mode: "openai-compatible",
+      agent: "api",
+    }),
+  ],
+});
+```
+
+Targets **raw** OpenAI-proxy endpoints (`isRaw: true`) so request/response bodies and SSE are
+available via `req.rawRequest` / `req.rawResponse`. Typed Encore APIs that return structured chat
+payloads get the same check on request payload / `HandlerResponse.payload` when the body shape
+matches openai-compat. Bound against installed `encore.dev/api` `middleware` types; record drift
+here when upgrading.
+
+## 14. @tailrace/trpc: procedure middleware
+
+User guide: [`docs/guides/trpc-integration.md`](guides/trpc-integration.md).
+
+**Peer dependency:** `@trpc/server` `>=10` (bound against `@trpc/server@11.x`). Depends on
+`@tailrace/core` + `@tailrace/adapter` (not `@tailrace/http`). tRPC is RPC, not an OpenAI
+REST gateway.
+
+```ts
+import { createTailraceMiddleware, withTrpc } from "@tailrace/trpc";
+
+const governed = createTailraceMiddleware(tailrace, {
+  agent: "api",
+  name: ({ path }) => path,
+  workflowId: ({ ctx }) => (ctx as { workflowId?: string }).workflowId ?? "default",
+});
+
+const procedure = t.procedure.use(governed);
+
+// Option C
+const tr = withTrpc(createTailrace());
+const procedure2 = t.procedure.use(tr.middleware({ agent: "api" }));
+```
+
+| Surface | Behavior |
+|---|---|
+| Input | `check` at `{ kind: "tool", name, direction: "out" }` before `next` |
+| Output | `check` result data at `direction: "in"`; rewrite `ok` result data on tokenize/mask |
+| Block | Throw `TRPCError` (`BAD_REQUEST`) with `formatToolBlockError` / value-free message |
+| Streaming procedures | v0.1: non-streaming queries/mutations only; streaming deferred |
+
+Bound against installed `@trpc/server` at implement time; record drift here when upgrading.

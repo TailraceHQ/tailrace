@@ -1,0 +1,16 @@
+---
+title: tRPC
+description: Reference for @tailrace/trpc - procedure middleware at the tool boundary.
+mode: reference
+---
+
+`@tailrace/trpc` provides procedure middleware for `@trpc/server` `>=10`. Scans input/output at
+the tool boundary (not an OpenAI REST gateway).
+
+```ts
+const governed = createTailraceMiddleware(tailrace, { agent: "api" });
+const procedure = t.procedure.use(governed);
+```
+
+Block → `TRPCError` (`BAD_REQUEST`) with a value-free message. Non-streaming only in v0.1.
+Guide: [tRPC integration](/docs/guides/trpc-integration).

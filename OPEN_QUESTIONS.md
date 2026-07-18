@@ -17,6 +17,10 @@ _Track:_ docs/m8-plan.md Phase 3.
 
 ## Deferred (post-v0.1 / post-M8)
 
+- **tRPC streaming procedures.** `@tailrace/trpc` v0.1 supports non-streaming queries/mutations
+  only. Streaming procedure support deferred. _Site:_ `packages/trpc/src/middleware.ts`
+  (`// SPEC-QUESTION:`). _Track:_ docs/m9-plan.md.
+
 - **Custom pattern `validate()` callback.** Optional per-match `validate(match, text) => boolean` on
   `definePatternRecognizer` deferred to keep Tier 0 sync contract simple. Track in
   [`docs/m6-plan.md`](docs/m6-plan.md) §Unresolved. _Planned:_ post-M6e.

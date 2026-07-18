@@ -1,5 +1,5 @@
 /**
- * 422 policy_violation body builder (docs/integrations.md §3). Never includes raw values.
+ * 422 policy_violation body builder (docs/integrations.md §3 / §9). Never includes raw values.
  */
 
 import type { PolicyViolationError } from "@tailrace/core";

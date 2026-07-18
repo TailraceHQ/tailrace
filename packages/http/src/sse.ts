@@ -4,12 +4,11 @@
 
 import type { Boundary, Tailrace } from "@tailrace/core";
 import { PolicyViolationError } from "@tailrace/core";
-import type { Context } from "hono";
 
-import { checkWithOpts } from "./context";
 import { CARRY_BUFFER_SIZE } from "./carry-buffer";
+import { checkWithOpts } from "./check";
 import { policyViolationBody } from "./errors";
-import type { TailraceHonoOptions } from "../types";
+import type { OpenAiCompatIdentityOpts } from "./types";
 
 function extractDeltaContent(data: string): string | null {
   if (data === "[DONE]") return null;
@@ -47,12 +46,16 @@ function formatSseError(err: PolicyViolationError): string {
 
 /**
  * Transform an upstream SSE body: hold-back scan text deltas; on block cancel and emit error.
+ *
+ * @example
+ * ```ts
+ * const scanned = createOpenAiCompatSseTransform(tr, boundary, { agent: "api" }, res.body);
+ * ```
  */
-export function createSseTransform(
+export function createOpenAiCompatSseTransform(
   tailrace: Tailrace,
-  c: Context,
   boundary: Boundary,
-  opts: TailraceHonoOptions | undefined,
+  opts: OpenAiCompatIdentityOpts | undefined,
   upstream: ReadableStream<Uint8Array>,
 ): ReadableStream<Uint8Array> {
   const decoder = new TextDecoder();
@@ -73,7 +76,7 @@ export function createSseTransform(
       if (done) {
         try {
           if (carry.length > 0) {
-            const { output } = await checkWithOpts(tailrace, c, carry, boundary, opts, {
+            const { output } = await checkWithOpts(tailrace, carry, boundary, opts, {
               stream: { holdback: CARRY_BUFFER_SIZE, final: true },
             });
             if (output.length > 0) {
@@ -112,7 +115,7 @@ export function createSseTransform(
 
         try {
           const combined = carry + delta;
-          const { output, remainder } = await checkWithOpts(tailrace, c, combined, boundary, opts, {
+          const { output, remainder } = await checkWithOpts(tailrace, combined, boundary, opts, {
             stream: { holdback: CARRY_BUFFER_SIZE, final: false },
           });
           carry = remainder ?? "";

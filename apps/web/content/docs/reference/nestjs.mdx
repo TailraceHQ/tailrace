@@ -1,0 +1,15 @@
+---
+title: NestJS
+description: Reference for @tailrace/nestjs - TailraceModule and TailraceMiddleware.
+mode: reference
+---
+
+`@tailrace/nestjs` provides `TailraceModule.forRoot` for NestJS (`@nestjs/common` `>=10`).
+Primary target: Nest + Express adapter.
+
+```ts
+TailraceModule.forRoot({ tailrace, forRoutes: ["v1/*path"] });
+```
+
+For Nest + Fastify, register `@tailrace/fastify` on the Fastify instance.
+Guide: [NestJS integration](/docs/guides/nestjs-integration).

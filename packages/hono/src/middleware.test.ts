@@ -157,6 +157,61 @@ describe("tailraceHono JSON response", () => {
     expect(text).not.toContain(EMAIL);
     expect(text).toMatch(/<[A-Z0-9_]+_[a-z0-9]{8}>/);
   });
+
+  it("resolves agent from context state set by the downstream handler for the response check", async () => {
+    const seen: string[] = [];
+    const tailrace = createTailrace({ vault: memoryVault({ key: "hono-agent-post-next" }) });
+    const app = makeApp(
+      tailrace,
+      (c) => {
+        c.set("userId", "handler-set");
+        return c.json({
+          choices: [{ message: { role: "assistant", content: `contact ${EMAIL}` } }],
+        });
+      },
+      {
+        agent: (c) => (c.get("userId") as string | undefined) ?? "default",
+        onDecision: (ds) => {
+          for (const d of ds) seen.push(d.identity.agent);
+        },
+      },
+    );
+
+    await app.request("/v1/chat/completions", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify(chatBody("lookup")),
+    });
+
+    expect(seen.length).toBeGreaterThan(0);
+    expect(seen.every((a) => a === "handler-set")).toBe(true);
+  });
+
+  it("fails closed (never ships the raw response) when the response check throws unexpectedly", async () => {
+    const tailrace = createTailrace({ vault: memoryVault({ key: "hono-res-fail-closed" }) });
+    const originalCheck = tailrace.check.bind(tailrace);
+    let calls = 0;
+    tailrace.check = (async (...args: Parameters<typeof originalCheck>) => {
+      calls += 1;
+      if (calls === 2) throw new Error("boom");
+      return originalCheck(...args);
+    }) as typeof tailrace.check;
+
+    const SENSITIVE_MARKER = "leaked-if-not-blocked";
+    const app = makeApp(tailrace, (c) =>
+      c.json({ choices: [{ message: { role: "assistant", content: SENSITIVE_MARKER } }] }),
+    );
+
+    const res = await app.request("/v1/chat/completions", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify(chatBody("say hi")),
+    });
+
+    expect(res.status).toBe(500);
+    const text = await res.text();
+    expect(text).not.toContain(SENSITIVE_MARKER);
+  });
 });
 
 describe("tailraceHono SSE", () => {

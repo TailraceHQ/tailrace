@@ -1,0 +1,14 @@
+---
+title: Express
+description: Reference for @tailrace/express - tailraceExpress middleware.
+mode: reference
+---
+
+`@tailrace/express` provides OpenAI-compatible passthrough middleware for Express (`>=4`).
+
+```ts
+import { tailraceExpress } from "@tailrace/express";
+app.use("/v1", express.json(), tailraceExpress(tailrace));
+```
+
+Same 422 / SSE contract as Hono. Guide: [Express integration](/docs/guides/express-integration).
