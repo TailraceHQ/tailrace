@@ -1,6 +1,8 @@
-# Guide: tRPC procedure middleware
+# Govern tRPC procedures
 
-User-facing companion to [`integrations.md`](../integrations.md) §14. Plan: [`m9-plan.md`](../m9-plan.md).
+User-facing companion to [`integrations.md`](../integrations.md) §14. DevSite:
+[Govern tRPC procedures](https://tailrace.dev/docs/guides/govern-trpc-procedures) ·
+[tRPC integration](https://tailrace.dev/docs/integrations/trpc).
 
 ## Overview
 
@@ -28,7 +30,7 @@ const governed = createTailraceMiddleware(createTailrace(), {
 });
 export const procedure = t.procedure.use(governed);
 
-// Option C
+// Fluent
 const tr = withTrpc(createTailrace());
 export const procedure2 = t.procedure.use(tr.middleware({ agent: "api" }));
 ```

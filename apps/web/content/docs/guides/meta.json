@@ -7,10 +7,10 @@
     "write-custom-recognizers",
     "openai-agents-integration",
     "cloudflare-agents-integration",
-    "express-integration",
-    "fastify-integration",
-    "nestjs-integration",
-    "encore-integration",
-    "trpc-integration"
+    "block-secrets-in-express",
+    "block-secrets-in-fastify",
+    "block-secrets-in-nestjs",
+    "block-secrets-in-encore",
+    "govern-trpc-procedures"
   ]
 }

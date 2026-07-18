@@ -1,15 +1,47 @@
 ---
 title: NestJS
-description: Reference for @tailrace/nestjs - TailraceModule and TailraceMiddleware.
+description: Reference for @tailrace/nestjs - TailraceModule, TailraceMiddleware, and TailraceNestOptions.
 mode: reference
 ---
 
-`@tailrace/nestjs` provides `TailraceModule.forRoot` for NestJS (`@nestjs/common` `>=10`).
-Primary target: Nest + Express adapter.
+`@tailrace/nestjs` provides `TailraceModule.forRoot` and `TailraceMiddleware` for NestJS. Primary CI target: Nest + Express adapter.
 
-```ts
-TailraceModule.forRoot({ tailrace, forRoutes: ["v1/*path"] });
+## Install
+
+```bash
+pnpm add @tailrace/core @tailrace/nestjs @nestjs/common @nestjs/core reflect-metadata
 ```
 
-For Nest + Fastify, register `@tailrace/fastify` on the Fastify instance.
-Guide: [NestJS integration](/docs/guides/nestjs-integration).
+Peer dependency: `@nestjs/common` `>=10`. Depends on `@tailrace/core` + [`@tailrace/http`](/docs/reference/http).
+
+## Exports
+
+| Export                  | Description                                |
+| ----------------------- | ------------------------------------------ |
+| `TailraceModule`        | `forRoot(options)` Nest dynamic module     |
+| `TailraceMiddleware`    | Nest middleware implementing openai-compat |
+| `TailraceNestOptions`   | Options type                               |
+| `TAILRACE_NEST_OPTIONS` | Injection token for module options         |
+
+## Options
+
+| Option       | Default               | Notes                                                                 |
+| ------------ | --------------------- | --------------------------------------------------------------------- |
+| `tailrace`   | required              | `Tailrace` instance                                                   |
+| `mode`       | `"openai-compatible"` | Only mode in v0.1                                                     |
+| `agent`      | `"default"`           | `(req) => string` (Express `Request`)                                 |
+| `workflowId` | `"default"`           | `string` or `(req) => string`                                         |
+| `onDecision` | -                     | Audit callback                                                        |
+| `forRoutes`  | `{*path}`             | Paths for `MiddlewareConsumer.forRoutes`. Prefer `v1/*path` (Nest 11) |
+
+For Nest + Fastify, register [`@tailrace/fastify`](/docs/reference/fastify) on the underlying Fastify instance.
+
+## Block shape
+
+**422** JSON `{ error: { type: "policy_violation", entity, rule } }`. SSE: one `data:` error event then close (abort-equivalent only). Maps from [`PolicyViolationError`](/docs/reference/errors/POLICY_VIOLATION).
+
+## See also
+
+- [Block secrets in a NestJS app](/docs/guides/block-secrets-in-nestjs)
+- [NestJS integration](/docs/integrations/nestjs)
+- [HTTP shared pipeline](/docs/reference/http)

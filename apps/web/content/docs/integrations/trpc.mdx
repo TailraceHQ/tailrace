@@ -1,0 +1,47 @@
+---
+title: tRPC
+description: Procedure middleware for tRPC - check input and output at the tool boundary, throw TRPCError on block.
+mode: integration
+---
+
+Enforce data policy on tRPC procedure input and result data. This is the **tool** boundary, not an OpenAI REST gateway.
+
+## Quickstart
+
+```ts
+import { createTailrace } from "@tailrace/core";
+import { createTailraceMiddleware, withTrpc } from "@tailrace/trpc";
+import { initTRPC } from "@trpc/server";
+
+const t = initTRPC.create();
+
+const governed = createTailraceMiddleware(createTailrace(), {
+  agent: "api",
+  name: ({ path }) => path,
+});
+export const procedure = t.procedure.use(governed);
+
+// Fluent alternative
+const tr = withTrpc(createTailrace());
+export const procedure2 = t.procedure.use(tr.middleware({ agent: "api" }));
+```
+
+Peer: `@trpc/server` `>=10`. Non-streaming queries and mutations only in v0.1.
+
+## Boundaries covered
+
+| Surface | Tailrace boundary                          | Direction |
+| ------- | ------------------------------------------ | --------- |
+| Input   | `{ kind: "tool", name, direction: "out" }` | Outbound  |
+| Output  | `{ kind: "tool", name, direction: "in" }`  | Inbound   |
+
+Block → `TRPCError` (`BAD_REQUEST`) with a value-free message. Tokenize / mask rewrite input or result data in place.
+
+## Guides
+
+- [Govern tRPC procedures](/docs/guides/govern-trpc-procedures)
+- [Boundaries](/docs/concepts/boundaries)
+
+## Reference
+
+- [tRPC package](/docs/reference/trpc)

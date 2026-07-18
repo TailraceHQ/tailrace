@@ -1,14 +1,43 @@
 ---
 title: Express
-description: Reference for @tailrace/express - tailraceExpress middleware.
+description: Reference for @tailrace/express - tailraceExpress middleware and TailraceExpressOptions.
 mode: reference
 ---
 
-`@tailrace/express` provides OpenAI-compatible passthrough middleware for Express (`>=4`).
+`@tailrace/express` provides OpenAI-compatible passthrough middleware for Express. It scans chat request bodies and JSON / SSE responses at the model boundary.
 
-```ts
-import { tailraceExpress } from "@tailrace/express";
-app.use("/v1", express.json(), tailraceExpress(tailrace));
+## Install
+
+```bash
+pnpm add @tailrace/core @tailrace/express express
 ```
 
-Same 422 / SSE contract as Hono. Guide: [Express integration](/docs/guides/express-integration).
+Peer dependency: `express` `>=4`. Depends on `@tailrace/core` + [`@tailrace/http`](/docs/reference/http).
+
+## Exports
+
+| Export                   | Description                        |
+| ------------------------ | ---------------------------------- |
+| `tailraceExpress`        | Returns Express request middleware |
+| `TailraceExpressOptions` | Options type                       |
+
+## Options
+
+| Option       | Default               | Notes                         |
+| ------------ | --------------------- | ----------------------------- |
+| `mode`       | `"openai-compatible"` | Only mode in v0.1             |
+| `agent`      | `"default"`           | `(req) => string`             |
+| `workflowId` | `"default"`           | `string` or `(req) => string` |
+| `onDecision` | -                     | Audit callback                |
+
+Expects a JSON body (`express.json()` or equivalent) for chat requests. Boundary provider is the request body's `model` string as-is (no `${providerId}/${modelId}` rewrite).
+
+## Block shape
+
+**422** JSON `{ error: { type: "policy_violation", entity, rule } }`. SSE: one `data:` error event then close (abort-equivalent only). Maps from [`PolicyViolationError`](/docs/reference/errors/POLICY_VIOLATION).
+
+## See also
+
+- [Block secrets in an Express app](/docs/guides/block-secrets-in-express)
+- [Express integration](/docs/integrations/express)
+- [HTTP shared pipeline](/docs/reference/http)

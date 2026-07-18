@@ -1,13 +1,43 @@
 ---
 title: Fastify
-description: Reference for @tailrace/fastify - tailraceFastify plugin.
+description: Reference for @tailrace/fastify - tailraceFastify plugin and TailraceFastifyOptions.
 mode: reference
 ---
 
-`@tailrace/fastify` provides an OpenAI-compatible Fastify plugin (`fastify` `>=4`).
+`@tailrace/fastify` provides an OpenAI-compatible Fastify plugin. It scans chat request bodies and JSON / SSE responses at the model boundary via `preHandler` and `onSend` / stream wrapping.
 
-```ts
-await app.register(tailraceFastify(tailrace));
+## Install
+
+```bash
+pnpm add @tailrace/core @tailrace/fastify fastify
 ```
 
-Same 422 / SSE contract as Hono. Guide: [Fastify integration](/docs/guides/fastify-integration).
+Peer dependency: `fastify` `>=4`. Depends on `@tailrace/core` + [`@tailrace/http`](/docs/reference/http).
+
+## Exports
+
+| Export                   | Description              |
+| ------------------------ | ------------------------ |
+| `tailraceFastify`        | Returns a Fastify plugin |
+| `TailraceFastifyOptions` | Options type             |
+
+## Options
+
+| Option       | Default               | Notes                         |
+| ------------ | --------------------- | ----------------------------- |
+| `mode`       | `"openai-compatible"` | Only mode in v0.1             |
+| `agent`      | `"default"`           | `(req) => string`             |
+| `workflowId` | `"default"`           | `string` or `(req) => string` |
+| `onDecision` | -                     | Audit callback                |
+
+Boundary provider is the request body's `model` string as-is (no `${providerId}/${modelId}` rewrite).
+
+## Block shape
+
+**422** JSON `{ error: { type: "policy_violation", entity, rule } }`. SSE: one `data:` error event then close (abort-equivalent only). Maps from [`PolicyViolationError`](/docs/reference/errors/POLICY_VIOLATION).
+
+## See also
+
+- [Block secrets in a Fastify app](/docs/guides/block-secrets-in-fastify)
+- [Fastify integration](/docs/integrations/fastify)
+- [HTTP shared pipeline](/docs/reference/http)

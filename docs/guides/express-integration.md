@@ -1,6 +1,8 @@
-# Guide: Express OpenAI-compatible middleware
+# Block secrets in an Express app
 
-User-facing companion to [`integrations.md`](../integrations.md) §10. Plan: [`m9-plan.md`](../m9-plan.md).
+User-facing companion to [`integrations.md`](../integrations.md) §10. DevSite:
+[Block secrets in an Express app](https://tailrace.dev/docs/guides/block-secrets-in-express) ·
+[Express integration](https://tailrace.dev/docs/integrations/express).
 
 ## Overview
 
@@ -21,9 +23,15 @@ import { tailraceExpress } from "@tailrace/express";
 import express from "express";
 
 const app = express();
-app.use("/v1", express.json(), tailraceExpress(createTailrace(), {
-  agent: (req) => String(req.headers["x-agent-id"] ?? "default"),
-}));
+app.use(
+  "/v1",
+  express.json(),
+  tailraceExpress(createTailrace(), {
+    agent: (req) => String(req.headers["x-agent-id"] ?? "default"),
+    workflowId: (req) => String(req.headers["x-workflow-id"] ?? "default"),
+  }),
+);
 ```
 
-See [`integrations.md`](../integrations.md) §3 / §10 for the full 422 / SSE contract.
+`express.json()` (or equivalent) must run before Tailrace. See [`integrations.md`](../integrations.md)
+§3 / §10 for the full 422 / SSE contract.

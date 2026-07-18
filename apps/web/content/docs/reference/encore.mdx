@@ -1,15 +1,45 @@
 ---
 title: Encore
-description: Reference for @tailrace/encore - tailraceEncore middleware.
+description: Reference for @tailrace/encore - tailraceEncore middleware and TailraceEncoreOptions.
 mode: reference
 ---
 
-`@tailrace/encore` returns Encore `middleware(...)` for raw OpenAI-compatible proxy endpoints.
+`@tailrace/encore` returns Encore `middleware(...)` for OpenAI-compatible proxy endpoints. Prefer **raw** endpoints so request/response bodies and SSE are available via `req.rawRequest` / `req.rawResponse`.
 
-```ts
-export default new Service("api", {
-  middlewares: [tailraceEncore(tailrace, { agent: "api" })],
-});
+## Install
+
+```bash
+pnpm add @tailrace/core @tailrace/encore encore.dev
 ```
 
-Use `api.raw` so bodies and SSE are available. Guide: [Encore integration](/docs/guides/encore-integration).
+Peer dependency: `encore.dev` `>=1.46` (bound against `encore.dev@1.57.x` `middleware` / `HandlerResponse` / `MiddlewareRequest`). Depends on `@tailrace/core` + [`@tailrace/http`](/docs/reference/http).
+
+## Exports
+
+| Export                    | Description                                 |
+| ------------------------- | ------------------------------------------- |
+| `tailraceEncore`          | Returns Encore `middleware(...)`            |
+| `checkEncoreOpenAiBody`   | Lower-level body check helper               |
+| `TailraceEncoreOptions`   | Options type                                |
+| `EncoreMiddlewareRequest` | Minimal request surface used by the adapter |
+
+## Options
+
+| Option       | Default               | Notes                         |
+| ------------ | --------------------- | ----------------------------- |
+| `mode`       | `"openai-compatible"` | Only mode in v0.1             |
+| `agent`      | `"default"`           | `string` or `(req) => string` |
+| `workflowId` | `"default"`           | `string` or `(req) => string` |
+| `onDecision` | -                     | Audit callback                |
+
+Typed Encore APIs that return structured chat payloads get the same check on request payload / `HandlerResponse.payload` when the body shape matches openai-compat. Streaming proxies should use `api.raw`.
+
+## Block shape
+
+**422** JSON `{ error: { type: "policy_violation", entity, rule } }`. SSE: one `data:` error event then close (abort-equivalent only). Maps from [`PolicyViolationError`](/docs/reference/errors/POLICY_VIOLATION).
+
+## See also
+
+- [Block secrets in an Encore service](/docs/guides/block-secrets-in-encore)
+- [Encore integration](/docs/integrations/encore)
+- [HTTP shared pipeline](/docs/reference/http)

@@ -1,4 +1,16 @@
 {
   "title": "Integrations",
-  "pages": ["nextjs", "claude-code", "mcp", "hono", "openai-agents", "cloudflare-agents"]
+  "pages": [
+    "nextjs",
+    "claude-code",
+    "mcp",
+    "hono",
+    "express",
+    "fastify",
+    "nestjs",
+    "encore",
+    "trpc",
+    "openai-agents",
+    "cloudflare-agents"
+  ]
 }

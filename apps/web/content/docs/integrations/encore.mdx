@@ -1,0 +1,46 @@
+---
+title: Encore
+description: OpenAI-compatible Encore middleware for raw proxy endpoints - scan chat bodies and SSE, return 422 on policy block.
+mode: integration
+---
+
+Enforce data policy on OpenAI-compatible proxy endpoints in Encore.ts. Target **raw** endpoints so bodies and SSE are available.
+
+## Quickstart
+
+```ts
+import { createTailrace } from "@tailrace/core";
+import { tailraceEncore } from "@tailrace/encore";
+import { Service } from "encore.dev/service";
+
+export default new Service("api", {
+  middlewares: [
+    tailraceEncore(createTailrace(), {
+      agent: "api",
+      workflowId: "default",
+    }),
+  ],
+});
+```
+
+Peer: `encore.dev` `>=1.46`. Only `mode: "openai-compatible"` in v0.1. Use `api.raw` for streaming proxies.
+
+## Boundaries covered
+
+| Location                | Tailrace boundary                                   | Direction            |
+| ----------------------- | --------------------------------------------------- | -------------------- |
+| Chat request messages   | `{ kind: "model", provider }` (`model` field as-is) | Outbound to upstream |
+| JSON chat completion    | same model boundary                                 | Inbound              |
+| SSE `text/event-stream` | same; carry-buffer across chunks                    | Inbound              |
+
+Block → **422** `{ error: { type: "policy_violation", entity, rule } }`. SSE: cancel upstream, emit one error `data:` event, close (abort-only; no `streamBlockBehavior` in v0.1).
+
+## Guides
+
+- [Block secrets in an Encore service](/docs/guides/block-secrets-in-encore)
+- [Boundaries](/docs/concepts/boundaries)
+
+## Reference
+
+- [Encore package](/docs/reference/encore)
+- [HTTP shared pipeline](/docs/reference/http)

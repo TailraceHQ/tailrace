@@ -79,6 +79,12 @@ Integrations depend on `@tailrace/core` and their host framework as a **peer dep
 
 CI runs lint, format, typecheck, tests (Node + Workers), bundle size, benchmarks, docs build, and dependency review on every PR.
 
+## Documentation
+
+User-facing docs live under [`apps/web/content/docs/`](apps/web/content/docs/) (the DevSite) and normative specs under [`docs/`](docs/). When you add or change a public API, update the docs in the same PR.
+
+Follow the [Documentation Style Guide](docs/documentation-style-guide.md) for voice, page anatomy, linking, and progressive disclosure. Before merging a docs change, run `pnpm turbo run build --filter=@tailrace/web...` (catches broken Twoslash examples and broken links).
+
 ## Code guidelines
 
 See [`docs/conventions.md`](docs/conventions.md) for the full list. Highlights:
@@ -120,7 +126,7 @@ Good PRs include:
 - Spec doc updates when behavior diverges from or clarifies existing specs.
 - Benchmark baseline updates (with justification in the PR description) when performance changes are intentional.
 
-Mark whether the change is user-facing in the PR template. For docs-only changes, verify the site builds: `pnpm turbo run build --filter=@tailrace/web...`.
+Mark whether the change is user-facing in the PR template. For docs-only changes, follow the [Documentation Style Guide](docs/documentation-style-guide.md) and verify the site builds: `pnpm turbo run build --filter=@tailrace/web...`.
 
 ## Versioning and releases
 

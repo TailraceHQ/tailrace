@@ -1,16 +1,50 @@
 ---
 title: tRPC
-description: Reference for @tailrace/trpc - procedure middleware at the tool boundary.
+description: Reference for @tailrace/trpc - createTailraceMiddleware, withTrpc, and TailraceTrpcOptions.
 mode: reference
 ---
 
-`@tailrace/trpc` provides procedure middleware for `@trpc/server` `>=10`. Scans input/output at
-the tool boundary (not an OpenAI REST gateway).
+`@tailrace/trpc` provides procedure middleware for `@trpc/server`. It scans procedure input and result data at the tool boundary (not an OpenAI REST gateway).
 
-```ts
-const governed = createTailraceMiddleware(tailrace, { agent: "api" });
-const procedure = t.procedure.use(governed);
+## Install
+
+```bash
+pnpm add @tailrace/core @tailrace/trpc @trpc/server
 ```
 
-Block → `TRPCError` (`BAD_REQUEST`) with a value-free message. Non-streaming only in v0.1.
-Guide: [tRPC integration](/docs/guides/trpc-integration).
+Peer dependency: `@trpc/server` `>=10` (bound against `@trpc/server@11.x`). Depends on `@tailrace/core` + [`@tailrace/adapter`](/docs/reference/adapter) (not `@tailrace/http`).
+
+## Exports
+
+| Export                     | Description                                            |
+| -------------------------- | ------------------------------------------------------ |
+| `createTailraceMiddleware` | Standalone middleware for `t.procedure.use(...)`       |
+| `withTrpc`                 | Attach fluent `middleware(...)` to a Tailrace instance |
+| `TailraceTrpcOptions`      | Options type                                           |
+| `TrpcMiddlewareContext`    | Context passed to option resolvers                     |
+| `TailraceWithTrpc`         | Fluent instance type                                   |
+
+## Options
+
+| Option       | Default          | Notes                          |
+| ------------ | ---------------- | ------------------------------ |
+| `agent`      | `"default"`      | `string` or `(info) => string` |
+| `name`       | procedure `path` | Tool name for the boundary     |
+| `workflowId` | `"default"`      | `string` or `(info) => string` |
+| `onDecision` | -                | Audit callback                 |
+
+## Surfaces
+
+| Surface | Boundary                                   | Behavior                                              |
+| ------- | ------------------------------------------ | ----------------------------------------------------- |
+| Input   | `{ kind: "tool", name, direction: "out" }` | `check` before `next`; rewrite input on tokenize/mask |
+| Output  | `{ kind: "tool", name, direction: "in" }`  | `check` ok result data; rewrite on tokenize/mask      |
+| Block   | -                                          | Throw `TRPCError` (`BAD_REQUEST`), value-free message |
+
+Streaming procedures are out of scope in v0.1 (non-streaming queries/mutations only).
+
+## See also
+
+- [Govern tRPC procedures](/docs/guides/govern-trpc-procedures)
+- [tRPC integration](/docs/integrations/trpc)
+- [`PolicyViolationError`](/docs/reference/errors/POLICY_VIOLATION)

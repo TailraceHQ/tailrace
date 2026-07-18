@@ -462,6 +462,7 @@ then call these helpers.
 ## 10. @tailrace/express: middleware
 
 User guide: [`docs/guides/express-integration.md`](guides/express-integration.md).
+Docs site: `/docs/guides/block-secrets-in-express`, `/docs/integrations/express`, `/docs/reference/express`.
 
 **Peer dependency:** `express` `>=4`. Depends on `@tailrace/core` + `@tailrace/http`.
 
@@ -481,6 +482,7 @@ equivalent) for chat requests; buffers/intercepts response for JSON + SSE rewrit
 ## 11. @tailrace/fastify: plugin
 
 User guide: [`docs/guides/fastify-integration.md`](guides/fastify-integration.md).
+Docs site: `/docs/guides/block-secrets-in-fastify`, `/docs/integrations/fastify`, `/docs/reference/fastify`.
 
 **Peer dependency:** `fastify` `>=4`. Depends on `@tailrace/core` + `@tailrace/http`.
 
@@ -499,6 +501,7 @@ Same §3 contract.
 ## 12. @tailrace/nestjs: middleware module
 
 User guide: [`docs/guides/nestjs-integration.md`](guides/nestjs-integration.md).
+Docs site: `/docs/guides/block-secrets-in-nestjs`, `/docs/integrations/nestjs`, `/docs/reference/nestjs`.
 
 **Peer dependency:** `@nestjs/common` `>=10`. Depends on `@tailrace/core` + `@tailrace/http`.
 Primary CI target: Nest + **Express** adapter. Nest + Fastify adapter is supported via Nest's
@@ -525,6 +528,7 @@ contract on configured routes. Nest 11 route globs use named splats (`v1/*path`,
 ## 13. @tailrace/encore: middleware
 
 User guide: [`docs/guides/encore-integration.md`](guides/encore-integration.md).
+Docs site: `/docs/guides/block-secrets-in-encore`, `/docs/integrations/encore`, `/docs/reference/encore`.
 
 **Peer dependency:** `encore.dev` `>=1.46` (bound against `encore.dev@1.57.x`
 `middleware` / `HandlerResponse` / `MiddlewareRequest`). Depends on `@tailrace/core` +
@@ -553,6 +557,7 @@ here when upgrading.
 ## 14. @tailrace/trpc: procedure middleware
 
 User guide: [`docs/guides/trpc-integration.md`](guides/trpc-integration.md).
+Docs site: `/docs/guides/govern-trpc-procedures`, `/docs/integrations/trpc`, `/docs/reference/trpc`.
 
 **Peer dependency:** `@trpc/server` `>=10` (bound against `@trpc/server@11.x`). Depends on
 `@tailrace/core` + `@tailrace/adapter` (not `@tailrace/http`). tRPC is RPC, not an OpenAI
