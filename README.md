@@ -1,6 +1,7 @@
 <p align="center">
-  <img src="assets/logo/lightmode-logo.png#gh-light-mode-only" alt="Tailrace" width="96" />
-  <img src="assets/logo/darkmode-logo.png#gh-dark-mode-only" alt="Tailrace" width="96" />
+  <a href="https://tailrace.dev">
+    <img src="apps/web/public/link-preview.png" alt="Tailrace - Ship agents, not secrets" width="640" />
+  </a>
 </p>
 
 # Tailrace
