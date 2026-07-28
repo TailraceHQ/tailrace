@@ -124,6 +124,18 @@ Implementation plan: [`m9-plan.md`](m9-plan.md). Normative: [`integrations.md`](
 - [x] `@tailrace/trpc`: procedure middleware via adapter; Option C fluent API; block / tokenize tests
 - [x] Package READMEs + guides; eslint package boundaries; changeset
 
+## M10: Vercel Eve (`@tailrace/eve`)
+
+Guide: [`guides/eve-integration.md`](guides/eve-integration.md).
+Normative: [`integrations.md`](integrations.md) §15.
+
+- [x] `@tailrace/eve`: `governTool` / `governTools` / `withEve` over `@tailrace/adapter` (zero policy logic)
+- [x] Tokenize round-trip; `block` ⇒ value-free `Error`; passthrough without `execute`
+- [x] Default `workflowId` from Eve `ctx.session.id` (token-stable across Workflow replay)
+- [x] Type-level `expect-type` identity preservation; Node + workerd vitest pools
+- [x] Bound against `eve@0.27.x` (`defineTool` / `ToolDefinition` from `eve/tools`); SPEC-QUESTIONs resolved
+- [x] Docs: integrations §15, architecture package row, guide + site pages, changeset
+
 ## Demos (must run from fresh clone, commands documented in each example's README)
 
 **Demo 1: "Your agent just leaked a key."** Next.js route: user prompt contains a fake Stripe key + an email. Run A: request aborted with `PolicyViolationError` naming `api_key` - the secret never reaches the provider (mock model default in CI). Run B: key removed, email tokenized in outbound params (log transformed params), mock model echoes, route calls `tailrace.restore` at egress `ui` before responding - UI shows the real email.

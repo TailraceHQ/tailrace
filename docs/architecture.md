@@ -10,6 +10,7 @@
 │   ├── http/               # @tailrace/http - shared OpenAI-compat + SSE + 422 helpers (no host peers)
 │   ├── ai-sdk/             # @tailrace/ai-sdk - Vercel AI SDK middleware + tool wrapper
 │   ├── openai-agents/      # @tailrace/openai-agents - OpenAI Agents SDK function-tool wrapper
+│   ├── eve/                # @tailrace/eve - Vercel Eve defineTool execute wrapper
 │   ├── cloudflare-agents/  # @tailrace/cloudflare-agents - Cloudflare Agents / AIChatAgent helpers (Compose)
 │   ├── mcp/                # @tailrace/mcp - MCP client transport wrapper
 │   ├── hono/               # @tailrace/hono - Hono middleware (thin wrapper over @tailrace/http)
@@ -41,6 +42,7 @@ Tooling: pnpm workspaces + Turborepo. tsup for builds (ESM + CJS, `.d.ts`). Vite
 - `hono`, `express`, `fastify`, `nestjs`, `encore` depend on `core` + **`http`**, plus their host as a peer (`hono`, `express`, `fastify`, `@nestjs/common`, `encore.dev`). They contain zero policy logic.
 - `trpc` depends on `core` + **`adapter`** (not `http`), peer `@trpc/server`. Procedure middleware at the tool boundary.
 - `openai-agents` depends on `core` + `adapter`, peer `@openai/agents`.
+- `eve` depends on `core` + `adapter`, peer `eve` (`>=0.1`). Tool-boundary wrap only; no `@tailrace/http`.
 - `cloudflare-agents` depends on `core` + **`ai-sdk`** (Compose: reuses `wrapModel` / `wrapTools` / streaming), peers `ai` and the Cloudflare Agents / `@cloudflare/ai-chat` packages bound at implement time. May also use `adapter` for client `onToolCall` wrapping.
 - `recognizer-ner` depends on `onnxruntime` packages and is a peer/optional dep of nothing - users install it explicitly and pass it into config. `core` must never import it.
 - No package may import from another package's internals - public entry points only. Enforce with eslint `no-restricted-imports`. Gateway packages must not import each other.
@@ -54,6 +56,7 @@ Tooling: pnpm workspaces + Turborepo. tsup for builds (ESM + CJS, `.d.ts`). Vite
 | http | ✅ | ✅ | ✅ | - |
 | ai-sdk | ✅ | ✅ | ✅ | - |
 | openai-agents | ✅ | ✅ | - | - |
+| eve | ✅ | ✅ | - | - |
 | cloudflare-agents | ✅ | ✅ | - | - |
 | mcp | ✅ | ✅ | - | - |
 | hono | ✅ | ✅ | ✅ | - |

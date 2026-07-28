@@ -1,0 +1,38 @@
+---
+title: eve
+description: Reference for @tailrace/eve - governTool, governTools, withEve.
+mode: reference
+---
+
+`@tailrace/eve` wraps Vercel Eve `defineTool` `execute` so args and results pass through Tailrace.
+
+## Install
+
+```bash
+pnpm add @tailrace/core @tailrace/eve eve
+```
+
+Peer: `eve` `>=0.1` (bound against `0.27.8`).
+
+## Exports
+
+| Export              | Description                                          |
+| ------------------- | ---------------------------------------------------- |
+| `governTool`        | Wrap one Eve tool definition                         |
+| `governTools`       | Wrap a name→definition map                           |
+| `withEve`           | Fluent `.tool` / `.tools`                            |
+| `EveWrapOptions`    | Options type                                         |
+| `EveToolDefinition` | Structural tool shape (mirrors Eve `ToolDefinition`) |
+| `TailraceWithEve`   | Fluent Tailrace type                                 |
+
+## Options
+
+| Option       | Required | Notes                                                      |
+| ------------ | -------- | ---------------------------------------------------------- |
+| `agent`      | no       | Default `"default"`                                        |
+| `workflowId` | no       | Default: `ctx.session.id` → `EVE_SESSION_ID` → `"default"` |
+| `onDecision` | no       | Audit callback                                             |
+
+## Guides
+
+- [Eve integration](/docs/guides/eve-integration)

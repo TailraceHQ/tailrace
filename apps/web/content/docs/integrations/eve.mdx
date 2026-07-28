@@ -1,0 +1,49 @@
+---
+title: Eve
+description: Govern Vercel Eve defineTool execute with Tailrace at the tool boundary.
+mode: integration
+---
+
+Govern Eve agent tools so args and results pass through Tailrace.
+
+## Quickstart
+
+```ts
+import { createTailrace } from "@tailrace/core";
+import { governTool } from "@tailrace/eve";
+import { defineTool } from "eve/tools";
+import { z } from "zod";
+
+const tailrace = createTailrace();
+
+export default governTool(
+  tailrace,
+  "crm",
+  defineTool({
+    description: "Look up a customer in the CRM.",
+    inputSchema: z.object({ query: z.string() }),
+    execute: async ({ query }) => crm.search(query),
+  }),
+  { agent: "support" },
+);
+```
+
+Peer: `eve` `>=0.1` (bound against `0.27.x`). Pass `name` equal to the filename under `agent/tools/`.
+
+## Boundaries covered
+
+| Location                    | Tailrace boundary                          |
+| --------------------------- | ------------------------------------------ |
+| Tool args (`execute` input) | `{ kind: "tool", name, direction: "out" }` |
+| Tool result                 | `{ kind: "tool", name, direction: "in" }`  |
+
+Default `workflowId` is Eve's durable `ctx.session.id`.
+
+## Guides
+
+- [Eve integration](/docs/guides/eve-integration)
+- [Boundaries](/docs/concepts/boundaries)
+
+## Reference
+
+- [eve package](/docs/reference/eve)

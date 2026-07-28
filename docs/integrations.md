@@ -344,7 +344,7 @@ Example deny:
 
 ## 6. @tailrace/adapter: shared tool-wrap helpers
 
-Host-agnostic helpers for integrations. **No host peer dependencies.** Runtime matrix matches core (Node + workerd). Not a drop-in product by itself; consumed by `@tailrace/openai-agents`, optionally `@tailrace/ai-sdk`, and `@tailrace/cloudflare-agents`.
+Host-agnostic helpers for integrations. **No host peer dependencies.** Runtime matrix matches core (Node + workerd). Not a drop-in product by itself; consumed by `@tailrace/openai-agents`, `@tailrace/eve`, optionally `@tailrace/ai-sdk`, and `@tailrace/cloudflare-agents`.
 
 ```ts
 import {
@@ -587,3 +587,85 @@ const procedure2 = t.procedure.use(tr.middleware({ agent: "api" }));
 | Streaming procedures | v0.1: non-streaming queries/mutations only; streaming deferred |
 
 Bound against installed `@trpc/server` at implement time; record drift here when upgrading.
+
+## 15. @tailrace/eve: Vercel Eve tool governance
+
+User guide: [`docs/guides/eve-integration.md`](guides/eve-integration.md).
+Docs site: `/docs/guides/eve-integration`, `/docs/integrations/eve`, `/docs/reference/eve`.
+
+**Peer dependency:** `eve` `>=0.1` (bound against `eve@0.27.8`). Tools are authored with
+`defineTool` from `eve/tools` (`{ description, inputSchema, execute }`, Standard Schema / Zod
+input schema); the filename under `agent/tools/` becomes the runtime tool name. Model config in
+`defineAgent` accepts a gateway string **or** an AI SDK `LanguageModel` instance
+(`PublicAgentStaticModelDefinition = string | LanguageModel`). Depends on `@tailrace/core` +
+`@tailrace/adapter` (not `@tailrace/http`; Eve's session API is not an OpenAI-compatible REST
+surface).
+
+### Public API (Option C)
+
+```ts
+import { governTool, governTools, withEve } from "@tailrace/eve";
+import { defineTool } from "eve/tools";
+
+// standalone
+const crm = governTool(tailrace, "crm", defineTool({ description, inputSchema, execute }), {
+  agent: "support",
+});
+
+// fluent
+const t = withEve(createTailrace());
+export default t.tool("crm", defineTool({ description, inputSchema, execute }), { agent: "support" });
+```
+
+```ts
+interface EveWrapOptions {
+  agent?: string;
+  /** Prefer Eve's durable session id (`ctx.session.id`). Default resolution below. */
+  workflowId?: string | (() => string);
+  onDecision?: (decisions: Decision[]) => void;
+}
+```
+
+`name` is passed explicitly (not inferred) because Eve derives the tool name from the filename at
+build time, not from the `defineTool` object - the caller must keep `name` equal to the filename so
+policy keys like `tool:crm` stay predictable.
+
+`EveToolDefinition` is a structural mirror of Eve's exported `ToolDefinition` from `eve/tools`
+(kept structural so `@tailrace/eve` builds without the peer installed). Runtime code does not
+import `eve`.
+
+### Boundaries
+
+| Surface | What is scanned | Boundary |
+|---|---|---|
+| Tool call args | parsed input object (the `execute` params) | `{ kind: "tool", name, direction: "out" }` |
+| Tool return value | `execute` return | `{ kind: "tool", name, direction: "in" }` |
+
+Non-function / missing `execute` tools pass through unchanged. Framework sandbox tools (`bash`,
+`read_file`, `write_file`) are only governed if the user routes them through `governTool`.
+
+### Block translation
+
+Blocked ⇒ throw `Error` with `formatToolBlockError` (`"Blocked by data policy: {entity} may not be
+sent to {boundary} (rule: {rule})"`, value-free). Eve surfaces tool errors back to the model as a
+tool result, driving the self-correction loop - same contract as §1.3 / §7.
+
+### Identity / workflow
+
+`agent` defaults to `"default"`. `workflowId` should map to **Eve's durable session id** so tokens
+stay stable across a replayed session (deterministic tokens re-derive identically on Workflow
+replay). Bound against `eve@0.27.x`: `execute(input, ctx: ToolContext)` where `ToolContext`
+extends `SessionContext` with `session.id`. Resolution order:
+
+1. `opts.workflowId` (string or function) if provided;
+2. else `ctx.session.id` from the execute context arg;
+3. else env `EVE_SESSION_ID`;
+4. else `"default"`.
+
+### Model boundary (optional, via ai-sdk)
+
+`defineAgent({ model })` accepts an AI SDK `LanguageModel` instance. For prompt/completion
+governance, wrap with `@tailrace/ai-sdk` `wrapModel` and pass the result into `defineAgent` - this
+package does **not** re-export `wrapModel` (keeps deps to core + adapter only). Channel egress
+restore, subagents/skills/connections/sandbox beyond tool wrapping, and OTel enforcement remain
+out of scope for v0.1.

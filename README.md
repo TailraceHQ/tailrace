@@ -41,6 +41,7 @@ workflow, and restore it only at trusted egress.
 | [`@tailrace/ai-sdk`](packages/ai-sdk)                       | Vercel AI SDK middleware + tool wrapper.                                                |
 | [`@tailrace/cloudflare-agents`](packages/cloudflare-agents) | Cloudflare Agents / `AIChatAgent` compose entry (identity, vault, AI SDK wraps).        |
 | [`@tailrace/openai-agents`](packages/openai-agents)         | OpenAI Agents SDK function tool wrappers.                                               |
+| [`@tailrace/eve`](packages/eve)                             | Vercel Eve `defineTool` execute wrappers.                                               |
 | [`@tailrace/mcp`](packages/mcp)                             | MCP client transport wrapper: policy at the `tools/call` and `resources/read` boundary. |
 
 **HTTP / gateway integrations** - OpenAI-compatible passthrough (scan chat requests and JSON/SSE responses at the model boundary, 422 on block) unless noted:
