@@ -1,0 +1,63 @@
+{
+  "name": "@tailrace/eve",
+  "version": "0.1.0",
+  "description": "Tailrace wrappers for Vercel Eve agent tools (defineTool execute).",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/TailraceHQ/tailrace.git",
+    "directory": "packages/eve"
+  },
+  "homepage": "https://tailrace.dev",
+  "bugs": {
+    "url": "https://github.com/TailraceHQ/tailrace/issues"
+  },
+  "license": "MIT",
+  "type": "module",
+  "sideEffects": false,
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      }
+    }
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "prepublishOnly": "pnpm run build",
+    "test": "vitest run",
+    "test:workers": "vitest run --config vitest.workers.config.ts",
+    "typecheck": "tsc --noEmit && tsc --noEmit -p tsconfig.testd.json"
+  },
+  "dependencies": {
+    "@tailrace/adapter": "workspace:*",
+    "@tailrace/core": "workspace:*"
+  },
+  "peerDependencies": {
+    "eve": ">=0.1"
+  },
+  "peerDependenciesMeta": {
+    "eve": {
+      "optional": true
+    }
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "devDependencies": {
+    "@cloudflare/vitest-pool-workers": "^0.5.40",
+    "expect-type": "^1.4.0",
+    "vitest": "^2.1.9"
+  }
+}

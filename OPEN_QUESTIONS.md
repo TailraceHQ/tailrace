@@ -21,6 +21,11 @@ _Track:_ docs/m8-plan.md Phase 3.
   only. Streaming procedure support deferred. _Site:_ `packages/trpc/src/middleware.ts`
   (`// SPEC-QUESTION:`). _Track:_ docs/m9-plan.md.
 
+- **Eve channel egress / subagents / sandbox.** `@tailrace/eve` v0.1 is tool-boundary only.
+  Channel egress restore, subagent/skill/connection/sandbox governance, and OTel enforcement
+  deferred. Model wrap via `@tailrace/ai-sdk` `wrapModel` + `defineAgent({ model })` is documented
+  but not re-exported. _Track:_ integrations.md §15.
+
 - **Custom pattern `validate()` callback.** Optional per-match `validate(match, text) => boolean` on
   `definePatternRecognizer` deferred to keep Tier 0 sync contract simple. Track in
   [`docs/m6-plan.md`](docs/m6-plan.md) §Unresolved. _Planned:_ post-M6e.
@@ -127,6 +132,17 @@ Decided during policy engine + vault implementation. Spec docs updated where not
   _Sites:_ `packages/core/src/vault/alphabet.ts`, docs/vault.md.
 
 ## Resolved
+
+- **Eve tool execute context / session id (M10).** Bound against `eve@0.27.8`: `defineTool` from
+  `eve/tools`; public type `ToolDefinition`; `execute(input, ctx: ToolContext)` where
+  `ToolContext` extends `SessionContext` with `session.id` (durable session id). Default
+  `workflowId` resolution uses `ctx.session.id`. See docs/integrations.md §15.
+  _Was:_ M10 SPEC-QUESTION.
+
+- **Eve `defineAgent` model handle (M10).** `PublicAgentStaticModelDefinition = string | LanguageModel`.
+  Model-boundary governance via `@tailrace/ai-sdk` `wrapModel` + `defineAgent({ model })`; not
+  re-exported from `@tailrace/eve` (deps stay core + adapter). See docs/integrations.md §15.
+  _Was:_ M10 SPEC-QUESTION.
 
 - **MCP Transport binding.** Bound against `@modelcontextprotocol/sdk@1.29.0`
   `Transport` from `@modelcontextprotocol/sdk/shared/transport`

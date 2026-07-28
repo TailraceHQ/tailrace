@@ -6,6 +6,7 @@
     "govern-mcp-tool-calls",
     "write-custom-recognizers",
     "openai-agents-integration",
+    "eve-integration",
     "cloudflare-agents-integration",
     "block-secrets-in-express",
     "block-secrets-in-fastify",

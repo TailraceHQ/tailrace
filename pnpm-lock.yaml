@@ -322,6 +322,25 @@ importers:
         specifier: ^2.1.9
         version: 2.1.9(@types/node@22.20.1)(lightningcss@1.32.0)
 
+  packages/eve:
+    dependencies:
+      '@tailrace/adapter':
+        specifier: workspace:*
+        version: link:../adapter
+      '@tailrace/core':
+        specifier: workspace:*
+        version: link:../core
+    devDependencies:
+      '@cloudflare/vitest-pool-workers':
+        specifier: ^0.5.40
+        version: 0.5.41(@vitest/runner@2.1.9)(@vitest/snapshot@2.1.9)(vitest@2.1.9(@types/node@22.20.1)(lightningcss@1.32.0))
+      expect-type:
+        specifier: ^1.4.0
+        version: 1.4.0
+      vitest:
+        specifier: ^2.1.9
+        version: 2.1.9(@types/node@22.20.1)(lightningcss@1.32.0)
+
   packages/express:
     dependencies:
       '@tailrace/core':

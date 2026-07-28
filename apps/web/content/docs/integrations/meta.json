@@ -11,6 +11,7 @@
     "encore",
     "trpc",
     "openai-agents",
+    "eve",
     "cloudflare-agents"
   ]
 }

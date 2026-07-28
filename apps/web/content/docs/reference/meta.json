@@ -5,6 +5,7 @@
     "adapter",
     "http",
     "openai-agents",
+    "eve",
     "cloudflare-agents",
     "cli",
     "mcp",
