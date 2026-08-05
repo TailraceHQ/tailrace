@@ -1,6 +1,6 @@
 # M6 Implementation Plan: Custom scan patterns
 
-> **Status: complete (M6a-M6e).** Acceptance criteria in [`milestones.md`](milestones.md) §M6 are checked except optional playground Playwright test.
+> **Status: complete (M6a-M6e).** Acceptance criteria in [`milestones.md`](milestones.md) §M6 are checked.
 > Normative detection behavior: [`detection.md`](detection.md) §7 (to be added in M6a).
 > **Priority queue after M6a core ships:** M6d (CLI declarative regex config), then M6e (playground custom pattern editor).
 
@@ -182,8 +182,8 @@ Depends on M6a. Does not require M6d (in-browser `definePatternRecognizer` only)
 - [ ] Custom entity action dropdown (`allow` / `mask` / `tokenize` / `block`)
 - [ ] Decisions list shows custom `entity` + `rule` like builtins
 - [ ] Link to `write-custom-recognizers` guide
-- [ ] Playwright or component test: add pattern, scan sample, see token in output
-- [ ] Do not regress builtin Tier 0 toggle behavior
+- [x] Playwright or component test: add pattern, scan sample, see token in output (`apps/web/lib/playground-scan.test.ts`)
+- [x] Do not regress builtin Tier 0 toggle behavior
 
 **Exit:** M6e acceptance criteria in [`milestones.md`](milestones.md) green.
 

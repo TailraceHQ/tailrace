@@ -1,20 +1,22 @@
 "use client";
 
 import {
-  createTailrace,
   definePatternRecognizer,
-  definePolicy,
-  PolicyViolationError,
   RecognizerError,
   SECRET_ENTITY_CLASSES,
   type Action,
   type Decision,
-  type EntityClass,
-  type EntityRuleValue,
-  type PolicyDocument,
-  type Recognizer,
 } from "@tailrace/core";
 import { useEffect, useId, useMemo, useState, type ReactNode } from "react";
+import {
+  compilePlaygroundRecognizers,
+  PLAYGROUND_TOGGLE_ENTITIES,
+  runPlaygroundScan,
+  type PlaygroundCustomPattern,
+  type PlaygroundToggleEntity,
+} from "@/lib/playground-scan";
+
+const SECRET_SET = new Set<string>(SECRET_ENTITY_CLASSES);
 
 // Synthetic Stripe test key, assembled at runtime so the secret-shaped literal
 // never appears contiguously in source and cannot trip source secret scanners.
@@ -25,22 +27,8 @@ const SAMPLE = `Please charge card 4532 0151 1283 0366 and email the receipt to 
 Also call +1 415 555 0132 if needed.
 API key: ${SAMPLE_API_KEY}`;
 
-// All Tier 0 entity classes. Defaults match zero-config defaultPolicy().
-const TOGGLE_ENTITIES = [
-  "api_key",
-  "jwt",
-  "private_key",
-  "high_entropy_secret",
-  "connection_string",
-  "email",
-  "phone",
-  "credit_card",
-  "iban",
-  "ssn",
-  "ip_address",
-  "url_credentials",
-] as const;
-type ToggleEntity = (typeof TOGGLE_ENTITIES)[number];
+type ToggleEntity = PlaygroundToggleEntity;
+const TOGGLE_ENTITIES = PLAYGROUND_TOGGLE_ENTITIES;
 
 const ACTIONS: readonly Action[] = ["allow", "mask", "tokenize", "block"];
 
@@ -59,21 +47,7 @@ const DEFAULT_ACTIONS: Record<ToggleEntity, Action> = {
   url_credentials: "block",
 };
 
-const SECRET_SET = new Set<string>(SECRET_ENTITY_CLASSES);
-
-const BOUNDARY = { kind: "model" as const, provider: "openai/gpt-4o" };
-const IDENTITY = { agent: "default" };
-const DEBOUNCE_MS = 150;
-
-type CustomPattern = {
-  id: string;
-  entity: string;
-  source: string;
-  confidence: string;
-  action: Action;
-};
-
-const CUSTOM_PATTERN_DEFAULTS: Omit<CustomPattern, "id"> = {
+const CUSTOM_PATTERN_DEFAULTS: Omit<PlaygroundCustomPattern, "id"> = {
   entity: "employee_id",
   source: String.raw`\bEMP-\d{5}\b`,
   confidence: "1",
@@ -99,63 +73,6 @@ function actionClass(action: Action | "restore_miss"): string {
     default:
       return "bg-fd-muted text-fd-muted-foreground ring-fd-border";
   }
-}
-
-function buildPolicy(
-  actions: Record<ToggleEntity, Action>,
-  customPatterns: CustomPattern[],
-): PolicyDocument {
-  const entities: Partial<Record<EntityClass, EntityRuleValue>> = {};
-  for (const entity of TOGGLE_ENTITIES) {
-    const action = actions[entity];
-    if (SECRET_SET.has(entity) && action === "allow") {
-      entities[entity] = { action: "allow", dangerouslyAllowSecrets: true };
-    } else {
-      entities[entity] = action;
-    }
-  }
-  for (const pattern of customPatterns) {
-    entities[pattern.entity] = pattern.action;
-  }
-  return definePolicy({
-    defaults: { action: "allow" },
-    entities,
-  });
-}
-
-function compileCustomRecognizers(patterns: CustomPattern[]): {
-  recognizers: Recognizer[];
-  errors: Record<string, string>;
-} {
-  const recognizers: Recognizer[] = [];
-  const errors: Record<string, string> = {};
-  for (const pattern of patterns) {
-    try {
-      const confidence = pattern.confidence.trim() === "" ? undefined : Number(pattern.confidence);
-      recognizers.push(
-        definePatternRecognizer({
-          id: pattern.id,
-          entity: pattern.entity,
-          tier: 0,
-          patterns: [
-            {
-              source: pattern.source,
-              ...(confidence !== undefined && !Number.isNaN(confidence) ? { confidence } : {}),
-            },
-          ],
-        }),
-      );
-    } catch (err) {
-      const msg =
-        err instanceof RecognizerError
-          ? err.message.split(" → ")[0]!
-          : err instanceof Error
-            ? err.message
-            : "invalid pattern";
-      errors[pattern.id] = msg;
-    }
-  }
-  return { recognizers, errors };
 }
 
 function HighlightedText({ text, decisions }: { text: string; decisions: Decision[] }) {
@@ -203,7 +120,7 @@ export function Playground() {
   const inputId = useId();
   const [text, setText] = useState(SAMPLE);
   const [actions, setActions] = useState<Record<ToggleEntity, Action>>(DEFAULT_ACTIONS);
-  const [customPatterns, setCustomPatterns] = useState<CustomPattern[]>([]);
+  const [customPatterns, setCustomPatterns] = useState<PlaygroundCustomPattern[]>([]);
   const [draftEntity, setDraftEntity] = useState(CUSTOM_PATTERN_DEFAULTS.entity);
   const [draftSource, setDraftSource] = useState(CUSTOM_PATTERN_DEFAULTS.source);
   const [draftConfidence, setDraftConfidence] = useState(CUSTOM_PATTERN_DEFAULTS.confidence);
@@ -211,8 +128,8 @@ export function Playground() {
   const [draftError, setDraftError] = useState<string | null>(null);
   const [scan, setScan] = useState<ScanState>({ status: "idle" });
 
-  const { recognizers, errors: patternErrors } = useMemo(
-    () => compileCustomRecognizers(customPatterns),
+  const { errors: patternErrors } = useMemo(
+    () => compilePlaygroundRecognizers(customPatterns),
     [customPatterns],
   );
 
@@ -227,49 +144,16 @@ export function Playground() {
       void (async () => {
         if (cancelled) return;
         setScan({ status: "running" });
-        try {
-          const policy = buildPolicy(actions, customPatterns);
-          const tailrace = createTailrace({
-            policy,
-            ...(recognizers.length > 0 ? { recognizers } : {}),
-          });
-          const result = await tailrace.check(
-            text,
-            {
-              boundary: BOUNDARY,
-              identity: IDENTITY,
-              workflowId: "playground",
-            },
-            { applyBlockAs: "mask" },
-          );
-          if (cancelled) return;
-          setScan({
-            status: "ok",
-            output: result.output,
-            decisions: result.decisions,
-          });
-        } catch (err) {
-          if (cancelled) return;
-          if (err instanceof PolicyViolationError) {
-            setScan({
-              status: "ok",
-              output: text,
-              decisions: err.decisions,
-            });
-            return;
-          }
-          setScan({
-            status: "error",
-            message: err instanceof Error ? err.message : "Scan failed",
-          });
-        }
+        const result = await runPlaygroundScan({ text, actions, customPatterns });
+        if (cancelled) return;
+        setScan(result);
       })();
-    }, DEBOUNCE_MS);
+    }, 150);
     return () => {
       cancelled = true;
       window.clearTimeout(handle);
     };
-  }, [text, actions, customPatterns, recognizers]);
+  }, [text, actions, customPatterns]);
 
   const decisions = scan.status === "ok" ? scan.decisions : [];
 
