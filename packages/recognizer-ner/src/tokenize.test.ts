@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { beforeAll, describe, expect, it } from "vitest";
 
 import { offsetsForTokens, tokenizeO200k } from "./tokenize";
 
@@ -30,6 +30,11 @@ describe("offsetsForTokens", () => {
 });
 
 describe("tokenizeO200k", () => {
+  // Cold-loading js-tiktoken's o200k rank table regularly exceeds Vitest's 5s default in CI.
+  beforeAll(async () => {
+    await tokenizeO200k("");
+  }, 30_000);
+
   it("covers the full string with no gaps for emoji-heavy text", async () => {
     const text = "\u{1F600}\u{1F389} Contact us at test@example.com \u{1F680} done \u{1F4AF}";
     const { inputIds, charStarts, charEnds } = await tokenizeO200k(text);
