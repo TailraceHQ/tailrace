@@ -2,8 +2,8 @@
 
 Living checklist for [m6-plan.md](m6-plan.md). Update this file as phases land in CI.
 
-**Last updated:** 2026-07-15  
-**Overall:** complete (M6a-M6e); playground E2E test deferred
+**Last updated:** 2026-08-05  
+**Overall:** complete (M6a-M6e)
 
 | Phase | Focus | Status | Blocked by |
 |-------|--------|--------|------------|
@@ -11,7 +11,7 @@ Living checklist for [m6-plan.md](m6-plan.md). Update this file as phases land i
 | **M6b** | Docs: guide, README, concept links | complete | M6a |
 | **M6c** | Benchmark harness (real detection) | complete | M6a |
 | **M6d** | **CLI declarative regex config** | complete | M6a |
-| **M6e** | **Playground custom pattern editor** | complete (no Playwright yet) | M6a |
+| **M6e** | **Playground custom pattern editor** | complete | M6a |
 
 ---
 
@@ -68,14 +68,14 @@ Living checklist for [m6-plan.md](m6-plan.md). Update this file as phases land i
 
 ---
 
-## M6e - Playground editor (95%)
+## M6e - Playground editor (100%)
 
 - [x] Custom patterns panel (add/remove)
 - [x] `definePatternRecognizer` inline validation UX
 - [x] Per-custom-entity policy action control
 - [x] Decisions list shows custom entities
 - [x] Guide link from playground
-- [ ] Playwright/component test: add pattern, scan, token in output
+- [x] Component/unit test: add pattern → scan → token in output (`apps/web/lib/playground-scan.test.ts`)
 - [x] Builtin Tier 0 toggles unchanged
 
 ---
@@ -94,4 +94,4 @@ Tracked in [`OPEN_QUESTIONS.md`](../OPEN_QUESTIONS.md) §Deferred:
 - Policy-plane remote sync of recognizer definitions
 - Playground pattern persistence (localStorage / share URL)
 - `tailrace compile-config` standalone command (only if init/install-hooks DX fails)
-- Playground automated E2E test
+- Playground browser E2E (Playwright) - logic path covered by Vitest; full UI E2E optional

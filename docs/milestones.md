@@ -74,7 +74,7 @@ Implementation plan: [`m6-plan.md`](m6-plan.md). Progress scratchpad: [`m6-progr
 
 - [x] Playground UI to add/remove custom patterns and set per-entity actions (session state)
 - [x] Inline validation via `definePatternRecognizer`; decisions list shows custom entities
-- [ ] Test coverage for add-pattern → scan → token output flow
+- [x] Test coverage for add-pattern → scan → token output flow
 
 ## M7: Adapter + OpenAI Agents + Cloudflare Agents
 
