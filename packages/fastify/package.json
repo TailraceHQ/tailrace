@@ -53,6 +53,6 @@
   "devDependencies": {
     "@types/node": "^22.20.1",
     "fastify": "^5.4.0",
-    "vitest": "^2.1.9"
+    "vitest": "^3.2.7"
   }
 }

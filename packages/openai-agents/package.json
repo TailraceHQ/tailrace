@@ -52,7 +52,7 @@
   "devDependencies": {
     "@openai/agents": "^0.3.9",
     "expect-type": "^1.4.0",
-    "vitest": "^2.1.9",
+    "vitest": "^3.2.7",
     "zod": "^4.4.3"
   }
 }
