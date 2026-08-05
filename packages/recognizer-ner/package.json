@@ -54,7 +54,7 @@
   },
   "devDependencies": {
     "@types/node": "^22.10.2",
-    "vitest": "^2.1.9"
+    "vitest": "^3.2.7"
   },
   "publishConfig": {
     "access": "public"
