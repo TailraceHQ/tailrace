@@ -100,7 +100,7 @@ Zero runtime dependencies. Runs on Node 20+, Cloudflare Workers, and Vercel Edge
 
 ## Public API
 
-`createTailrace`, `definePolicy`, `defineRecognizer`, `definePatternRecognizer`, `memoryVault`, `kvVault`, `staticPolicy`, the
+`createTailrace`, `definePolicy`, `defineRecognizer`, `definePatternRecognizer`, `defaultPolicy`, `memoryVault`, `kvVault`, `staticPolicy`, the
 error classes (`TailraceError` and subclasses), and all public types. Everything else is internal.
 
 ```ts

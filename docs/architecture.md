@@ -20,9 +20,11 @@
 │   ├── encore/             # @tailrace/encore - Encore.ts middleware (raw openai-compat)
 │   ├── trpc/               # @tailrace/trpc - tRPC procedure middleware (tool boundary)
 │   ├── cli/                # @tailrace/cli - `tailrace` binary: init, install-hooks, hook, scan
+│   ├── cloud/              # @tailrace/cloud - remotePolicy + remoteAuditSink (hosted plane client)
 │   └── recognizer-ner/     # @tailrace/recognizer-ner - Tier 1 ONNX recognizer (optional peer)
 ├── apps/
-│   └── web/             # @tailrace/web - docs + marketing site (Next.js + Fumadocs); see docs/site/DOCS_AGENTS.md
+│   ├── web/             # @tailrace/web - docs + marketing site (Next.js + Fumadocs); see docs/site/DOCS_AGENTS.md
+│   └── dashboard/       # @tailrace/dashboard - hosted policy plane (private app; not npm-published)
 ├── examples/
 │   ├── acme-support-data/ # shared synthetic CRM fixtures for Acme Support demos
 │   ├── nextjs-ai-sdk/   # Next.js app using @tailrace/ai-sdk (demo 1 & 3)
@@ -45,6 +47,8 @@ Tooling: pnpm workspaces + Turborepo. tsup for builds (ESM + CJS, `.d.ts`). Vite
 - `eve` depends on `core` + `adapter`, peer `eve` (`>=0.1`). Tool-boundary wrap only; no `@tailrace/http`.
 - `cloudflare-agents` depends on `core` + **`ai-sdk`** (Compose: reuses `wrapModel` / `wrapTools` / streaming), peers `ai` and the Cloudflare Agents / `@cloudflare/ai-chat` packages bound at implement time. May also use `adapter` for client `onToolCall` wrapping.
 - `recognizer-ner` depends on `onnxruntime` packages and is a peer/optional dep of nothing - users install it explicitly and pass it into config. `core` must never import it.
+- `cloud` depends on `core` only. It implements `PolicySource` / `AuditSink` against a hosted plane; it contains zero policy resolution logic. Out-of-band only (init / poll / async audit) - never on the `check`/`restore` hot path.
+- `apps/dashboard` may depend on `core` (for `definePolicy` validation) and is a private Next.js app, not a publishable workspace package.
 - No package may import from another package's internals - public entry points only. Enforce with eslint `no-restricted-imports`. Gateway packages must not import each other.
 
 ## 3. Runtime matrix (CI must test all)
@@ -66,7 +70,9 @@ Tooling: pnpm workspaces + Turborepo. tsup for builds (ESM + CJS, `.d.ts`). Vite
 | encore | ✅ | - | - | - |
 | trpc | ✅ | - | - | - |
 | cli | ✅ | - | - | - |
+| cloud | ✅ | ✅ | ✅ | ✅ (best-effort) |
 | recognizer-ner | ✅ | ❌ v0.1 | ❌ v0.1 | - |
+| dashboard (app) | ✅ | - | - | - |
 
 "✅ for core" means: no `node:` imports, no `Buffer` (use `Uint8Array`/`TextEncoder`), no sync crypto, no filesystem. CI runs the core test suite under `workerd` via `@cloudflare/vitest-pool-workers`.
 
@@ -87,9 +93,9 @@ Data flow for any check: `input text/object → detect (spans) → policy resolv
 
 Objects (tool args, JSON messages) are scanned by walking string leaves; the span carries a JSON path so actions rewrite in place. Never serialize an object to one big string for scanning (breaks offsets, wrecks perf).
 
-## 5. Policy plane client interface (design only: no server in v0.1)
+## 5. Policy plane client interface
 
-`core` exposes a `PolicySource` interface so a hosted plane can slot in later without API changes:
+`core` exposes a `PolicySource` interface so a hosted plane can slot in without API changes:
 
 ```ts
 interface PolicySource {
@@ -98,8 +104,10 @@ interface PolicySource {
 }
 ```
 
-v0.1 ships `staticPolicy(doc)` (the default; wraps a local `definePolicy` result). File-based policy loading for Claude Code lives in `@tailrace/cli` (reads `.tailrace/config.json` and passes a `PolicyDocument` into `createTailrace`) - it is **not** a `@tailrace/core` export. A future `remotePolicy(url, key)` is out of scope but must be implementable against this interface with no core changes. Audit sinks follow the same pattern: `AuditSink` interface, local sinks shipped, remote sink later.
+`staticPolicy(doc)` wraps a local `definePolicy` result. File-based policy loading for Claude Code lives in `@tailrace/cli` (reads `.tailrace/config.json` and passes a `PolicyDocument` into `createTailrace`) - it is **not** a `@tailrace/core` export.
+
+`@tailrace/cloud` ships `remotePolicy(url, { apiKey, pollIntervalMs? })` and `remoteAuditSink(url, { apiKey, batchIntervalMs? })` against this interface. Fail-open: unreachable plane → last-known-good (or `defaultPolicy()` on cold start with a warning); audit delivery failures are dropped, never thrown. The private `apps/dashboard` service serves `GET|POST /api/v1/policy` and `POST|GET /api/v1/audit`. v1 uses poll for `subscribe` (SSE is a fast-follow). Nothing in `check`/`restore` may block on these network calls.
 
 ## 6. Public API surface (top-level exports of @tailrace/core)
 
-`createTailrace`, `definePolicy`, `defineRecognizer`, `definePatternRecognizer`, `memoryVault`, `kvVault`, `staticPolicy`, `consoleSink`, `jsonlSink`, error classes, and all public types. Anything else is internal. Keep this list short - every export is API we maintain forever.
+`createTailrace`, `definePolicy`, `defineRecognizer`, `definePatternRecognizer`, `defaultPolicy`, `memoryVault`, `kvVault`, `staticPolicy`, `consoleSink`, `jsonlSink`, error classes, and all public types. Anything else is internal. Keep this list short - every export is API we maintain forever.

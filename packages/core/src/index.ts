@@ -3,7 +3,7 @@
  *
  * Zero runtime dependencies; runs on Node 20+, Cloudflare Workers, and Vercel Edge.
  * Public exports are intentionally short - every export is API forever
- * (docs/architecture.md §6).
+ * (docs/architecture.md §6). Includes defaultPolicy for PolicySource fail-open.
  */
 
 import { applyActions } from "./actions/apply";
@@ -44,6 +44,7 @@ export { NER_ENTITY_CLASSES, PII_ENTITY_CLASSES, SECRET_ENTITY_CLASSES } from ".
 export { consoleSink, jsonlSink } from "./audit/sinks";
 export { memoryVault } from "./vault/memory";
 export { kvVault } from "./vault/kv";
+export { defaultPolicy } from "./policy/default";
 
 function isVault(value: Vault | VaultOptions): value is Vault {
   return typeof (value as Vault).put === "function";

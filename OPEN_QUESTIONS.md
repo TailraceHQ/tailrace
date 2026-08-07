@@ -7,6 +7,17 @@ implementation until answered.
 
 ## Open
 
+### Policy plane MVP (hosted)
+
+Resolved for the MVP slice in-repo (see `apps/dashboard`, `packages/cloud`):
+
+1. **Monorepo vs private repo.** Client SDK `@tailrace/cloud` lives in this monorepo (OSS). Hosted service is `apps/dashboard` (private package, not npm-published). Moving the dashboard to a private repo remains an option before any production deploy.
+2. **OSS core + proprietary plane vs fully OSS.** MVP is fully source-visible in this repo; commercial packaging (Sentry-style proprietary plane) is deferred.
+3. **Multi-tenant isolation.** Row-level by `environment_id`; API keys hash to one environment. No org-level RBAC yet.
+4. **Free/paid line.** Unchanged intent: self-hosted `core` free; hosted plane is the paid product when commercialized.
+
+_Deferred:_ SSE push, Postgres-backed store wiring (`schema.sql` ready), SSO/RBAC, billing.
+
 ### M8-6. Benchmark protocol / results
 
 Record Privacy Filter (pinned artifact) vs at least one GLiNER-class candidate: span-level F1
