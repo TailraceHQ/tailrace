@@ -41,8 +41,9 @@ Follow `docs/milestones.md` strictly in order (M0 -> M5); each milestone's accep
 
 Turborepo + pnpm workspaces monorepo. Packages:
 
-- `packages/core` (`@tailrace/core`) - detection, policy engine, vault, audit. **Zero runtime dependencies.** Public exports limited to: `createTailrace`, `definePolicy`, `defineRecognizer`, `memoryVault`, `kvVault`, `staticPolicy`, error classes, and public types.
-- `packages/ai-sdk`, `packages/mcp`, `packages/hono`, `packages/cli` - integrations; depend on `core` plus their host framework as a **peer dependency**. Integrations contain zero policy logic: they construct `Boundary`/`Identity`, call `tailrace.check`/`tailrace.restore`, and translate `PolicyViolationError` into the host's failure mode.
+- `packages/core` (`@tailrace/core`) - detection, policy engine, vault, audit. **Zero runtime dependencies.** Public exports limited to: `createTailrace`, `definePolicy`, `defineRecognizer`, `memoryVault`, `kvVault`, `staticPolicy`, `defaultPolicy`, error classes, and public types.
+- `packages/ai-sdk`, `packages/mcp`, `packages/hono`, `packages/cli`, `packages/cloud` - integrations; depend on `core` plus their host framework as a **peer dependency** (cloud has no host peer). Integrations contain zero policy logic: they construct `Boundary`/`Identity`, call `tailrace.check`/`tailrace.restore`, and translate `PolicyViolationError` into the host's failure mode (`cloud` implements `PolicySource`/`AuditSink` only).
+- `apps/dashboard` - private hosted policy plane (not npm-published); validates with `definePolicy`, serves remote clients.
 - `packages/recognizer-ner` - optional Tier 1 ONNX recognizer; `core` must never import it.
 - No package imports another's internals - public entry points only, enforced via eslint `no-restricted-imports`.
 
