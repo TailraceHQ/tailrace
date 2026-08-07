@@ -88,7 +88,8 @@ export default function PolicyPage() {
       <h1>Policy</h1>
       <p className="lede">
         Edit a <span className="mono">PolicyDocument</span>. Publish runs the same{" "}
-        <span className="mono">definePolicy</span> validation as core - invalid documents are rejected.
+        <span className="mono">definePolicy</span> validation as core - invalid documents are
+        rejected.
       </p>
 
       <form className="panel stack" onSubmit={(e) => void onPublish(e)}>

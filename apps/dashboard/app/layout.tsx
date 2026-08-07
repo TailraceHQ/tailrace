@@ -29,7 +29,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body
         style={
           {
-            "--font-sans": "var(--font-sans-loaded), IBM Plex Sans, ui-sans-serif, system-ui, sans-serif",
+            "--font-sans":
+              "var(--font-sans-loaded), IBM Plex Sans, ui-sans-serif, system-ui, sans-serif",
             "--font-mono": "var(--font-mono-loaded), IBM Plex Mono, ui-monospace, monospace",
           } as React.CSSProperties
         }

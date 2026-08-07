@@ -66,8 +66,8 @@ export default function AuditPage() {
     <Shell>
       <h1>Audit</h1>
       <p className="lede">
-        Events are keyed by <span className="mono">contentHash</span> for correlation. This UI cannot
-        render raw values - they were never sent.
+        Events are keyed by <span className="mono">contentHash</span> for correlation. This UI
+        cannot render raw values - they were never sent.
       </p>
 
       <div className="panel">
@@ -125,7 +125,8 @@ export default function AuditPage() {
               {events.length === 0 ? (
                 <tr>
                   <td colSpan={4} className="muted">
-                    No events yet. Point <span className="mono">remoteAuditSink</span> at this plane.
+                    No events yet. Point <span className="mono">remoteAuditSink</span> at this
+                    plane.
                   </td>
                 </tr>
               ) : (
