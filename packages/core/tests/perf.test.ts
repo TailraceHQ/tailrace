@@ -35,64 +35,76 @@ function build4kbInput(): string {
 }
 
 describe("Tier 0 perf gate", () => {
-  it("scans a 4KB mixed input at p50 < 5ms", async () => {
-    const engine = createDetectionEngine();
-    const input = build4kbInput();
+  // Wall-clock for ~2100 detects can exceed Vitest's 5s default under turbo
+  // parallel CI load even when p50 stays well under budget.
+  const timeoutMs = 30_000;
 
-    // Sanity: the fixture actually contains detectable entities.
-    expect((await engine.detect(input)).length).toBeGreaterThan(0);
+  it(
+    "scans a 4KB mixed input at p50 < 5ms",
+    async () => {
+      const engine = createDetectionEngine();
+      const input = build4kbInput();
 
-    for (let i = 0; i < 100; i++) await engine.detect(input); // warmup
+      // Sanity: the fixture actually contains detectable entities.
+      expect((await engine.detect(input)).length).toBeGreaterThan(0);
 
-    // measured p50 is ~0.5ms, far under budget, so this is stable under the parallel pool.
-    const iterations = 2000;
-    const samples: number[] = [];
-    for (let i = 0; i < iterations; i++) {
-      const t0 = performance.now();
-      await engine.detect(input);
-      samples.push(performance.now() - t0);
-    }
-    samples.sort((a, b) => a - b);
-    const p50 = samples[Math.floor(iterations * 0.5)]!;
+      for (let i = 0; i < 100; i++) await engine.detect(input); // warmup
 
-    expect(p50, `p50=${p50.toFixed(3)}ms`).toBeLessThan(5);
-  });
+      // measured p50 is ~0.5ms, far under budget, so this is stable under the parallel pool.
+      const iterations = 2000;
+      const samples: number[] = [];
+      for (let i = 0; i < iterations; i++) {
+        const t0 = performance.now();
+        await engine.detect(input);
+        samples.push(performance.now() - t0);
+      }
+      samples.sort((a, b) => a - b);
+      const p50 = samples[Math.floor(iterations * 0.5)]!;
 
-  it("with three typical custom patterns still meets p50 < 5ms on 4KB", async () => {
-    const custom = [
-      definePatternRecognizer({
-        id: "employee-id",
-        entity: "employee_id",
-        tier: 0,
-        patterns: [{ source: String.raw`\bEMP-\d{5}\b` }],
-      }),
-      definePatternRecognizer({
-        id: "ticket-id",
-        entity: "ticket_id",
-        tier: 0,
-        patterns: [{ source: String.raw`\bTKT-\d{6}\b` }],
-      }),
-      definePatternRecognizer({
-        id: "project-code",
-        entity: "project_code",
-        tier: 0,
-        patterns: [{ source: String.raw`\bPRJ-[A-Z]{3}\b` }],
-      }),
-    ];
-    const engine = createDetectionEngine({ recognizers: custom });
-    const input = build4kbInput() + " EMP-01234 TKT-123456 PRJ-ABC";
+      expect(p50, `p50=${p50.toFixed(3)}ms`).toBeLessThan(5);
+    },
+    timeoutMs,
+  );
 
-    for (let i = 0; i < 100; i++) await engine.detect(input);
+  it(
+    "with three typical custom patterns still meets p50 < 5ms on 4KB",
+    async () => {
+      const custom = [
+        definePatternRecognizer({
+          id: "employee-id",
+          entity: "employee_id",
+          tier: 0,
+          patterns: [{ source: String.raw`\bEMP-\d{5}\b` }],
+        }),
+        definePatternRecognizer({
+          id: "ticket-id",
+          entity: "ticket_id",
+          tier: 0,
+          patterns: [{ source: String.raw`\bTKT-\d{6}\b` }],
+        }),
+        definePatternRecognizer({
+          id: "project-code",
+          entity: "project_code",
+          tier: 0,
+          patterns: [{ source: String.raw`\bPRJ-[A-Z]{3}\b` }],
+        }),
+      ];
+      const engine = createDetectionEngine({ recognizers: custom });
+      const input = build4kbInput() + " EMP-01234 TKT-123456 PRJ-ABC";
 
-    const iterations = 2000;
-    const samples: number[] = [];
-    for (let i = 0; i < iterations; i++) {
-      const t0 = performance.now();
-      await engine.detect(input);
-      samples.push(performance.now() - t0);
-    }
-    samples.sort((a, b) => a - b);
-    const p50 = samples[Math.floor(iterations * 0.5)]!;
-    expect(p50, `p50=${p50.toFixed(3)}ms`).toBeLessThan(5);
-  });
+      for (let i = 0; i < 100; i++) await engine.detect(input);
+
+      const iterations = 2000;
+      const samples: number[] = [];
+      for (let i = 0; i < iterations; i++) {
+        const t0 = performance.now();
+        await engine.detect(input);
+        samples.push(performance.now() - t0);
+      }
+      samples.sort((a, b) => a - b);
+      const p50 = samples[Math.floor(iterations * 0.5)]!;
+      expect(p50, `p50=${p50.toFixed(3)}ms`).toBeLessThan(5);
+    },
+    timeoutMs,
+  );
 });

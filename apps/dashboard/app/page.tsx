@@ -80,7 +80,12 @@ export default function HomePage() {
           </label>
           <div className="row">
             <button type="submit">Open dashboard</button>
-            <button type="button" className="secondary" onClick={() => void onBootstrap()} disabled={bootstrapping}>
+            <button
+              type="button"
+              className="secondary"
+              onClick={() => void onBootstrap()}
+              disabled={bootstrapping}
+            >
               {bootstrapping ? "Creating…" : "Create demo project"}
             </button>
           </div>
