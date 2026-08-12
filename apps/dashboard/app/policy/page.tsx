@@ -93,6 +93,10 @@ export default function PolicyPage() {
       </p>
 
       <form className="panel stack" onSubmit={(e) => void onPublish(e)}>
+        <div className="editor-chrome">
+          <span className="filename">policy.json</span>
+          <span className="lang">JSON</span>
+        </div>
         <div className="row">
           <span className="muted">
             {version !== null ? (
