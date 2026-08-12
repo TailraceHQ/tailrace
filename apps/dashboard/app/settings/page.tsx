@@ -59,7 +59,11 @@ export const tailrace = createTailrace({
         </div>
 
         <div className="panel stack">
-          <h2 style={{ margin: 0, fontSize: "1.05rem" }}>Agent wiring</h2>
+          <div className="editor-chrome">
+            <span className="filename">tailrace.config.ts</span>
+            <span className="lang">TypeScript</span>
+          </div>
+          <h2>Agent wiring</h2>
           <p className="muted">
             Policy is pulled at init / on poll. Audit ships async. Kill this service and the host
             keeps last-known-good policy.

@@ -16,8 +16,12 @@ export function Shell({ children }: { children: ReactNode }) {
   return (
     <div className="app-shell">
       <header className="topbar">
-        <Link href="/" className="brand">
-          Tailrace <span>Plane</span>
+        <Link href="/" className="brand" aria-label="Tailrace Plane">
+          <img src="/logo/darkmode-logo.svg" alt="" className="brand-mark" />
+          <span className="brand-word">Tailrace</span>
+          <span className="brand-product">
+            <span>Plane</span>
+          </span>
         </Link>
         <nav className="nav" aria-label="Primary">
           {LINKS.map((link) => (

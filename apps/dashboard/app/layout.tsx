@@ -1,17 +1,20 @@
 import type { Metadata } from "next";
-import { IBM_Plex_Mono, IBM_Plex_Sans } from "next/font/google";
+import { Instrument_Sans, Inter, JetBrains_Mono } from "next/font/google";
 
 import "./globals.css";
 
-const sans = IBM_Plex_Sans({
+const inter = Inter({
   subsets: ["latin"],
-  weight: ["400", "500", "600"],
   variable: "--font-sans-loaded",
 });
 
-const mono = IBM_Plex_Mono({
+const instrumentSans = Instrument_Sans({
   subsets: ["latin"],
-  weight: ["400", "500"],
+  variable: "--font-display-loaded",
+});
+
+const jetbrainsMono = JetBrains_Mono({
+  subsets: ["latin"],
   variable: "--font-mono-loaded",
 });
 
@@ -25,18 +28,11 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${sans.variable} ${mono.variable}`}>
-      <body
-        style={
-          {
-            "--font-sans":
-              "var(--font-sans-loaded), IBM Plex Sans, ui-sans-serif, system-ui, sans-serif",
-            "--font-mono": "var(--font-mono-loaded), IBM Plex Mono, ui-monospace, monospace",
-          } as React.CSSProperties
-        }
-      >
-        {children}
-      </body>
+    <html
+      lang="en"
+      className={`${inter.variable} ${instrumentSans.variable} ${jetbrainsMono.variable}`}
+    >
+      <body>{children}</body>
     </html>
   );
 }

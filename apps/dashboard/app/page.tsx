@@ -59,7 +59,7 @@ export default function HomePage() {
 
   return (
     <Shell>
-      <h1>Policy plane</h1>
+      <h1>Govern policy from one plane.</h1>
       <p className="lede">
         Publish versioned policies and aggregate audit events from agents using{" "}
         <span className="mono">@tailrace/cloud</span>. Raw detected values never leave the host -
